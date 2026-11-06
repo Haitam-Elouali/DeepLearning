@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Application expérimentale de détection des maladies de la feuille de tomate par CNN et Transfer Learning.">
+  <title>{% block titre %}{{ app_nom }} — {{ app_titre }}{% endblock %}</title>
+
+  <link rel="icon" href="{{ url_for('static', filename='images/feuille.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap-icons.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-tomate sticky-top">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('accueil') }}">
+      <span class="brand-badge"><i class="bi bi-flower2"></i></span>
+      <span class="fw-semibold">{{ app_nom }}</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navigation"
+            aria-controls="navigation" aria-expanded="false" aria-label="Afficher le menu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navigation">
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-lg-1">
+        <li class="nav-item">
+          <a class="nav-link {% if page == 'accueil' %}active{% endif %}" href="{{ url_for('accueil') }}">
+            <i class="bi bi-speedometer2 me-1"></i>Tableau de bord
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if page == 'analyse' %}active{% endif %}" href="{{ url_for('page_analyse') }}">
+            <i class="bi bi-search me-1"></i>Analyse
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if page == 'historique' %}active{% endif %}" href="{{ url_for('page_historique') }}">
+            <i class="bi bi-clock-history me-1"></i>Historique
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if page == 'maladies' %}active{% endif %}" href="{{ url_for('page_maladies') }}">
+            <i class="bi bi-journal-medical me-1"></i>Maladies
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if page == 'apropos' %}active{% endif %}" href="{{ url_for('page_a_propos') }}">
+            <i class="bi bi-info-circle me-1"></i>À propos
+          </a>
+        </li>
+      </ul>
+      <a class="btn btn-light btn-sm ms-lg-3 fw-semibold" href="{{ url_for('page_analyse') }}">
+        <i class="bi bi-plus-lg me-1"></i>Nouvelle analyse
+      </a>
+    </div>
+  </div>
+</nav>
+
+<main class="flex-grow-1">
+  {% block contenu %}{% endblock %}
+</main>
+
+<footer class="footer-tomate mt-auto py-4">
+  <div class="container">
+    <div class="row gy-3 align-items-start">
+      <div class="col-md-5">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="brand-badge brand-badge-sm"><i class="bi bi-flower2"></i></span>
+          <span class="fw-semibold">{{ app_nom }}</span>
+        </div>
+        <p class="small text-secondary mb-0">
+          Projet universitaire de Deep Learning — MobileNetV2, Transfer Learning et Flask.
+          Version {{ app_version }}.
+        </p>
+      </div>
+      <div class="col-md-4">
+        <h6 class="fw-semibold small text-uppercase text-secondary">Navigation</h6>
+        <ul class="list-unstyled small mb-0">
+          <li><a href="{{ url_for('page_analyse') }}">Analyser une feuille</a></li>
+          <li><a href="{{ url_for('page_historique') }}">Historique des analyses</a></li>
+          <li><a href="{{ url_for('page_maladies') }}">Fiches maladies</a></li>
+          <li><a href="{{ url_for('page_a_propos') }}">Méthodologie</a></li>
+        </ul>
+      </div>
+      <div class="col-md-3">
+        <h6 class="fw-semibold small text-uppercase text-secondary">Avertissement</h6>
+        <p class="small text-secondary mb-0">
+          Outil expérimental d'aide à la reconnaissance visuelle. Il ne remplace pas
+          l'avis d'un agronome ou d'un diagnostic de laboratoire.
+        </p>
+      </div>
+    </div>
+    <hr class="my-3">
+    <p class="small text-secondary mb-0 text-center">
+      © {{ annee }} {{ app_titre }} — Usage académique.
+    </p>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='vendor/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

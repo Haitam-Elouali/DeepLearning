@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block titre %}Tableau de bord — {{ app_nom }}{% endblock %}
+
+{% block contenu %}
+<section class="hero-tomate">
+  <div class="container py-5">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-7">
+        <span class="badge badge-doux mb-3">
+          <i class="bi bi-mortarboard me-1"></i>Projet universitaire — Deep Learning
+        </span>
+        <h1 class="display-6 fw-bold mb-3">
+          Détecter les maladies de la feuille de tomate en quelques secondes
+        </h1>
+        <p class="lead text-secondary mb-4">
+          Téléversez une photographie de feuille : le modèle <strong>MobileNetV2</strong>
+          entraîné par <em>Transfer Learning</em> estime la classe la plus probable parmi
+          quatre situations — feuille saine, alternariose précoce, mildiou ou moisissure
+          des feuilles — et affiche son niveau de confiance.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-tomate btn-lg" href="{{ url_for('page_analyse') }}">
+            <i class="bi bi-cloud-arrow-up me-2"></i>Commencer une analyse
+          </a>
+          <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('page_maladies') }}">
+            <i class="bi bi-book me-2"></i>Consulter les fiches maladies
+          </a>
+        </div>
+        {% if not modele_pret %}
+        <div class="alert alert-warning mt-4 mb-0" role="alert">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          {{ erreur_modele }}
+        </div>
+        {% endif %}
+      </div>
+      <div class="col-lg-5">
+        <div class="carte-verre p-4">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="h6 text-uppercase text-secondary mb-0">État du système</h2>
+            {% if modele_pret %}
+            <span class="badge bg-success-subtle text-success-emphasis">
+              <i class="bi bi-check-circle me-1"></i>Modèle chargé
+            </span>
+            {% else %}
+            <span class="badge bg-warning-subtle text-warning-emphasis">Modèle absent</span>
+            {% endif %}
+          </div>
+          <dl class="row mb-0 small">
+            <dt class="col-6 fw-normal text-secondary">Architecture</dt>
+            <dd class="col-6 text-end fw-semibold">MobileNetV2 + Transfer Learning</dd>
+            <dt class="col-6 fw-normal text-secondary">Entrée du modèle</dt>
+            <dd class="col-6 text-end fw-semibold">224 × 224 × 3</dd>
+            <dt class="col-6 fw-normal text-secondary">Classes</dt>
+            <dd class="col-6 text-end fw-semibold">{{ classes|length }}</dd>
+            <dt class="col-6 fw-normal text-secondary">Images d'entraînement</dt>
+            <dd class="col-6 text-end fw-semibold">
+              {{ manifeste.totaux.train if manifeste and manifeste.totaux else '—' }}
+            </dd>
+            <dt class="col-6 fw-normal text-secondary">Accuracy (validation)</dt>
+            <dd class="col-6 text-end fw-semibold">
+              {% if configuration and configuration.meilleure_val_accuracy %}
+                {{ configuration.meilleure_val_accuracy|pourcentage }}
+              {% else %}—{% endif %}
+            </dd>
+            <dt class="col-6 fw-normal text-secondary">Dataset</dt>
+            <dd class="col-6 text-end fw-semibold">PlantVillage (tomate)</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container py-4 py-lg-5">
+  <div class="row g-3">
+    <div class="col-6 col-lg-3">
+      <div class="card stat-card h-100 border-0">
+        <div class="card-body">
+          <div class="stat-icon bg-success-subtle text-success"><i class="bi bi-clipboard2-pulse"></i></div>
+          <p class="stat-valeur mb-0">{{ stats.total }}</p>
+          <p class="stat-libelle mb-0">Analyses réalisées</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card stat-card h-100 border-0">
+        <div class="card-body">
+          <div class="stat-icon bg-primary-subtle text-primary"><i class="bi bi-graph-up-arrow"></i></div>
+          <p class="stat-valeur mb-0">
+            {% if stats.confiance_moyenne is not none %}{{ stats.confiance_moyenne|pourcentage }}{% else %}—{% endif %}
+          </p>
+          <p class="stat-libelle mb-0">Confiance moyenne</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card stat-card h-100 border-0">
+        <div class="card-body">
+          <div class="stat-icon bg-warning-subtle text-warning-emphasis"><i class="bi bi-calendar-week"></i></div>
+          <p class="stat-valeur mb-0">{{ stats.semaine }}</p>
+          <p class="stat-libelle mb-0">Analyses (7 derniers jours)</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card stat-card h-100 border-0">
+        <div class="card-body">
+          <div class="stat-icon bg-danger-subtle text-danger"><i class="bi bi-bug"></i></div>
+          <p class="stat-valeur mb-0">{{ classes|length }}</p>
+          <p class="stat-libelle mb-0">Classes prises en charge</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container pb-4">
+  <div class="row g-4 align-items-stretch">
+    <div class="col-lg-8">
+      <div class="d-flex align-items-end justify-content-between mb-3">
+        <div>
+          <h2 class="h4 fw-bold mb-1">Classes du modèle</h2>
+          <p class="text-secondary mb-0 small">Quatre situations reconnues par le réseau de neurones.</p>
+        </div>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('page_maladies') }}">Toutes les fiches</a>
+      </div>
+      <div class="row g-3">
+        {% for classe in classes %}
+        <div class="col-sm-6">
+          <article class="card classe-card h-100 border-0">
+            <div class="classe-image">
+              {% if classe.image_exemple %}
+              <img src="{{ url_for('static', filename='images/examples/' ~ classe.image_exemple ~ '_1.jpg') }}"
+                   alt="Exemple de feuille : {{ classe.nom_fr }}" loading="lazy">
+              {% endif %}
+              <span class="badge classe-badge" style="background: {{ classe.couleur }}">{{ classe.categorie }}</span>
+            </div>
+            <div class="card-body">
+              <h3 class="h6 fw-bold mb-1">{{ classe.nom_fr }}</h3>
+              <p class="small text-secondary mb-2">
+                {% if classe.nom_scientifique and classe.nom_scientifique != '—' %}
+                <em>{{ classe.nom_scientifique }}</em> ·
+                {% endif %}
+                {{ classe.analyses }} analyse{{ 's' if classe.analyses != 1 else '' }}
+              </p>
+              <p class="small mb-0">{{ classe.resume }}</p>
+            </div>
+          </article>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-0 pt-3">
+          <h2 class="h6 fw-bold mb-0"><i class="bi bi-pie-chart me-2 text-success"></i>Répartition des prédictions</h2>
+        </div>
+        <div class="card-body">
+          {% if stats.total %}
+          <div class="graphique-conteneur" style="height: 240px">
+            <canvas id="graphiqueRepartition"
+                    aria-label="Répartition des classes prédites" role="img"></canvas>
+          </div>
+          <ul class="list-unstyled small mt-3 mb-0" id="legendeRepartition">
+            {% for classe in classes %}
+            <li class="d-flex justify-content-between py-1">
+              <span><span class="pastille" style="background: {{ classe.couleur }}"></span>{{ classe.nom_fr }}</span>
+              <span class="fw-semibold">{{ classe.analyses }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="bi bi-bar-chart-line display-5 text-secondary opacity-50"></i>
+            <p class="text-secondary small mt-3 mb-0">
+              Aucune analyse pour le moment.<br>Les statistiques apparaîtront ici.
+            </p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container pb-5">
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center pt-3">
+      <h2 class="h6 fw-bold mb-0"><i class="bi bi-clock-history me-2 text-success"></i>Dernières analyses</h2>
+      <a class="small link-secondary" href="{{ url_for('page_historique') }}">Voir l'historique complet</a>
+    </div>
+    <div class="card-body p-0">
+      {% if analyses_recentes %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Date</th>
+              <th scope="col">Image</th>
+              <th scope="col">Classe prédite</th>
+              <th scope="col" class="text-end">Confiance</th>
+              <th scope="col" class="text-end">Détails</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for analyse in analyses_recentes %}
+            <tr>
+              <td class="text-secondary">#{{ analyse.id }}</td>
+              <td class="small">{{ analyse.date_affichage }}</td>
+              <td class="small text-truncate" style="max-width: 180px">{{ analyse.nom_original }}</td>
+              <td>
+                <span class="pastille" style="background: {{ 'var(--vert-500)' if analyse.saine else 'var(--rouge-500)' }}"></span>
+                {{ analyse.nom_fr }}
+              </td>
+              <td class="text-end fw-semibold">{{ analyse.confiance|pourcentage }}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('page_detail', identifiant=analyse.id) }}">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5">
+        <i class="bi bi-inbox display-5 text-secondary opacity-50"></i>
+        <p class="text-secondary small mt-3 mb-3">Aucune analyse enregistrée pour l'instant.</p>
+        <a class="btn btn-tomate btn-sm" href="{{ url_for('page_analyse') }}">Lancer la première analyse</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="alert alert-light border mt-4 mb-0 small">
+    <i class="bi bi-info-circle me-2 text-success"></i>
+    <strong>Rappel :</strong> les prédictions sont probabilistes et issues d'un modèle expérimental.
+    Une confusion entre classes reste possible ; l'outil ne constitue pas un diagnostic agricole.
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{% if stats.total %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const canvas = document.getElementById('graphiqueRepartition');
+    if (!canvas || typeof Chart === 'undefined') return;
+    const donnees = {{ classes|map(attribute='analyses')|list|tojson }};
+    const libelles = {{ classes|map(attribute='nom_fr')|list|tojson }};
+    const couleurs = {{ classes|map(attribute='couleur')|list|tojson }};
+    new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: libelles,
+        datasets: [{ data: donnees, backgroundColor: couleurs, borderWidth: 0 }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        cutout: '62%'
+      }
+    });
+  });
+</script>
+{% endif %}
+{% endblock %}

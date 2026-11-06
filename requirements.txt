@@ -1,0 +1,34 @@
+# ============================================================================
+# Dépendances du projet — Détection des maladies de la feuille de tomate
+#
+# Installation :
+#   python -m venv .venv
+#   source .venv/bin/activate        (Windows : .venv\Scripts\activate)
+#   pip install -r requirements.txt
+#
+# Sur une machine avec GPU NVIDIA, remplacer « tensorflow-cpu » par
+# « tensorflow » (même API, entraînement accéléré).
+# ============================================================================
+
+# --- Application Web --------------------------------------------------------
+Flask>=3.0,<4.0
+
+# --- Deep Learning ----------------------------------------------------------
+tensorflow-cpu>=2.16,<2.22
+
+# --- Traitement d'images et calcul numérique --------------------------------
+numpy>=1.26,<3
+Pillow>=10.0
+pandas>=2.1
+scikit-learn>=1.4
+
+# --- Visualisation (figures du rapport) -------------------------------------
+matplotlib>=3.8
+seaborn>=0.13
+
+# --- Tests ------------------------------------------------------------------
+pytest>=8.0
+
+# --- Génération des livrables (rapport DOCX et présentation PPTX) -----------
+python-docx>=1.1
+python-pptx>=0.6.23

@@ -1,0 +1,413 @@
+/* ==========================================================================
+   TomatoScan — feuille de style principale
+   Palette : vert végétal, rouge tomate, fond crème.
+   ========================================================================== */
+
+:root {
+  --vert-900: #14532d;
+  --vert-700: #166534;
+  --vert-600: #15803d;
+  --vert-500: #22c55e;
+  --vert-100: #dcfce7;
+  --rouge-600: #b91c1c;
+  --rouge-500: #dc2626;
+  --creme: #f7f8f3;
+  --encre: #1f2937;
+  --gris: #6b7280;
+  --bordure: #e5e7eb;
+  --radius: 16px;
+  --ombre: 0 10px 30px -18px rgba(20, 83, 45, 0.35);
+}
+
+* {
+  scrollbar-width: thin;
+}
+
+body {
+  background: var(--creme);
+  color: var(--encre);
+  font-family: "Segoe UI", "Inter", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+a {
+  color: var(--vert-700);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--vert-600);
+  text-decoration: underline;
+}
+
+code {
+  color: var(--vert-700);
+  background: var(--vert-100);
+  padding: 0.1rem 0.35rem;
+  border-radius: 6px;
+  font-size: 0.85em;
+}
+
+/* --- Barre de navigation ------------------------------------------------- */
+.navbar-tomate {
+  background: linear-gradient(100deg, var(--vert-900), var(--vert-700) 55%, #1f6f3f);
+}
+
+.navbar-tomate .nav-link {
+  color: rgba(255, 255, 255, 0.82);
+  border-radius: 10px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.95rem;
+}
+
+.navbar-tomate .nav-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-tomate .nav-link.active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  font-weight: 600;
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 1.05rem;
+}
+
+.brand-badge-sm {
+  width: 28px;
+  height: 28px;
+  background: var(--vert-100);
+  color: var(--vert-700);
+  font-size: 0.9rem;
+}
+
+/* --- Boutons ------------------------------------------------------------ */
+.btn-tomate {
+  background: linear-gradient(115deg, var(--vert-600), var(--vert-500));
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 8px 18px -12px rgba(21, 128, 61, 0.9);
+}
+
+.btn-tomate:hover,
+.btn-tomate:focus {
+  background: linear-gradient(115deg, var(--vert-700), var(--vert-600));
+  color: #fff;
+}
+
+.btn-tomate:disabled {
+  background: #9ca3af;
+  box-shadow: none;
+}
+
+/* --- Section d'accueil -------------------------------------------------- */
+.hero-tomate {
+  background:
+    radial-gradient(900px 380px at 88% -10%, rgba(34, 197, 94, 0.2), transparent 65%),
+    radial-gradient(700px 320px at 8% 110%, rgba(185, 28, 28, 0.08), transparent 70%),
+    #fff;
+  border-bottom: 1px solid var(--bordure);
+}
+
+.badge-doux {
+  background: var(--vert-100);
+  color: var(--vert-900);
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.45rem 0.8rem;
+}
+
+.carte-verre {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--bordure);
+  border-radius: var(--radius);
+  box-shadow: var(--ombre);
+}
+
+/* --- Statistiques ------------------------------------------------------- */
+.stat-card {
+  border-radius: var(--radius);
+  box-shadow: 0 6px 20px -16px rgba(15, 23, 42, 0.5);
+  background: #fff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ombre);
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  margin-bottom: 0.75rem;
+}
+
+.stat-valeur {
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.stat-libelle {
+  font-size: 0.82rem;
+  color: var(--gris);
+}
+
+/* --- Cartes de classes -------------------------------------------------- */
+.classe-card {
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 6px 20px -18px rgba(15, 23, 42, 0.55);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.classe-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--ombre);
+}
+
+.classe-image {
+  position: relative;
+  height: 140px;
+  overflow: hidden;
+  background: #eef2e6;
+}
+
+.classe-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.classe-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.pastille {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* --- Zone de dépôt ------------------------------------------------------ */
+.zone-depot {
+  border: 2px dashed #cbd5c0;
+  border-radius: var(--radius);
+  background: #fbfdf7;
+  padding: 1.75rem 1rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.zone-depot:hover,
+.zone-depot:focus-visible {
+  border-color: var(--vert-500);
+  background: #f3fbef;
+  outline: none;
+}
+
+.zone-depot.survol {
+  border-color: var(--vert-600);
+  background: var(--vert-100);
+  transform: scale(1.01);
+}
+
+.zone-depot.chargement {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.apercu-image {
+  max-width: 100%;
+  max-height: 320px;
+  border-radius: 12px;
+  object-fit: contain;
+  box-shadow: 0 8px 24px -16px rgba(15, 23, 42, 0.7);
+}
+
+.image-analyse {
+  max-height: 380px;
+  object-fit: contain;
+  background: #f1f5e9;
+  border-top-left-radius: var(--radius);
+  border-top-right-radius: var(--radius);
+}
+
+/* --- Graphiques --------------------------------------------------------- */
+.graphique-conteneur {
+  position: relative;
+  width: 100%;
+}
+
+/* --- Résultats ---------------------------------------------------------- */
+.pulse-cercle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 1.6rem;
+  color: var(--vert-700);
+  background: var(--vert-100);
+  animation: pulsation 2.4s ease-in-out infinite;
+}
+
+@keyframes pulsation {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.35); }
+  50% { box-shadow: 0 0 0 16px rgba(34, 197, 94, 0); }
+}
+
+.proba-liste li + li {
+  margin-top: 0.6rem;
+}
+
+.proba-liste .progress {
+  background: #eef2e6;
+  border-radius: 999px;
+}
+
+.proba-liste .progress-bar {
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+#resultats {
+  animation: apparition 0.35s ease;
+}
+
+@keyframes apparition {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Fiches maladies ---------------------------------------------------- */
+.fiche-maladie {
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.fiche-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: linear-gradient(120deg, var(--couleur-classe), color-mix(in srgb, var(--couleur-classe) 62%, #111827));
+  color: #fff;
+}
+
+.exemple-feuille {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* --- Architecture (page À propos) --------------------------------------- */
+.architecture {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.arch-etape {
+  flex: 1 1 150px;
+  background: #f8faf5;
+  border: 1px solid var(--bordure);
+  border-radius: 12px;
+  padding: 0.9rem;
+  text-align: center;
+}
+
+.arch-icone {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--vert-100);
+  color: var(--vert-700);
+  margin-bottom: 0.5rem;
+}
+
+.arch-fleche {
+  display: none;
+  align-items: center;
+  color: #9ca3af;
+}
+
+@media (min-width: 992px) {
+  .arch-fleche { display: flex; }
+}
+
+/* --- Pied de page ------------------------------------------------------- */
+.footer-tomate {
+  background: #fff;
+  border-top: 1px solid var(--bordure);
+}
+
+.footer-tomate a {
+  color: var(--gris);
+}
+
+.footer-tomate a:hover {
+  color: var(--vert-700);
+}
+
+/* --- Divers ------------------------------------------------------------- */
+.table > :not(caption) > * > * {
+  padding: 0.75rem 0.9rem;
+}
+
+.card {
+  border-radius: var(--radius);
+}
+
+.alert {
+  border-radius: 12px;
+}
+
+.badge {
+  font-weight: 600;
+}
+
+/* Accessibilité : focus visible sur les éléments interactifs */
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible {
+  outline: 3px solid rgba(34, 197, 94, 0.45);
+  outline-offset: 2px;
+}
+
+@media (max-width: 575.98px) {
+  .stat-valeur { font-size: 1.5rem; }
+  .classe-image { height: 120px; }
+}

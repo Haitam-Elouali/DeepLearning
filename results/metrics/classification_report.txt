@@ -1,0 +1,13 @@
+Classification report — ensemble de test
+Modèle : best_model.keras
+
+                       precision    recall  f1-score   support
+
+Tomato___Early_blight     0.9366    0.8867    0.9110       150
+ Tomato___Late_blight     0.9615    0.9582    0.9599       287
+   Tomato___Leaf_Mold     0.9452    0.9650    0.9550       143
+     Tomato___healthy     0.9756    1.0000    0.9877       240
+
+             accuracy                         0.9585       820
+            macro avg     0.9547    0.9525    0.9534       820
+         weighted avg     0.9583    0.9585    0.9582       820

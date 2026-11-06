@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block titre %}Analyse d'une feuille — {{ app_nom }}{% endblock %}
+
+{% block contenu %}
+<section class="bg-white border-bottom py-4">
+  <div class="container">
+    <div class="row align-items-center g-3">
+      <div class="col-lg-8">
+        <h1 class="h3 fw-bold mb-1">Analyser une feuille de tomate</h1>
+        <p class="text-secondary mb-0">
+          Déposez une photographie nette d'une feuille unique, sur fond neutre si possible.
+          Le modèle renvoie une classe et un score de confiance.
+        </p>
+      </div>
+      <div class="col-lg-4 text-lg-end">
+        <span class="badge bg-success-subtle text-success-emphasis me-1">
+          <i class="bi bi-cpu me-1"></i>MobileNetV2
+        </span>
+        <span class="badge bg-light text-secondary-emphasis">
+          JPG · JPEG · PNG — max {{ taille_max_mo }} Mo
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container py-4 py-lg-5">
+  {% if not modele_pret %}
+  <div class="alert alert-warning" role="alert">
+    <i class="bi bi-exclamation-triangle me-2"></i>{{ erreur_modele }}
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <!-- Colonne téléversement -->
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body p-4">
+          <h2 class="h6 text-uppercase text-secondary mb-3">1. Choisir une image</h2>
+
+          <div id="zoneDepot" class="zone-depot" tabindex="0" role="button"
+               data-taille-max="{{ taille_max_mo * 1024 * 1024 }}"
+               aria-label="Déposer ou sélectionner une image de feuille">
+            <input type="file" id="champImage" name="image" accept=".jpg,.jpeg,.png,image/jpeg,image/png" hidden>
+            <div id="contenuDepot" class="text-center">
+              <i class="bi bi-cloud-arrow-up display-5 text-success"></i>
+              <p class="fw-semibold mb-1 mt-2">Glissez une image ici</p>
+              <p class="text-secondary small mb-2">ou cliquez pour parcourir vos fichiers</p>
+              <span class="btn btn-sm btn-outline-success">Sélectionner une image</span>
+            </div>
+            <div id="contenuApercu" class="d-none text-center">
+              <img id="apercu" class="apercu-image" alt="Aperçu de l'image sélectionnée">
+            </div>
+          </div>
+
+          <div id="infosFichier" class="d-none mt-3 small text-secondary"></div>
+
+          <div id="erreurAnalyse" class="alert alert-danger d-none mt-3 mb-0" role="alert"></div>
+
+          <div class="d-grid gap-2 mt-4">
+            <button type="button" id="boutonAnalyser" class="btn btn-tomate btn-lg" disabled>
+              <span class="spinner-border spinner-border-sm me-2 d-none" id="spinnerAnalyse" role="status" aria-hidden="true"></span>
+              <i class="bi bi-magic me-2" id="iconeAnalyse"></i>
+              <span id="texteAnalyse">Lancer l'analyse</span>
+            </button>
+            <button type="button" id="boutonReinitialiser" class="btn btn-outline-secondary" disabled>
+              <i class="bi bi-arrow-counterclockwise me-1"></i>Nouvelle analyse
+            </button>
+          </div>
+
+          <hr class="my-4">
+          <h3 class="h6 text-uppercase text-secondary mb-2">Conseils pour une bonne image</h3>
+          <ul class="small text-secondary mb-0 ps-3">
+            <li>Une seule feuille, bien cadrée et occupant l'image.</li>
+            <li>Éclairage homogène, sans ombre forte ni reflet.</li>
+            <li>Éviter le flou, les arrière-plans chargés et les objets parasites.</li>
+            <li>Privilégier la face supérieure de la feuille, bien visible.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonne résultats -->
+    <div class="col-lg-7">
+      <div id="blocAttente" class="card border-0 shadow-sm h-100">
+        <div class="card-body d-flex flex-column justify-content-center align-items-center text-center py-5">
+          <div class="pulse-cercle mb-3"><i class="bi bi-flower2"></i></div>
+          <h2 class="h5 fw-bold mb-2">Les résultats s'afficheront ici</h2>
+          <p class="text-secondary small mb-3" style="max-width: 420px">
+            Sélectionnez une image puis lancez l'analyse. Le modèle calcule les probabilités
+            des quatre classes et retient la plus élevée.
+          </p>
+          <div class="d-flex flex-wrap justify-content-center gap-2">
+            {% for classe in classes %}
+            <span class="badge rounded-pill bg-light text-secondary-emphasis border">{{ classe.nom_fr }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div id="resultats" class="d-none">
+        <div class="card border-0 shadow-sm mb-3">
+          <div class="card-body p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+              <div>
+                <p class="text-uppercase text-secondary small mb-1">Classe prédite</p>
+                <h2 class="h3 fw-bold mb-1" id="resultatClasse">—</h2>
+                <p class="text-secondary mb-0 small" id="resultatResume"></p>
+              </div>
+              <div class="text-end">
+                <p class="text-uppercase text-secondary small mb-1">Confiance</p>
+                <p class="display-6 fw-bold mb-0" id="resultatConfiance">—</p>
+              </div>
+            </div>
+            <div class="progress mt-3" style="height: 10px" role="progressbar"
+                 aria-label="Niveau de confiance" aria-valuemin="0" aria-valuemax="100" id="barreConfiance">
+              <div class="progress-bar" id="barreConfianceRemplissage" style="width: 0%"></div>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+              <span class="badge" id="resultatCategorie">—</span>
+              <span class="badge bg-light text-secondary-emphasis" id="resultatNiveau">—</span>
+              <span class="badge bg-light text-secondary-emphasis" id="resultatDuree">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body">
+                <h3 class="h6 fw-bold mb-3"><i class="bi bi-bar-chart me-2 text-success"></i>Probabilités par classe</h3>
+                <div class="graphique-conteneur" style="height: 220px">
+                  <canvas id="graphiqueProbabilites" role="img"
+                          aria-label="Graphique des probabilités des quatre classes"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-body">
+                <h3 class="h6 fw-bold mb-3"><i class="bi bi-list-ol me-2 text-success"></i>Détail des scores</h3>
+                <ul class="list-unstyled proba-liste mb-0" id="listeProbabilites"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mt-3">
+          <div class="card-body">
+            <h3 class="h6 fw-bold mb-2"><i class="bi bi-journal-text me-2 text-success"></i>À propos de cette classe</h3>
+            <p class="small mb-3" id="resultatDescription"></p>
+            <h4 class="h6 text-uppercase text-secondary small mb-2">Symptômes caractéristiques</h4>
+            <ul class="small mb-0 ps-3" id="resultatSymptomes"></ul>
+            <div class="alert alert-light border small mt-3 mb-0">
+              <i class="bi bi-exclamation-circle me-1"></i>
+              Résultat expérimental : une confusion entre classes proches reste possible.
+              Confirmez l'observation par un examen visuel ou l'avis d'un spécialiste.
+            </div>
+            <div class="d-flex flex-wrap gap-2 mt-3">
+              <a href="#" class="btn btn-sm btn-outline-success" id="lienDetail">
+                <i class="bi bi-file-earmark-text me-1"></i>Fiche complète de l'analyse
+              </a>
+              <a href="{{ url_for('page_historique') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-clock-history me-1"></i>Historique
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

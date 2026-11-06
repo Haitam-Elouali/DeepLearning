@@ -1,0 +1,67 @@
+{
+  "dataset": "PlantVillage (sous-ensemble tomate, images couleur)",
+  "source": "https://github.com/spMohanty/PlantVillage-Dataset",
+  "citation": "Mohanty, Hughes & Salathé (2016), Frontiers in Plant Science",
+  "genere_le": "2026-11-06T12:37:46",
+  "graine": 42,
+  "ratios_demandes": {
+    "train": 0.7,
+    "validation": 0.15,
+    "test": 0.15
+  },
+  "taille_image": [
+    224,
+    224
+  ],
+  "normalisation": "x / 127.5 - 1 (convention MobileNetV2)",
+  "augmentation": [
+    "rotation (±5 %)",
+    "zoom (±10 %)",
+    "retournement horizontal",
+    "variation de luminosité (±15 %)",
+    "translation (±5 %)"
+  ],
+  "max_images_par_classe": null,
+  "classes": [
+    "Tomato___Early_blight",
+    "Tomato___Late_blight",
+    "Tomato___Leaf_Mold",
+    "Tomato___healthy"
+  ],
+  "comptages": {
+    "train": {
+      "Tomato___Early_blight": 700,
+      "Tomato___Late_blight": 1334,
+      "Tomato___Leaf_Mold": 666,
+      "Tomato___healthy": 1111
+    },
+    "validation": {
+      "Tomato___Early_blight": 150,
+      "Tomato___Late_blight": 288,
+      "Tomato___Leaf_Mold": 143,
+      "Tomato___healthy": 240
+    },
+    "test": {
+      "Tomato___Early_blight": 150,
+      "Tomato___Late_blight": 287,
+      "Tomato___Leaf_Mold": 143,
+      "Tomato___healthy": 240
+    }
+  },
+  "totaux": {
+    "train": 3811,
+    "validation": 821,
+    "test": 820
+  },
+  "total_general": 5452,
+  "images_brutes": {
+    "Tomato___Early_blight": 1000,
+    "Tomato___Late_blight": 1909,
+    "Tomato___Leaf_Mold": 952,
+    "Tomato___healthy": 1591
+  },
+  "doublons_exacts_ecartes_de_groupes": 14,
+  "images_utilisees": 5452,
+  "images_invalides": [],
+  "mise_en_lien": "lien physique (hardlink)"
+}

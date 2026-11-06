@@ -1,0 +1,90 @@
+{
+  "Tomato___Early_blight": {
+    "nom_fr": "Alternariose précoce",
+    "nom_scientifique": "Alternaria solani",
+    "categorie": "Champignon",
+    "niveau": "Modéré",
+    "couleur": "#d97706",
+    "resume": "Maladie fongique fréquente qui touche d'abord les feuilles âgées, avec des taches brunes concentriques en forme de cible.",
+    "description": "L'alternariose précoce est provoquée par le champignon Alternaria solani. Elle apparaît généralement sur les feuilles basses de la plante, puis progresse vers le haut. Les conditions chaudes et humides, ainsi que les alternances de périodes sèches et humides, favorisent son développement. Elle peut réduire le rendement en provoquant une défoliation prématurée si elle n'est pas surveillée.",
+    "symptomes": [
+      "Petites taches brunes à noires, souvent entourées d'un halo jaune",
+      "Anneaux concentriques dans les taches, donnant un aspect de « cible »",
+      "Taches localisées d'abord sur les feuilles âgées du bas de la plante",
+      "Jaunissement progressif puis dessèchement du limbe autour des taches"
+    ],
+    "confusion_possible": "Une alternariose avancée peut être confondue avec la septoriose ou la brûlure bactérienne, qui ne font pas partie des quatre classes étudiées.",
+    "prevention": [
+      "Rotation des cultures et élimination des débris de feuilles infectées",
+      "Arrosage au pied de la plante afin de limiter l'humidité du feuillage",
+      "Espacement suffisant entre les plants pour favoriser l'aération"
+    ],
+    "image_exemple": "early_blight"
+  },
+  "Tomato___Late_blight": {
+    "nom_fr": "Mildiou de la tomate",
+    "nom_scientifique": "Phytophthora infestans",
+    "categorie": "Oomycète",
+    "niveau": "Élevé",
+    "couleur": "#b91c1c",
+    "resume": "Maladie très destructrice, favorisée par un temps frais et humide, qui peut détruire un plant en quelques jours.",
+    "description": "Le mildiou est causé par Phytophthora infestans, un oomycète également responsable de la maladie de la pomme de terre. Il se développe rapidement lorsque l'humidité est élevée et que les températures sont modérées. Les lésions s'étendent sur la feuille et peuvent atteindre les tiges et les fruits. C'est la maladie la plus redoutée des cultures de tomate en plein champ.",
+    "symptomes": [
+      "Taches irrégulières vert foncé à brun-noir, à bords imprécis",
+      "Zone claire ou bordure pâle autour des lésions, aspect « mouillé »",
+      "Duvet blanc-grisâtre sur la face inférieure de la feuille par temps humide",
+      "Progression rapide : la feuille entière peut noircir et se dessécher"
+    ],
+    "confusion_possible": "Elle peut être confondue avec l'alternariose lorsque les lésions sont jeunes ; son extension très rapide et son aspect humide sont des indices distinctifs.",
+    "prevention": [
+      "Surveillance accrue par temps frais et humide",
+      "Éviter l'excès d'humidité foliaire et les arrosages par aspersion",
+      "Retirer rapidement les parties atteintes pour limiter la propagation"
+    ],
+    "image_exemple": "late_blight"
+  },
+  "Tomato___Leaf_Mold": {
+    "nom_fr": "Moisissure des feuilles",
+    "nom_scientifique": "Passalora fulva (Fulvia fulva)",
+    "categorie": "Champignon",
+    "niveau": "Modéré",
+    "couleur": "#7c3aed",
+    "resume": "Maladie surtout présente sous serre, caractérisée par des plages jaunes sur le dessus et un duvet olive sur le dessous des feuilles.",
+    "description": "La moisissure des feuilles est causée par le champignon Passalora fulva. Elle se développe préférentiellement dans les environnements chauds et très humides, typiquement sous abri ou en serre mal ventilée. Les feuilles inférieures et intermédiaires sont les plus touchées. La maladie réduit la photosynthèse et peut provoquer la chute prématurée des feuilles.",
+    "symptomes": [
+      "Plages jaune pâle aux contours flous sur la face supérieure",
+      "Duvet olive à brun sur la face inférieure, sous les zones jaunies",
+      "Feuilles qui se nécrosent et se recroquevillent avec le temps",
+      "Atteinte plus marquée des feuilles basses et des plants denses"
+    ],
+    "confusion_possible": "Les plages jaunes peuvent rappeler une carence nutritionnelle ou un début de mildiou ; l'observation du duvet sous la feuille est déterminante.",
+    "prevention": [
+      "Ventilation et régulation de l'humidité sous serre",
+      "Élimination des feuilles atteintes et des résidus de culture",
+      "Éviter les densités de plantation trop élevées"
+    ],
+    "image_exemple": "leaf_mold"
+  },
+  "Tomato___healthy": {
+    "nom_fr": "Feuille saine",
+    "nom_scientifique": "—",
+    "categorie": "Aucune maladie détectée",
+    "niveau": "Faible",
+    "couleur": "#15803d",
+    "resume": "Feuille sans symptôme visible : coloration verte homogène, limbe intact et absence de taches ou de déformations.",
+    "description": "La classe « feuille saine » regroupe des feuilles de tomate ne présentant aucun symptôme de maladie. Elle est indispensable : elle permet au modèle d'apprendre à distinguer un feuillage normal d'un feuillage malade et de réduire les faux positifs. Une feuille classée saine ne garantit pas l'absence de maladie sur le reste de la plante.",
+    "symptomes": [
+      "Coloration verte uniforme, sans taches ni marbrures",
+      "Limbe souple, sans dessèchement ni enroulement marqué",
+      "Absence de duvet ou de dépôt sur les deux faces",
+      "Nervures bien visibles et régulières"
+    ],
+    "confusion_possible": "Des taches mécaniques, des traces de boue ou un éclairage défavorable peuvent être interprétés à tort comme des symptômes.",
+    "prevention": [
+      "Contrôle visuel régulier du feuillage",
+      "Arrosage maîtrisé et bonne aération des plants",
+      "Observation de la face inférieure des feuilles, souvent révélatrice"
+    ],
+    "image_exemple": "healthy"
+  }
+}

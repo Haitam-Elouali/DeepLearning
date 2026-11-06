@@ -1,0 +1,89 @@
+{
+  "date": "2026-11-06T13:15:49",
+  "modele": "MobileNetV2 (ImageNet) + GlobalAveragePooling2D + Dense(128) + Dense(4, softmax)",
+  "tensorflow": "2.21.0",
+  "python": "3.12.3",
+  "graine": 42,
+  "taille_image": [
+    224,
+    224
+  ],
+  "batch_size": 32,
+  "optimiseur": "Adam",
+  "perte": "categorical_crossentropy",
+  "phase1": {
+    "epochs_max": 15,
+    "epochs_effectues": 15,
+    "learning_rate": 0.001,
+    "base_gelee": true,
+    "meilleure_val_accuracy": 0.9451888203620911,
+    "duree_min": 23.43
+  },
+  "phase2_fine_tuning": {
+    "active": true,
+    "couches_degelees": 19,
+    "epochs": 8,
+    "learning_rate": 1e-05,
+    "duree_min": 14.29
+  },
+  "callbacks": {
+    "early_stopping": {
+      "monitor": "val_loss",
+      "patience": 5
+    },
+    "model_checkpoint": {
+      "monitor": "val_accuracy",
+      "save_best_only": true
+    },
+    "reduce_lr": {
+      "monitor": "val_loss",
+      "facteur": 0.5,
+      "patience": 2
+    }
+  },
+  "augmentation": [
+    "rotation ±5 %",
+    "zoom ±10 %",
+    "retournement horizontal",
+    "luminosité ±15 %",
+    "translation ±5 %"
+  ],
+  "poids_de_classes": {
+    "0": 1.3610714285714285,
+    "1": 0.7142053973013494,
+    "2": 1.4305555555555556,
+    "3": 0.8575607560756076
+  },
+  "comptages": {
+    "train": {
+      "Tomato___Early_blight": 700,
+      "Tomato___Late_blight": 1334,
+      "Tomato___Leaf_Mold": 666,
+      "Tomato___healthy": 1111
+    },
+    "validation": {
+      "Tomato___Early_blight": 150,
+      "Tomato___Late_blight": 288,
+      "Tomato___Leaf_Mold": 143,
+      "Tomato___healthy": 240
+    },
+    "test": {
+      "Tomato___Early_blight": 150,
+      "Tomato___Late_blight": 287,
+      "Tomato___Leaf_Mold": 143,
+      "Tomato___healthy": 240
+    }
+  },
+  "parametres_totaux": 2422468,
+  "parametres_entrainables_phase1": 164484,
+  "meilleure_val_accuracy": 0.9598051309585571,
+  "meilleure_epoch": 22,
+  "epochs_total": 23,
+  "classes": [
+    "Tomato___Early_blight",
+    "Tomato___Late_blight",
+    "Tomato___Leaf_Mold",
+    "Tomato___healthy"
+  ],
+  "fichier_modele": "best_model.keras"
+}

@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block titre %}Analyse #{{ analyse.id }} — {{ app_nom }}{% endblock %}
+
+{% block contenu %}
+<section class="bg-white border-bottom py-4">
+  <div class="container">
+    <nav aria-label="Fil d'Ariane">
+      <ol class="breadcrumb mb-2 small">
+        <li class="breadcrumb-item"><a href="{{ url_for('accueil') }}">Tableau de bord</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('page_historique') }}">Historique</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Analyse #{{ analyse.id }}</li>
+      </ol>
+    </nav>
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3">
+      <div>
+        <h1 class="h3 fw-bold mb-1">Analyse #{{ analyse.id }}</h1>
+        <p class="text-secondary mb-0 small">
+          Réalisée le {{ analyse.date_affichage }} · Image « {{ analyse.nom_original }} »
+          · Modèle {{ analyse.modele or 'MobileNetV2' }}
+        </p>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-outline-danger bouton-supprimer" data-id="{{ analyse.id }}"
+                data-nom="{{ nom_fr }}" data-redirection="{{ url_for('page_historique') }}">
+          <i class="bi bi-trash me-1"></i>Supprimer
+        </button>
+        <a class="btn btn-tomate" href="{{ url_for('page_analyse') }}">
+          <i class="bi bi-plus-lg me-1"></i>Nouvelle analyse
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container py-4 py-lg-5">
+  <div id="messageAction" class="d-none"></div>
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm">
+        <img src="{{ url_for('image_televersee', nom_fichier=analyse.nom_stocke) }}"
+             class="card-img-top image-analyse" alt="Feuille analysée : {{ nom_fr }}">
+        <div class="card-body">
+          <dl class="row small mb-0">
+            <dt class="col-5 fw-normal text-secondary">Fichier</dt>
+            <dd class="col-7 text-end text-truncate">{{ analyse.nom_original }}</dd>
+            <dt class="col-5 fw-normal text-secondary">Horodatage</dt>
+            <dd class="col-7 text-end">{{ analyse.date_affichage }}</dd>
+            <dt class="col-5 fw-normal text-secondary">Durée de l'inférence</dt>
+            <dd class="col-7 text-end">{{ analyse.duree_ms }} ms</dd>
+            <dt class="col-5 fw-normal text-secondary">Modèle</dt>
+            <dd class="col-7 text-end">{{ analyse.modele or 'MobileNetV2' }}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+              <p class="text-uppercase text-secondary small mb-1">Classe prédite</p>
+              <h2 class="h3 fw-bold mb-1">{{ nom_fr }}</h2>
+              {% if infos.nom_scientifique and infos.nom_scientifique != '—' %}
+              <p class="text-secondary fst-italic small mb-0">{{ infos.nom_scientifique }}</p>
+              {% endif %}
+            </div>
+            <div class="text-end">
+              <p class="text-uppercase text-secondary small mb-1">Confiance</p>
+              <p class="display-6 fw-bold mb-0">{{ analyse.confiance|pourcentage }}</p>
+            </div>
+          </div>
+
+          <div class="progress mt-3" style="height: 10px" role="progressbar"
+               aria-valuenow="{{ analyse.confiance_pct }}" aria-valuemin="0" aria-valuemax="100"
+               aria-label="Niveau de confiance">
+            <div class="progress-bar {% if saine %}bg-success{% elif analyse.confiance < 0.6 %}bg-warning{% else %}bg-danger{% endif %}"
+                 style="width: {{ analyse.confiance_pct }}%"></div>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            <span class="badge" style="background: {{ infos.couleur }}">{{ infos.categorie }}</span>
+            <span class="badge bg-light text-secondary-emphasis">Gravité : {{ infos.niveau }}</span>
+            {% if saine %}
+            <span class="badge bg-success-subtle text-success-emphasis">Feuille saine</span>
+            {% endif %}
+          </div>
+
+          <p class="small mt-3 mb-0">{{ infos.description }}</p>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mt-3">
+        <div class="card-body">
+          <h3 class="h6 fw-bold mb-3"><i class="bi bi-bar-chart me-2 text-success"></i>Probabilités des quatre classes</h3>
+          <div class="graphique-conteneur" style="height: 200px">
+            <canvas id="graphiqueProbabilites" role="img"
+                    aria-label="Probabilités des classes pour cette analyse"></canvas>
+          </div>
+          <ul class="list-unstyled proba-liste mt-3 mb-0">
+            {% for proba in probabilites %}
+            <li>
+              <div class="d-flex justify-content-between small">
+                <span>{{ proba.nom_fr }}</span>
+                <span class="fw-semibold">{{ proba.pourcentage|round(1) }} %</span>
+              </div>
+              <div class="progress" style="height: 6px">
+                <div class="progress-bar" style="width: {{ proba.pourcentage }}%; background: {{ proba.couleur }}"></div>
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mt-3">
+        <div class="card-body">
+          <h3 class="h6 fw-bold mb-2">Symptômes caractéristiques</h3>
+          <ul class="small mb-3 ps-3">
+            {% for symptome in infos.symptomes %}<li>{{ symptome }}</li>{% endfor %}
+          </ul>
+          <h3 class="h6 fw-bold mb-2">Prévention et bonnes pratiques</h3>
+          <ul class="small mb-3 ps-3">
+            {% for conseil in infos.prevention %}<li>{{ conseil }}</li>{% endfor %}
+          </ul>
+          {% if infos.confusion_possible %}
+          <div class="alert alert-light border small mb-0">
+            <strong>Confusion possible :</strong> {{ infos.confusion_possible }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal fade" id="modalSuppression" tabindex="-1" aria-labelledby="titreModalSuppression" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0">
+      <div class="modal-header border-0">
+        <h2 class="h6 fw-bold mb-0" id="titreModalSuppression">Supprimer cette analyse ?</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body small text-secondary">
+        L'analyse <strong>#{{ analyse.id }}</strong> et son image seront définitivement supprimées.
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" class="btn btn-danger btn-sm" id="confirmerSuppression">Supprimer</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const canvas = document.getElementById('graphiqueProbabilites');
+    if (!canvas || typeof Chart === 'undefined') return;
+    const probabilites = {{ probabilites|tojson }};
+    new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: probabilites.map(p => p.nom_fr),
+        datasets: [{
+          label: 'Probabilité (%)',
+          data: probabilites.map(p => p.pourcentage),
+          backgroundColor: probabilites.map(p => p.couleur),
+          borderRadius: 6
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, max: 100, ticks: { callback: v => v + ' %' } }
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}

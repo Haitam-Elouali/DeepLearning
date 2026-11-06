@@ -1,0 +1,206 @@
+{
+  "date": "2026-11-06T13:17:08",
+  "modele": "best_model.keras",
+  "classes": [
+    "Tomato___Early_blight",
+    "Tomato___Late_blight",
+    "Tomato___Leaf_Mold",
+    "Tomato___healthy"
+  ],
+  "global": {
+    "accuracy": 0.9585365853658536,
+    "precision_macro": 0.954743353849484,
+    "recall_macro": 0.952472446252934,
+    "f1_macro": 0.9533727275198648,
+    "precision_weighted": 0.9582502697964338,
+    "recall_weighted": 0.9585365853658536,
+    "f1_weighted": 0.9582052157242565,
+    "nb_images": 820,
+    "nb_erreurs": 34
+  },
+  "par_classe": {
+    "Tomato___Early_blight": {
+      "precision": 0.9366197183098591,
+      "recall": 0.8866666666666667,
+      "f1_score": 0.910958904109589,
+      "support": 150,
+      "bien_classees": 133,
+      "confiance_moyenne": 0.9144442764918009
+    },
+    "Tomato___Late_blight": {
+      "precision": 0.9615384615384616,
+      "recall": 0.9581881533101045,
+      "f1_score": 0.9598603839441536,
+      "support": 287,
+      "bien_classees": 275,
+      "confiance_moyenne": 0.9581228893393008
+    },
+    "Tomato___Leaf_Mold": {
+      "precision": 0.9452054794520548,
+      "recall": 0.965034965034965,
+      "f1_score": 0.9550173010380623,
+      "support": 143,
+      "bien_classees": 138,
+      "confiance_moyenne": 0.9731289859001453
+    },
+    "Tomato___healthy": {
+      "precision": 0.975609756097561,
+      "recall": 1.0,
+      "f1_score": 0.9876543209876543,
+      "support": 240,
+      "bien_classees": 240,
+      "confiance_moyenne": 0.9961551037927469
+    }
+  },
+  "matrice_confusion": [
+    [
+      133,
+      9,
+      4,
+      4
+    ],
+    [
+      6,
+      275,
+      4,
+      2
+    ],
+    [
+      3,
+      2,
+      138,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      240
+    ]
+  ],
+  "confiance": {
+    "moyenne_succes": 0.9751972084433674,
+    "moyenne_erreurs": 0.7022816109306672,
+    "mediane": 0.9994678497314453
+  },
+  "erreurs": {
+    "total": 34,
+    "taux": 0.041463414634146344,
+    "paires_les_plus_frequentes": [
+      {
+        "reelle": "Tomato___Early_blight",
+        "predite": "Tomato___Late_blight",
+        "nombre": 9
+      },
+      {
+        "reelle": "Tomato___Late_blight",
+        "predite": "Tomato___Early_blight",
+        "nombre": 6
+      },
+      {
+        "reelle": "Tomato___Early_blight",
+        "predite": "Tomato___healthy",
+        "nombre": 4
+      },
+      {
+        "reelle": "Tomato___Late_blight",
+        "predite": "Tomato___Leaf_Mold",
+        "nombre": 4
+      },
+      {
+        "reelle": "Tomato___Early_blight",
+        "predite": "Tomato___Leaf_Mold",
+        "nombre": 4
+      }
+    ]
+  },
+  "configuration": {
+    "date": "2026-11-06T13:15:49",
+    "modele": "MobileNetV2 (ImageNet) + GlobalAveragePooling2D + Dense(128) + Dense(4, softmax)",
+    "tensorflow": "2.21.0",
+    "python": "3.12.3",
+    "graine": 42,
+    "taille_image": [
+      224,
+      224
+    ],
+    "batch_size": 32,
+    "optimiseur": "Adam",
+    "perte": "categorical_crossentropy",
+    "phase1": {
+      "epochs_max": 15,
+      "epochs_effectues": 15,
+      "learning_rate": 0.001,
+      "base_gelee": true,
+      "meilleure_val_accuracy": 0.9451888203620911,
+      "duree_min": 23.43
+    },
+    "phase2_fine_tuning": {
+      "active": true,
+      "couches_degelees": 19,
+      "epochs": 8,
+      "learning_rate": 1e-05,
+      "duree_min": 14.29
+    },
+    "callbacks": {
+      "early_stopping": {
+        "monitor": "val_loss",
+        "patience": 5
+      },
+      "model_checkpoint": {
+        "monitor": "val_accuracy",
+        "save_best_only": true
+      },
+      "reduce_lr": {
+        "monitor": "val_loss",
+        "facteur": 0.5,
+        "patience": 2
+      }
+    },
+    "augmentation": [
+      "rotation ±5 %",
+      "zoom ±10 %",
+      "retournement horizontal",
+      "luminosité ±15 %",
+      "translation ±5 %"
+    ],
+    "poids_de_classes": {
+      "0": 1.3610714285714285,
+      "1": 0.7142053973013494,
+      "2": 1.4305555555555556,
+      "3": 0.8575607560756076
+    },
+    "comptages": {
+      "train": {
+        "Tomato___Early_blight": 700,
+        "Tomato___Late_blight": 1334,
+        "Tomato___Leaf_Mold": 666,
+        "Tomato___healthy": 1111
+      },
+      "validation": {
+        "Tomato___Early_blight": 150,
+        "Tomato___Late_blight": 288,
+        "Tomato___Leaf_Mold": 143,
+        "Tomato___healthy": 240
+      },
+      "test": {
+        "Tomato___Early_blight": 150,
+        "Tomato___Late_blight": 287,
+        "Tomato___Leaf_Mold": 143,
+        "Tomato___healthy": 240
+      }
+    },
+    "parametres_totaux": 2422468,
+    "parametres_entrainables_phase1": 164484,
+    "meilleure_val_accuracy": 0.9598051309585571,
+    "meilleure_epoch": 22,
+    "epochs_total": 23,
+    "classes": [
+      "Tomato___Early_blight",
+      "Tomato___Late_blight",
+      "Tomato___Leaf_Mold",
+      "Tomato___healthy"
+    ],
+    "fichier_modele": "best_model.keras"
+  }
+}

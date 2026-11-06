@@ -1,0 +1,46 @@
+# ---------------------------------------------------------------------------
+# Environnement Python
+# ---------------------------------------------------------------------------
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# ---------------------------------------------------------------------------
+# Données : jamais versionnées (volumineuses et soumises à leurs propres
+# conditions d'utilisation). Voir README.md pour les télécharger.
+# ---------------------------------------------------------------------------
+data/raw/
+# Les images découpées ne sont pas versionnées ; le manifeste du découpage, lui,
+# est conservé : il documente les comptages et la graine du split.
+data/processed/*
+!data/processed/dataset_manifest.json
+data/history.db
+data/history.db-wal
+data/history.db-shm
+.plantvillage_tmp/
+
+# Images téléversées par les utilisateurs (données personnelles)
+static/uploads/*
+!static/uploads/.gitkeep
+
+# ---------------------------------------------------------------------------
+# Modèles : le modèle final est conservé (livrable), le modèle intermédiaire
+# de la phase 1 ne l'est pas.
+# ---------------------------------------------------------------------------
+models/phase1_features.keras
+models/*.h5
+
+# ---------------------------------------------------------------------------
+# Divers
+# ---------------------------------------------------------------------------
+.setup/
+.env
+.DS_Store
+
+# Archive de transfert créée localement (voir README)
+*.bundle
+*.zip

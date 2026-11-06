@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block titre %}Maladies étudiées — {{ app_nom }}{% endblock %}
+
+{% block contenu %}
+<section class="bg-white border-bottom py-4">
+  <div class="container">
+    <h1 class="h3 fw-bold mb-1">Les quatre catégories étudiées</h1>
+    <p class="text-secondary mb-0">
+      Fiches descriptives des classes apprises par le modèle. Les symptômes listés sont des
+      repères visuels généraux : d'autres maladies de la tomate existent et ne sont pas
+      couvertes par cette application.
+    </p>
+  </div>
+</section>
+
+<section class="container py-4 py-lg-5">
+  <div class="row g-4">
+    {% for classe in classes %}
+    <div class="col-lg-6">
+      <article class="card border-0 shadow-sm h-100 fiche-maladie">
+        <div class="fiche-entete" style="--couleur-classe: {{ classe.couleur }}">
+          <div>
+            <span class="badge bg-white text-dark mb-2">{{ classe.categorie }}</span>
+            <h2 class="h4 fw-bold mb-1 text-white">{{ classe.nom_fr }}</h2>
+            {% if classe.nom_scientifique and classe.nom_scientifique != '—' %}
+            <p class="text-white-50 fst-italic small mb-0">{{ classe.nom_scientifique }}</p>
+            {% endif %}
+          </div>
+          <span class="badge bg-white bg-opacity-25 text-white">Gravité : {{ classe.niveau }}</span>
+        </div>
+
+        <div class="card-body">
+          {% if classe.image_exemple %}
+          <div class="row g-2 mb-3">
+            {% for indice in [1, 2, 3] %}
+            <div class="col-4">
+              <img src="{{ url_for('static', filename='images/examples/' ~ classe.image_exemple ~ '_' ~ indice ~ '.jpg') }}"
+                   class="img-fluid rounded-3 exemple-feuille"
+                   alt="Exemple {{ indice }} de feuille — {{ classe.nom_fr }}" loading="lazy">
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <p class="small">{{ classe.description }}</p>
+
+          <h3 class="h6 text-uppercase text-secondary small mt-4 mb-2">
+            <i class="bi bi-eye me-1"></i>Symptômes visuels
+          </h3>
+          <ul class="small mb-0 ps-3">
+            {% for symptome in classe.symptomes %}<li>{{ symptome }}</li>{% endfor %}
+          </ul>
+
+          <h3 class="h6 text-uppercase text-secondary small mt-4 mb-2">
+            <i class="bi bi-shield-check me-1"></i>Prévention
+          </h3>
+          <ul class="small mb-0 ps-3">
+            {% for conseil in classe.prevention %}<li>{{ conseil }}</li>{% endfor %}
+          </ul>
+
+          {% if classe.confusion_possible %}
+          <div class="alert alert-light border small mt-3 mb-0">
+            <i class="bi bi-arrow-left-right me-1"></i>
+            <strong>Confusion possible :</strong> {{ classe.confusion_possible }}
+          </div>
+          {% endif %}
+        </div>
+      </article>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="card border-0 shadow-sm mt-4">
+    <div class="card-body">
+      <h2 class="h5 fw-bold mb-2"><i class="bi bi-info-circle me-2 text-success"></i>Périmètre et limites</h2>
+      <p class="small text-secondary mb-2">
+        Le modèle a été entraîné uniquement sur ces quatre catégories. Une feuille atteinte
+        d'une autre maladie (septoriose, brûlure bactérienne, virus de l'enroulement jaune,
+        tache cible, etc.) sera tout de même classée dans l'une des quatre classes, avec un
+        score de confiance parfois faible. Il est donc recommandé de considérer la
+        distribution complète des probabilités et pas seulement la classe dominante.
+      </p>
+      <p class="small text-secondary mb-0">
+        {% if manifeste and manifeste.images_brutes %}
+        Les images d'illustration proviennent du dataset public PlantVillage
+        ({{ manifeste.images_brutes.values()|sum }} images brutes pour les quatre classes).
+        {% endif %}
+        Les descriptions ont été rédigées à partir de connaissances agronomiques générales,
+        à visée pédagogique.
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}
