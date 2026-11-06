@@ -44,3 +44,9 @@ models/*.h5
 # Archive de transfert créée localement (voir README)
 *.bundle
 *.zip
+*.log
+.flask_app.log
+.flask_diag.log
+.flask_fresh.log
+.flask_run_capture.log
+.pip_install.log

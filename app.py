@@ -408,4 +408,22 @@ app = creer_application()
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=False)
+    import time as _time
+
+    logger.info("=== DÉMARRAGE DE L'APPLICATION ===")
+    t0 = _time.perf_counter()
+    logger.info("création de l'application Flask…")
+    application = creer_application()
+    logger.info("application Flask créée en %.2fs", _time.perf_counter() - t0)
+
+    erreur_modele = application.config.get("ERREUR_MODELE")
+    if erreur_modele:
+        logger.warning("modèle indisponible : %s", erreur_modele)
+    else:
+        logger.info("modèle disponible (predictor chargé)")
+
+    logger.info(
+        "démarrage du serveur sur http://127.0.0.1:5000 (debug=%s)…",
+        False,
+    )
+    application.run(host="127.0.0.1", port=5000, debug=False)
