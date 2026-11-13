@@ -50,3 +50,9 @@ models/*.h5
 .flask_fresh.log
 .flask_run_capture.log
 .pip_install.log
+
+# LaTeX : fichiers intermédiaires (le .tex et le .pdf sont versionnés)
+*.aux
+*.toc
+*.out
+*.synctex.gz

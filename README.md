@@ -383,7 +383,8 @@ mobile.
 | Data Augmentation | `training/train.py` (`construire_augmentation`) |
 | Modèle entraîné | `models/best_model.keras` + `models/training_config.json` |
 | Résultats et figures | `results/` |
-| Rapport scientifique | `docs/rapport/rapport_final.docx` |
+| Rapport scientifique (Word) | `docs/rapport/rapport_final.docx` |
+| Rapport scientifique (LaTeX + PDF) | `docs/rapport/latex/rapport_final.tex` et `rapport_final.pdf` |
 | Fiche expérimentale | `docs/fiche/fiche_experimentale.docx` |
 | Présentation orale | `docs/presentation/presentation_soutenance.pptx` |
 
@@ -391,9 +392,16 @@ Régénération des livrables :
 
 ```bash
 python scripts/build_report.py          # rapport Markdown + Word
+python scripts/build_latex.py           # rapport LaTeX + PDF (XeLaTeX)
 python scripts/build_fiche.py           # fiche expérimentale
 python scripts/build_presentation.py    # diaporama PowerPoint
 ```
+
+> Le rapport LaTeX conserve des **espaces réservés** (auteur, encadrant, établissement,
+> année) : ils se complètent dans les quatre macros `\report...` en tête de
+> `docs/rapport/latex/rapport_final.tex`. Les valeurs saisies sont conservées si le
+> script est relancé ; sinon, compiler directement avec `xelatex rapport_final.tex`.
+> La compilation demande XeLaTeX (MiKTeX ou TeX Live) ; le PDF fait 28 pages A4.
 
 ---
 
