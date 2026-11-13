@@ -5,6 +5,8 @@ Ce module ne dépend pas de TensorFlow, ce qui permet de le tester isolément.
 
 from __future__ import annotations
 
+import base64
+import io
 import json
 from pathlib import Path
 from typing import Any
@@ -20,6 +22,7 @@ __all__ = [
     "nom_affichage",
     "classe_est_saine",
     "formater_pourcentage",
+    "apercu_base64",
     "charger_json",
     "sauvegarder_json",
 ]
@@ -91,6 +94,15 @@ def charger_json(chemin: Path, defaut: Any = None) -> Any:
             return json.load(fichier)
     except (FileNotFoundError, json.JSONDecodeError):
         return defaut
+
+
+def apercu_base64(image: Image.Image, taille_max: int = 480) -> str:
+    """Renvoie une vignette JPEG de l'image sous forme de data URI (aucun fichier écrit)."""
+    miniature = image.copy()
+    miniature.thumbnail((taille_max, taille_max))
+    tampon = io.BytesIO()
+    miniature.save(tampon, format="JPEG", quality=85)
+    return "data:image/jpeg;base64," + base64.b64encode(tampon.getvalue()).decode("ascii")
 
 
 def sauvegarder_json(donnees: Any, chemin: Path) -> Path:

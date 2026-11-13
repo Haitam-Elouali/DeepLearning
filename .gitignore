@@ -49,3 +49,10 @@ models/*.h5
 *.toc
 *.out
 *.synctex.gz
+
+# Livrables générés : conservés en local, volontairement hors du dépôt
+docs/rapport/rapport_final.md
+docs/rapport/rapport_final.docx
+docs/rapport/latex/rapport_final.tex
+docs/rapport/latex/rapport_final.pdf
+docs/presentation/*.pptx

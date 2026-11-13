@@ -20,7 +20,12 @@
 {% endif %}
 
 {% if resultat %}
-  <section class="resultat">
+    <section class="resultat">
+    <figure class="apercu">
+      <img src="{{ apercu }}" alt="Image analysée">
+      <figcaption>Image analysée</figcaption>
+    </figure>
+
     <h2>{{ resultat.classe }}</h2>
     <p class="details">
       Confiance : <strong>{{ resultat.confiance|pourcentage }}</strong>

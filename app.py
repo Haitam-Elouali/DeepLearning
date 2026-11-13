@@ -19,6 +19,7 @@ from werkzeug.exceptions import RequestEntityTooLarge
 
 import config
 from utils.helpers import (
+    apercu_base64,
     classe_est_saine,
     formater_pourcentage,
     nom_affichage,
@@ -98,6 +99,7 @@ def creer_application() -> Flask:
                 "duree_ms": resultat["duree_ms"],
             },
             probabilites=probabilites,
+            apercu=apercu_base64(image),
         )
 
     @application.errorhandler(RequestEntityTooLarge)
