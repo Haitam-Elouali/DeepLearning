@@ -18,13 +18,7 @@ from flask import Flask, render_template, request
 from werkzeug.exceptions import RequestEntityTooLarge
 
 import config
-from utils.helpers import (
-    apercu_base64,
-    classe_est_saine,
-    formater_pourcentage,
-    nom_affichage,
-    valider_image,
-)
+from utils.helpers import apercu_base64, classe_est_saine, formater_pourcentage, nom_affichage, valider_image
 from utils.predictor import PredictionError, obtenir_predictor
 
 logging.basicConfig(

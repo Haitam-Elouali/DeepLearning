@@ -48,11 +48,7 @@ plant-disease-detection/
 │   ├── best_model.keras        # modèle final (livrable)
 │   └── training_config.json    # hyperparamètres et résultats de l'entraînement
 │
-├── notebooks/
-│   └── plant_disease_training.ipynb
-│
 ├── training/
-│   ├── download_dataset.py     # téléchargement PlantVillage (clone partiel)
 │   ├── prepare_data.py         # contrôle qualité + split stratifié sans fuite
 │   ├── train.py                # MobileNetV2 : phase 1 + fine-tuning
 │   ├── evaluate.py             # métriques, figures, analyse d'erreurs
@@ -127,7 +123,6 @@ utilisées dans un cadre strictement académique, ne sont pas redistribuées et 
 versionnées ici.
 
 ```bash
-python training/download_dataset.py   # clone partiel des 4 dossiers utiles (~100 Mo)
 python training/prepare_data.py       # contrôle qualité + split 70/15/15
 ```
 
@@ -148,31 +143,41 @@ TOTAL                           3811     821     820    5452
 
 ---
 
-## 5. Entraînement
+## 5. Entraînement réduit (CPU)
 
 ```bash
-python training/train.py
+python training/train.py --epochs 15 --fine-tune-epochs 8
 ```
+
+Paramètres :
 
 | Paramètre | Valeur |
 | --- | --- |
 | Taille d'entrée | 224 × 224 × 3 |
 | Batch size | 32 |
-| Phase 1 (base gelée) | 30 époques max, arrêt anticipé (patience 5) |
-| Phase 2 (fine-tuning) | 15 époques max, 30 dernières couches dégelées |
-| Optimiseur | Adam — 1e-3 puis 1e-5 |
-| Perte | Categorical crossentropy |
+| Phase 1 (base gelée) | 30 époques max, Early Stopping (patience 5), Checkpoint |
+| Phase 2 (fine-tuning) | 15 époques max, 30 dernières couches dégelées, Adam 1e-5 |
+| Poids de classes | activés (compensent le déséquilibre) |
 | Graine | 42 |
-| Callbacks | EarlyStopping, ModelCheckpoint, ReduceLROnPlateau, CSVLogger |
 
-Artefacts produits : `models/best_model.keras`, `models/training_config.json`,
-`results/metrics/training_history.json`, `results/metrics/training_log.csv`.
+Déroulement ((~ 35 min sur CPU à 2 cœurs) :
 
-Exemple d'exécution réduite (CPU lent) :
+- **phase 1** : base gelée, Adam 1e-3, Early Stopping + Checkpoint sur la meilleure
+  validation ;
+- **phase 2** : on recharge ce meilleur modèle, on dégèle les 30 dernières couches
+  (BatchNormalization exclues), on recompile à 1e-5 et on continue les époques.
 
-```bash
-python training/train.py --epochs 15 --fine-tune-epochs 8
-```
+**Pourquoi deux phases** : pendant la phase 1, la base (MobileNetV2 pré-entraînée sur
+ImageNet) reste gelée, seule la petite tête apprise appris ; lors de la phase 2, on
+relâche les couches les plus spécifiques pour les adapter au domaine des feuilles de
+tomate sans détruire les filtres déjà utiles.
+
+**Pourquoi pas de Data Augmentation imbriquée** : les transformations (rotation, zoom,
+flip, luminosité, translation) restent dans le pipeline de chargement des données, pas
+dans le modèle sauvegardé ; le prétraitement applique donc la même opération à chaque
+image, que ce soit à l'entraînement ou à la prédiction (déjà identique à
+224 × 224 → redimensionnement 224 × 224 → normalisation 224 × 224 → normalisation [-1,
+1]).
 
 ---
 
@@ -233,12 +238,13 @@ pytest -q
 
 33 tests couvrent :
 
+- **app** : page d'accueil, analyse réelle de bout en bout (image → prédiction →
+  affichage), refus des fichiers invalides, erreurs 400/404/413 ;
 - **prétraitement** : conversion RGB, redimensionnement, normalisation, équivalence
   exacte avec `mobilenet_v2.preprocess_input` ;
 - **utilitaires** : extensions autorisées, refus des faux types MIME, des contenus
   invalides, des images trop petites ou trop grandes ;
-- **application** : page d'accueil, analyse réelle de bout en bout (image → prédiction →
-  affichage), refus des fichiers invalides, erreurs 400/404/413.
+- **modèle** : chargement, prédire(first), prédiction, nommage des classes.
 
 ---
 
@@ -293,7 +299,6 @@ doublons, hyperparamètres centralisés et journalisés.
 | Livrable | Emplacement |
 | --- | --- |
 | Code source complet | ce dépôt |
-| Notebook d'expérimentation | `notebooks/plant_disease_training.ipynb` |
 | Modèle entraîné | `models/best_model.keras` + `models/training_config.json` |
 | Résultats et figures | `results/` |
 | Rapport scientifique (Word) | `docs/rapport/rapport_final.docx` |
