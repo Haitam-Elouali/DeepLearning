@@ -34,6 +34,7 @@ __all__ = [
     "image_vers_tableau",
     "normaliser",
     "preparer_pour_modele",
+    "preparer_image",
     "preparer_lot",
 ]
 
@@ -89,6 +90,14 @@ def preparer_pour_modele(
     image = charger_image_rgb(source)
     image = redimensionner(image, taille)
     return normaliser(image_vers_tableau(image))
+
+
+def preparer_image(
+    image: Image.Image,
+    taille: tuple[int, int] = IMAGE_SIZE,
+) -> np.ndarray:
+    """Prépare une image déjà ouverte (pas de relecture du fichier)."""
+    return normaliser(image_vers_tableau(redimensionner(image, taille)))
 
 
 def preparer_lot(

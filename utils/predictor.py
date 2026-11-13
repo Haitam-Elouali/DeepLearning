@@ -14,9 +14,10 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from PIL import Image
 
 import config
-from utils.preprocessing import preparer_lot, preparer_pour_modele
+from utils.preprocessing import preparer_image, preparer_lot, preparer_pour_modele
 
 __all__ = ["PredictionError", "Predictor", "obtenir_predictor", "modele_disponible"]
 
@@ -114,8 +115,8 @@ class Predictor:
             )
         return {classe: float(score) for classe, score in zip(classes, vecteur)}
 
-    def predire(self, chemin_image: str | Path) -> dict[str, Any]:
-        """Prédit la classe d'une image unique.
+    def predire(self, source: str | Path | Image.Image) -> dict[str, Any]:
+        """Prédit la classe d'une image (chemin de fichier ou image Pillow).
 
         Returns
         -------
@@ -123,7 +124,11 @@ class Predictor:
             ``classe``, ``indice``, ``confiance``, ``probabilites`` (dict),
             ``classement`` (liste triée), ``duree_ms``.
         """
-        tenseur = preparer_pour_modele(chemin_image)
+        tenseur = (
+            preparer_image(source)
+            if isinstance(source, Image.Image)
+            else preparer_pour_modele(source)
+        )
         lot = np.expand_dims(tenseur, axis=0)
 
         debut = time.perf_counter()

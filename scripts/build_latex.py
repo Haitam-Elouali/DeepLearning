@@ -176,12 +176,7 @@ def convertir_figure(chemin: str, legende: str | None, dossier: Path) -> list[st
     except ValueError:  # lecteurs différents sous Windows
         relatif = cible.as_posix()
 
-    # Les captures d'écran de l'application sont des images verticales : on les
-    # borne en hauteur pour qu'elles tiennent deux par page sans déborder.
-    if "captures/" in chemin:
-        largeur, hauteur = 0.44, 0.38
-    else:
-        largeur, hauteur = 0.68, 0.42
+    largeur, hauteur = 0.68, 0.42
 
     sortie = [
         r"\begin{figure}[H]",

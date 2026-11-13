@@ -18,14 +18,7 @@ data/raw/
 # est conservé : il documente les comptages et la graine du split.
 data/processed/*
 !data/processed/dataset_manifest.json
-data/history.db
-data/history.db-wal
-data/history.db-shm
 .plantvillage_tmp/
-
-# Images téléversées par les utilisateurs (données personnelles)
-static/uploads/*
-!static/uploads/.gitkeep
 
 # ---------------------------------------------------------------------------
 # Modèles : le modèle final est conservé (livrable), le modèle intermédiaire

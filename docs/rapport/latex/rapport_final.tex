@@ -79,7 +79,7 @@ Le diagnostic de ces maladies repose traditionnellement sur l'expertise humaine 
 
 Les progrès récents de l'apprentissage profond (\emph{Deep Learning}) et, en particulier, des réseaux de neurones convolutifs (\emph{Convolutional Neural Networks}, CNN) offrent une alternative prometteuse. Ces modèles sont capables d'apprendre automatiquement des représentations visuelles discriminantes à partir d'exemples étiquetés, sans que l'on ait à définir manuellement les caractéristiques pertinentes. Appliqués à des photographies de feuilles, ils peuvent distinguer une feuille saine d'une feuille malade, et identifier la maladie en cause avec une précision souvent élevée sur des jeux de données de référence.
 
-Le présent projet s'inscrit dans cette dynamique. Il propose un système complet, \textbf{de la donnée brute à l'application Web}, permettant à un utilisateur de téléverser une photographie de feuille de tomate et d'obtenir une prédiction parmi quatre classes, accompagnée d'un score de confiance et de la distribution des probabilités. La démarche s'appuie sur un modèle \textbf{MobileNetV2} pré-entraîné sur ImageNet, adapté par \textbf{Transfer Learning} à notre problème à quatre classes, puis intégré dans une application \textbf{Flask} dotée d'une interface en français, d'un historique des analyses et de fiches descriptives des maladies.
+Le présent projet s'inscrit dans cette dynamique. Il propose un système complet, \textbf{de la donnée brute à l'application Web}, permettant à un utilisateur de téléverser une photographie de feuille de tomate et d'obtenir une prédiction parmi quatre classes, accompagnée d'un score de confiance et de la distribution des probabilités. La démarche s'appuie sur un modèle \textbf{MobileNetV2} pré-entraîné sur ImageNet, adapté par \textbf{Transfer Learning} à notre problème à quatre classes, puis intégré dans une application \textbf{Flask} minimale, en français : téléversement d'une image, puis classe prédite, confiance et distribution des probabilités.
 
 Le rapport est organisé de la manière suivante. Les sections 2 et 3 exposent le contexte, la problématique et les objectifs. Les sections 4 à 6 présentent le cadre théorique : CNN, architecture MobileNetV2 et Transfer Learning. La section 7 décrit le dataset et son exploration, la section 8 le prétraitement et la Data Augmentation. Les sections 9 et 10 détaillent l'architecture du modèle et le protocole d'entraînement. La section 11 est consacrée à l'application Web. Les sections 12 à 14 présentent et discutent les résultats expérimentaux. La section 15 dresse les limites et les perspectives, la section 16 traite de l'éthique et des impacts du système, la section 17 présente la conclusion. La section 18 rassemble les références.
 
@@ -161,10 +161,10 @@ Concevoir, entraîner, évaluer et déployer localement une application Web de d
 \textbf{Sur le plan applicatif}
 
 \begin{itemize}
-\item développer une application Flask en français, responsive et moderne ;
-\item proposer cinq pages : tableau de bord, analyse, historique, fiches maladies, à propos ;
-\item stocker les analyses dans une base SQLite et permettre leur consultation et leur suppression ;
-\item garantir la sécurité des téléversements et éviter de recharger le modèle à chaque requête ;
+\item développer une application Flask en français, limitée à l'essentiel ;
+\item proposer une page unique : téléverser une image, afficher le résultat ;
+\item ne conserver ni image ni analyse sur le serveur ;
+\item valider les fichiers téléversés et éviter de recharger le modèle à chaque requête ;
 \item fournir des tests automatisés et une documentation d'installation.
 \end{itemize}
 
@@ -646,19 +646,32 @@ Tous les paramètres, comptages, durées et versions de bibliothèques sont enre
 \section{Développement de l'application Web}
 \label{sec:11}% Développement de l'application Web
 
-\subsection{Objectifs et architecture générale}
+\subsection{Objectif et principe}
 
-L'application Web constitue la couche de restitution du projet : elle doit rendre le modèle utilisable par une personne qui ne connaît rien à l'apprentissage automatique. Elle a été conçue selon une architecture en trois couches :
+L'application Web constitue la couche de restitution du projet : elle rend le modèle utilisable par une personne qui ne connaît rien à l'apprentissage automatique. Son périmètre a été volontairement limité à \textbf{une seule fonction} : recevoir une image de feuille et afficher la prédiction du modèle.
 
-\begin{enumerate}
-\item \textbf{couche de présentation} : templates Jinja2, HTML5, CSS3, Bootstrap 5, JavaScript natif et Chart.js ;
-\item \textbf{couche applicative} : Flask, validation des entrées, routage, API JSON, gestion des erreurs ;
-\item \textbf{couche métier} : prédicteur Keras (chargé une seule fois), base SQLite pour l'historique, utilitaires de prétraitement.
-\end{enumerate}
+Deux routes suffisent :
 
-Chaque responsabilité est isolée dans un module distinct, ce qui facilite la maintenance et les tests :
+{\footnotesize
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.22\linewidth}>{\raggedright\arraybackslash}p{0.31\linewidth}>{\raggedright\arraybackslash}p{0.33\linewidth}@{}}
+\toprule
+\textbf{Route} & \textbf{Méthode} & \textbf{Rôle} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{/\allowbreak{}} & GET & affiche le formulaire de téléversement \\
+\texttt{/\allowbreak{}analyser} & POST & valide l'image, lance la prédiction, réaffiche la page avec le résultat \\
+\end{longtable}
+}
 
-\begin{center}\small\itshape Tableau 11 --- Modules du projet et responsabilités.\end{center}
+Le modèle Keras est chargé \textbf{une seule fois} au démarrage (singleton protégé par un verrou) : chaque analyse évite ainsi plusieurs secondes de chargement. L'application ne maintient ni session, ni compte, ni base de données.
+
+\subsection{Architecture}
+
+Le code reste organisé par responsabilité, comme le reste du projet :
+
+\begin{center}\small\itshape Tableau 11 --- Modules de l'application et responsabilités.\end{center}
 {\footnotesize
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.28\linewidth}>{\raggedright\arraybackslash}p{0.58\linewidth}@{}}
 \toprule
@@ -667,168 +680,60 @@ Chaque responsabilité est isolée dans un module distinct, ce qui facilite la m
 \endhead
 \bottomrule
 \endlastfoot
-\texttt{config.py} & chemins, hyperparamètres, paramètres de sécurité \\
-\texttt{app.py} & routes, API, gestion des erreurs, rendu des templates \\
+\texttt{config.py} & chemins, hyperparamètres, libellés français des classes \\
+\texttt{app.py} & les deux routes, la validation, le rendu de la page \\
 \texttt{utils/\allowbreak{}preprocessing.py} & pipeline d'image partagé entraînement / inférence \\
 \texttt{utils/\allowbreak{}predictor.py} & chargement unique du modèle et prédiction \\
-\texttt{utils/\allowbreak{}database.py} & accès SQLite (une seule couche qui parle SQL) \\
-\texttt{utils/\allowbreak{}helpers.py} & validation des fichiers, métadonnées, formatage \\
+\texttt{utils/\allowbreak{}helpers.py} & validation du fichier téléversé, libellés, formatage \\
 \end{longtable}
 }
 
-\subsection{Pages et fonctionnalités}
+Cette séparation est ce qui garantit la cohérence scientifique du système : le prétraitement appliqué à la prédiction est \textbf{le même code} que celui utilisé pendant l'entraînement, ce qui élimine la principale source d'écart entre validation et usage réel.
 
-\begin{center}\small\itshape Tableau 12 --- Pages de l'application et routes associées.\end{center}
-{\footnotesize
-\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.22\linewidth}>{\raggedright\arraybackslash}p{0.31\linewidth}>{\raggedright\arraybackslash}p{0.33\linewidth}@{}}
-\toprule
-\textbf{Page} & \textbf{Route} & \textbf{Contenu principal} \\
-\midrule
-\endhead
-\bottomrule
-\endlastfoot
-Tableau de bord & \texttt{/\allowbreak{}} & compteurs, état du modèle, classes, répartition, dernières analyses \\
-Analyse & \texttt{/\allowbreak{}analyse} & dépôt d'image, aperçu, prédiction, probabilités, description \\
-Détail d'analyse & \texttt{/\allowbreak{}analyse/\allowbreak{}<id>} & image, classe, confiance, probabilités, symptômes \\
-Historique & \texttt{/\allowbreak{}historique} & tableau des analyses, suppression, accès aux détails \\
-Maladies & \texttt{/\allowbreak{}maladies} & fiches des quatre classes avec exemples et prévention \\
-À propos & \texttt{/\allowbreak{}a-propos} & contexte, méthodologie, architecture, limites, références \\
-\end{longtable}
-}
+\subsection{Parcours utilisateur}
 
-\textbf{Tableau de bord.} Il affiche le nombre total d'analyses, la confiance moyenne, les analyses de la semaine, le nombre de classes, l'état de chargement du modèle, la répartition des prédictions sous forme de graphique en anneau et les cinq dernières analyses. C'est la page d'accueil : elle doit donner en un coup d'œil une idée du fonctionnement et de l'activité du système.
+\begin{enumerate}
+\item l'utilisateur ouvre <http://127.0.0.1:5000> ; la page affiche un formulaire et rappelle les quatre classes reconnues ;
+\item il choisit un fichier JPG ou PNG de 8 Mo maximum ;
+\item le serveur vérifie l'extension, le type MIME, décode réellement l'image avec Pillow et contrôle ses dimensions ;
+\item l'image est convertie en RGB, redimensionnée à 224 $\times$ 224 puis normalisée dans l'intervalle [-1, 1] avant d'être passée au modèle ;
+\item la page réaffiche le résultat : classe prédite, confiance en pourcentage, durée de l'inférence, les quatre probabilités triées, et un message adapté --- \guillemotleft{} feuille saine \guillemotright{} ou \guillemotleft{} maladie détectée, faites confirmer par un agronome \guillemotright{}.
+\end{enumerate}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.44\linewidth,height=0.38\textheight,keepaspectratio]{../captures/01_tableau_de_bord.png}
-\par\smallskip{\small\itshape Figure 5 --- Tableau de bord : présentation du projet et état du système (affichage mobile).}
-\end{figure}
+Aucune image n'est écrite sur le disque : le fichier est traité en mémoire, puis oublié. Il n'y a donc ni historique, ni fichier téléversé à nettoyer, ni donnée personnelle conservée.
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.44\linewidth,height=0.38\textheight,keepaspectratio]{../captures/02_statistiques_classes.png}
-\par\smallskip{\small\itshape Figure 6 --- Tableau de bord : répartition des classes prédites sous forme de graphique.}
-\end{figure}
+\subsection{Choix de simplicité}
 
-\textbf{Page d'analyse.} L'utilisateur dépose une image par glisser-déposer ou par sélection de fichier. Un aperçu s'affiche immédiatement, avant toute analyse, accompagné du nom et de la taille du fichier. Le bouton \guillemotleft{} Lancer l'analyse \guillemotright{} déclenche un appel asynchrone (\texttt{fetch}) vers \texttt{/\allowbreak{}api/\allowbreak{}analyser}, sans rechargement de page, avec un indicateur de chargement (spinner) pendant l'inférence.
+Trois simplifications ont été assumées par rapport à une application \guillemotleft{} complète \guillemotright{} :
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.44\linewidth,height=0.38\textheight,keepaspectratio]{../captures/05_apercu_image.png}
-\par\smallskip{\small\itshape Figure 7 --- Page d'analyse : aperçu de l'image avant lancement de la prédiction.}
-\end{figure}
+\begin{itemize}
+\item \textbf{pas de base de données ni d'historique} : le besoin exprimé est une inférence, pas un suivi d'activité ; supprimer la persistance supprime aussi le stockage d'images ;
+\item \textbf{pas d'API JSON ni de JavaScript} : un formulaire HTML classique et un rendu côté serveur suffisent, la page fonctionne même si les scripts sont désactivés ;
+\item \textbf{pas de framework CSS} : une feuille de style d'environ 130 lignes remplace Bootstrap et Chart.js, ce qui allège le dépôt de plusieurs mégaoctets et supprime toute dépendance externe.
+\end{itemize}
 
-Le résultat présente la classe prédite, un résumé de la maladie, le pourcentage de confiance, la durée de l'inférence, un graphique en barres des quatre probabilités, la liste détaillée des scores, la description de la maladie et ses symptômes caractéristiques. L'utilisateur peut relancer une analyse ou consulter la fiche complète de l'analyse enregistrée.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.44\linewidth,height=0.38\textheight,keepaspectratio]{../captures/07_resultat_entete.png}
-\par\smallskip{\small\itshape Figure 8 --- Résultat d'une analyse : classe prédite, confiance et distribution des}
-\end{figure}
-
-probabilités.*
-
-\textbf{Historique.} Les analyses sont conservées dans une base SQLite et affichées dans un tableau trié par date décroissante : identifiant, date et heure, nom de l'image, maladie prédite, score de confiance, accès au détail et suppression. La suppression est protégée par une fenêtre de confirmation et efface également le fichier image associé.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.44\linewidth,height=0.38\textheight,keepaspectratio]{../captures/08_historique.png}
-\par\smallskip{\small\itshape Figure 9 --- Historique des analyses enregistrées dans la base SQLite.}
-\end{figure}
-
-\textbf{Fiches maladies.} Chaque classe est présentée avec trois images d'exemple issues du dataset, une description, les symptômes visuels caractéristiques, des conseils de prévention et une mention des confusions possibles. Cette page rappelle explicitement que le périmètre est limité à quatre catégories.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.44\linewidth,height=0.38\textheight,keepaspectratio]{../captures/10_maladies.png}
-\par\smallskip{\small\itshape Figure 10 --- Fiche maladie : description, symptômes et prévention.}
-\end{figure}
-
-\textbf{À propos.} Cette page documente le contexte scientifique, la problématique, les objectifs, l'architecture, les technologies, la configuration réelle du modèle et ses limites. Elle contribue à la posture honnête du projet.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.44\linewidth,height=0.38\textheight,keepaspectratio]{../captures/11_a_propos.png}
-\par\smallskip{\small\itshape Figure 11 --- Page \guillemotleft{} À propos \guillemotright{} : contexte, objectifs et méthodologie.}
-\end{figure}
-
-\subsection{API JSON}
-
-L'application expose une API simple, utilisée par le frontend et exploitable par un script :
-
-\begin{center}\small\itshape Tableau 13 --- Points d'entrée de l'API JSON.\end{center}
-{\footnotesize
-\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.22\linewidth}>{\raggedright\arraybackslash}p{0.31\linewidth}>{\raggedright\arraybackslash}p{0.33\linewidth}@{}}
-\toprule
-\textbf{Méthode} & \textbf{Route} & \textbf{Rôle} \\
-\midrule
-\endhead
-\bottomrule
-\endlastfoot
-POST & \texttt{/\allowbreak{}api/\allowbreak{}analyser} & téléversement + prédiction + enregistrement \\
-GET & \texttt{/\allowbreak{}api/\allowbreak{}historique} & liste des analyses au format JSON \\
-DELETE & \texttt{/\allowbreak{}api/\allowbreak{}historique/\allowbreak{}<id>} & suppression d'une analyse et de son image \\
-GET & \texttt{/\allowbreak{}api/\allowbreak{}statistiques} & statistiques agrégées \\
-GET & \texttt{/\allowbreak{}sante} & sonde de disponibilité (modèle chargé, nombre de classes) \\
-\end{longtable}
-}
-
-La réponse de \texttt{/\allowbreak{}api/\allowbreak{}analyser} contient la classe, le nom français, la confiance, les quatre probabilités triées, la durée d'inférence, l'URL de l'image et le lien vers la fiche détaillée. En cas d'erreur, un code HTTP approprié (400, 404, 413, 500, 503) est renvoyé avec un message compréhensible en français.
-
-\subsection{Base de données}
-
-L'historique est stocké dans une base SQLite unique, créée automatiquement au premier lancement. Le schéma est volontairement minimal :
-
-\begin{center}\small\itshape Tableau 14 --- Schéma de la table \texttt{analyses}.\end{center}
-{\footnotesize
-\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.22\linewidth}>{\raggedright\arraybackslash}p{0.31\linewidth}>{\raggedright\arraybackslash}p{0.33\linewidth}@{}}
-\toprule
-\textbf{Colonne} & \textbf{Type} & \textbf{Rôle} \\
-\midrule
-\endhead
-\bottomrule
-\endlastfoot
-\texttt{id} & INTEGER (PK) & identifiant de l'analyse \\
-\texttt{nom\_\allowbreak{}stocke} & TEXT & nom aléatoire du fichier sur le serveur (UUID) \\
-\texttt{nom\_\allowbreak{}original} & TEXT & nom d'origine assaini, pour l'affichage \\
-\texttt{classe\_\allowbreak{}predite} & TEXT & classe retournée par le modèle \\
-\texttt{confiance} & REAL & probabilité de la classe prédite (0 à 1) \\
-\texttt{probabilites} & TEXT & distribution complète au format JSON \\
-\texttt{modele} & TEXT & nom du fichier modèle utilisé \\
-\texttt{duree\_\allowbreak{}ms} & INTEGER & durée de l'inférence en millisecondes \\
-\texttt{created\_\allowbreak{}at} & TEXT & horodatage ISO 8601 \\
-\end{longtable}
-}
-
-Toutes les requêtes utilisent des paramètres liés (\texttt{?}), ce qui élimine les risques d'injection SQL. Aucune donnée personnelle n'est stockée : ni adresse IP, ni identifiant utilisateur.
+Il en résulte une application de \textbf{130 lignes environ}, deux gabarits HTML et une feuille de style : le comportement complet se lit d'un coup d'œil, ce qui facilite la relecture, les tests et la démonstration. Pour un usage par lot, le script \texttt{training/\allowbreak{}predict.py} reste disponible en ligne de commande.
 
 \subsection{Sécurité et robustesse}
 
-Les mesures suivantes ont été mises en œuvre :
+Les contrôles appliqués au fichier téléversé sont les suivants :
 
 \begin{itemize}
-\item \textbf{validation des extensions} contre une liste blanche (\texttt{.jpg}, \texttt{.jpeg}, \texttt{.png}) ;
-\item \textbf{vérification du type MIME} déclaré par le navigateur ;
-\item \textbf{décodage réel du fichier} par Pillow : une image corrompue ou un fichier renommé est rejeté, l'extension seule ne suffit pas ;
-\item \textbf{taille maximale} de 8 Mo, appliquée par Flask (\texttt{MAX\_\allowbreak{}CONTENT\_\allowbreak{}LENGTH}) et par le frontend ;
-\item \textbf{dimensions maximales} de 4 000 pixels et taille minimale de 32 pixels ;
-\item \textbf{renommage systématique} par UUID : aucun nom fourni par l'utilisateur n'est utilisé pour construire un chemin ;
-\item \textbf{ré-encodage en JPEG RGB} : neutralise les métadonnées et les charges utiles cachées ;
-\item \textbf{service des images} via une route validant un motif strict (\texttt{\textasciicircum{}[0-9a-f]\{32\}\textbackslash{}.jpg\$}), ce qui empêche toute traversée de répertoire ;
-\item \textbf{aucun chemin interne} renvoyé par l'API ; les erreurs techniques sont journalisées côté serveur et remplacées par un message générique ;
-\item \textbf{chargement unique du modèle} au démarrage (singleton protégé par un verrou), et non à chaque requête ;
-\item \textbf{gestion explicite} des erreurs 404, 413, 500 et du cas \guillemotleft{} modèle absent \guillemotright{} (503).
+\item \textbf{extension} en liste blanche (\texttt{.jpg}, \texttt{.jpeg}, \texttt{.png}) ;
+\item \textbf{type MIME} déclaré par le navigateur ;
+\item \textbf{décodage réel} par Pillow : un fichier renommé ou corrompu est rejeté, l'extension seule ne suffit pas ;
+\item \textbf{taille maximale} de 8 Mo, appliquée par Flask (\texttt{MAX\_\allowbreak{}CONTENT\_\allowbreak{}LENGTH}) ;
+\item \textbf{dimensions} comprises entre 32 et 4 000 pixels ;
+\item \textbf{traitement en mémoire} : aucun nom fourni par l'utilisateur ne participe à la construction d'un chemin, ce qui exclut toute traversée de répertoire ;
+\item \textbf{aucun chemin interne} renvoyé au navigateur ; les erreurs techniques sont journalisées côté serveur et remplacées par un message générique ;
+\item \textbf{codes HTTP explicites} : 400 (fichier refusé), 404 (page inconnue), 413 (image trop volumineuse), 500 (échec de prédiction) et 503 lorsque le modèle est absent.
 \end{itemize}
 
-\subsection{Choix d'interface et accessibilité}
+Si le fichier \texttt{models/\allowbreak{}best\_\allowbreak{}model.keras} est manquant, l'application démarre quand même et affiche un message clair au lieu de planter.
 
-L'interface utilise une palette verte et rouge évoquant le végétal et la tomate, des cartes arrondies, des transitions discrètes et une typographie lisible. Les éléments interactifs possèdent un état de focus visible, la zone de dépôt est utilisable au clavier (\texttt{tabindex} et gestion des touches Entrée/Espace), les images ont un texte alternatif et les graphiques portent un label ARIA. Bootstrap 5 assure la responsivité : sur mobile, la navigation se replie et les cartes passent sur une colonne.
+\subsection{Tests}
 
-Bootstrap, Bootstrap Icons et Chart.js sont \textbf{embarqués localement} dans \texttt{static/\allowbreak{}vendor/\allowbreak{}}, ce qui permet une démonstration hors ligne, sans dépendance à un CDN.
-
-\subsection{Tests de l'application}
-
-Quarante-quatre tests automatisés (pytest) couvrent le prétraitement, les utilitaires, la base de données et l'application. Ils incluent un parcours complet réel : téléversement d'une image du jeu de test $\rightarrow$ prédiction par le vrai modèle $\rightarrow$ enregistrement $\rightarrow$ consultation de l'historique et du détail $\rightarrow$ suppression $\rightarrow$ vérification de la disparition en base et sur le disque. Les tests vérifient également le refus d'un fichier non-image, d'une extension interdite, d'un dépassement de taille et d'un nom de fichier malveillant.
+Trente-trois tests automatisés (pytest) couvrent le prétraitement, les utilitaires et l'application. Le parcours réel est testé de bout en bout : envoi d'une image, prédiction par le vrai modèle, affichage de la classe, de la confiance et des quatre probabilités. Les cas de rejet sont également vérifiés : absence de fichier, extension interdite, faux type MIME, contenu qui n'est pas une image, image trop petite ou trop grande, page inconnue (404).
 
 \section{Résultats expérimentaux}
 \label{sec:12}% Résultats expérimentaux
@@ -842,7 +747,7 @@ L'évaluation est réalisée par \texttt{training/\allowbreak{}evaluate.py} sur 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.68\linewidth,height=0.42\textheight,keepaspectratio]{../../../results/figures/training_curves.png}
-\par\smallskip{\small\itshape Figure 12 --- Courbes d'apprentissage : accuracy et perte, entraînement et validation,}
+\par\smallskip{\small\itshape Figure 5 --- Courbes d'apprentissage : accuracy et perte, entraînement et validation,}
 \end{figure}
 
 avec la séparation entre phase 1 et fine-tuning (ligne pointillée).*
@@ -851,7 +756,7 @@ L'accuracy d'entraînement progresse régulièrement de 77,7 \% à 96,7 \%. L'ac
 
 \subsection{Métriques globales sur le test}
 
-\begin{center}\small\itshape Tableau 15 --- Métriques globales du modèle sur l'ensemble de test.\end{center}
+\begin{center}\small\itshape Tableau 12 --- Métriques globales du modèle sur l'ensemble de test.\end{center}
 {\footnotesize
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.28\linewidth}>{\raggedright\arraybackslash}p{0.58\linewidth}@{}}
 \toprule
@@ -876,7 +781,7 @@ L'accuracy de 95,85 \% signifie que 786 images sur 820 ont été correctement cl
 
 \subsection{Performances par classe}
 
-\begin{center}\small\itshape Tableau 16 --- Métriques détaillées par classe.\end{center}
+\begin{center}\small\itshape Tableau 13 --- Métriques détaillées par classe.\end{center}
 {\footnotesize
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.18\linewidth}>{\raggedright\arraybackslash}p{0.14\linewidth}>{\raggedright\arraybackslash}p{0.14\linewidth}>{\raggedright\arraybackslash}p{0.14\linewidth}>{\raggedright\arraybackslash}p{0.14\linewidth}>{\raggedright\arraybackslash}p{0.14\linewidth}@{}}
 \toprule
@@ -896,7 +801,7 @@ Feuille saine & 97,56 \% & 100,00 \% & 98,77 \% & 240 & 240 \\
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.68\linewidth,height=0.42\textheight,keepaspectratio]{../../../results/figures/per_class_performance.png}
-\par\smallskip{\small\itshape Figure 13 --- Precision, recall et F1-score pour chacune des quatre classes.}
+\par\smallskip{\small\itshape Figure 6 --- Precision, recall et F1-score pour chacune des quatre classes.}
 \end{figure}
 
 Trois observations se dégagent :
@@ -909,7 +814,7 @@ Trois observations se dégagent :
 
 \subsection{Matrice de confusion}
 
-\begin{center}\small\itshape Tableau 17 --- Matrice de confusion (effectifs) sur les 820 images de test.\end{center}
+\begin{center}\small\itshape Tableau 14 --- Matrice de confusion (effectifs) sur les 820 images de test.\end{center}
 {\footnotesize
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.22\linewidth}>{\raggedright\arraybackslash}p{0.16\linewidth}>{\raggedright\arraybackslash}p{0.16\linewidth}>{\raggedright\arraybackslash}p{0.16\linewidth}>{\raggedright\arraybackslash}p{0.16\linewidth}@{}}
 \toprule
@@ -928,7 +833,7 @@ Trois observations se dégagent :
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.68\linewidth,height=0.42\textheight,keepaspectratio]{../../../results/figures/confusion_matrix.png}
-\par\smallskip{\small\itshape Figure 14 --- Matrice de confusion en effectifs (à gauche) et en proportions par classe}
+\par\smallskip{\small\itshape Figure 7 --- Matrice de confusion en effectifs (à gauche) et en proportions par classe}
 \end{figure}
 
 réelle (à droite).*
@@ -937,7 +842,7 @@ La lecture par ligne est la plus instructive : 88,7 \% des alternarioses sont co
 
 \subsection{Analyse des erreurs}
 
-\begin{center}\small\itshape Tableau 18 --- Statistiques de confiance et principales confusions.\end{center}
+\begin{center}\small\itshape Tableau 15 --- Statistiques de confiance et principales confusions.\end{center}
 {\footnotesize
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.28\linewidth}>{\raggedright\arraybackslash}p{0.58\linewidth}@{}}
 \toprule
@@ -959,20 +864,20 @@ La confiance moyenne des erreurs (70,2 \%) est très inférieure à celle des pr
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.68\linewidth,height=0.42\textheight,keepaspectratio]{../../../results/figures/confidence_distribution.png}
-\par\smallskip{\small\itshape Figure 15 --- Distribution de la confiance selon que la prédiction est correcte ou non.}
+\par\smallskip{\small\itshape Figure 8 --- Distribution de la confiance selon que la prédiction est correcte ou non.}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.68\linewidth,height=0.42\textheight,keepaspectratio]{../../../results/predictions/error_grid.png}
-\par\smallskip{\small\itshape Figure 16 --- Exemples d'images mal classées : classe réelle, classe prédite et confiance.}
+\par\smallskip{\small\itshape Figure 9 --- Exemples d'images mal classées : classe réelle, classe prédite et confiance.}
 \end{figure}
 
 La planche d'erreurs montre que les images mal classées sont souvent des cas ambigus : lésions peu contrastées, feuille partiellement floue, ou symptômes mélangés. Certaines images annotées \guillemotleft{} alternariose précoce \guillemotright{} présentent des taches sombres étendues qui évoquent visuellement le mildiou. Ces erreurs ne relèvent donc pas uniquement d'une faiblesse du modèle, mais aussi de la frontière floue entre deux pathologies.
 
 \subsection{Temps d'inférence}
 
-\begin{center}\small\itshape Tableau 19 --- Temps d'inférence mesurés sur le processeur de test.\end{center}
+\begin{center}\small\itshape Tableau 16 --- Temps d'inférence mesurés sur le processeur de test.\end{center}
 {\footnotesize
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.28\linewidth}>{\raggedright\arraybackslash}p{0.58\linewidth}@{}}
 \toprule
@@ -1040,7 +945,7 @@ Mohanty et al. (2016) rapportent des accuracies supérieures à 99 \% sur PlantV
 
 La progression observée valide l'intérêt du Transfer Learning :
 
-\begin{center}\small\itshape Tableau 20 --- Progression de la validation au fil de l'expérience.\end{center}
+\begin{center}\small\itshape Tableau 17 --- Progression de la validation au fil de l'expérience.\end{center}
 {\footnotesize
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.28\linewidth}>{\raggedright\arraybackslash}p{0.58\linewidth}@{}}
 \toprule
@@ -1116,9 +1021,9 @@ Ce projet illustre plusieurs principes importants :
 \textbf{Limites liées à l'application}
 
 \begin{itemize}
-\item pas d'authentification ni de comptes utilisateurs : l'historique est partagé ;
-\item pas de déploiement en production (serveur de développement Flask) ;
-\item base SQLite adaptée à un usage local, non à un usage multi-utilisateurs intensif ;
+\item pas de déploiement en production : serveur de développement Flask, sans HTTPS ;
+\item une seule image analysée à la fois, sans traitement par lot dans l'interface ;
+\item pas d'historique ni de suivi des analyses : choix de simplicité, aucune donnée n'est conservée ;
 \item interface en français uniquement.
 \end{itemize}
 
@@ -1138,9 +1043,8 @@ Ce projet illustre plusieurs principes importants :
 \subsection{Perspectives applicatives}
 
 \begin{itemize}
-\item ajout d'un compte utilisateur et d'un historique personnel ;
-\item export PDF d'un rapport d'analyse ;
 \item prise de photo directe depuis le smartphone (API \texttt{getUserMedia}) ;
+\item export PDF d'une fiche de résultat ;
 \item mode hors-ligne complet avec un modèle quantifié exécuté dans le navigateur (TensorFlow.js) ;
 \item extension à d'autres cultures (pomme de terre, vigne, pommier) ;
 \item interface multilingue.
@@ -1177,18 +1081,18 @@ Toute décision de traitement doit rester celle d'un agronome ou d'un technicien
 
 \subsection{Vie privée des utilisateurs de l'application}
 
-Le principe appliqué est la \textbf{minimisation} : l'application ne stocke que le nom de fichier d'origine (nettoyé), l'image ré-encodée, la classe prédite, les probabilités, la durée d'inférence et l'horodatage. Aucun compte, aucune adresse IP, aucun cookie de suivi, aucune donnée de localisation.
+Le principe appliqué est la \textbf{minimisation absolue} : l'image téléversée n'est \textbf{jamais écrite sur le disque}. Elle est décodée en mémoire, convertie en tenseur, passée au modèle, puis oubliée à la fin de la requête. L'application ne conserve donc ni image, ni nom de fichier, ni résultat : aucune analyse n'est consultable après coup, aucune donnée personnelle n'est stockée.
 
 Mesures techniques concrètes :
 
 \begin{itemize}
-\item \textbf{suppression des métadonnées} : l'image est ré-encodée en JPEG RGB, ce qui élimine l'EXIF et donc une éventuelle position GPS contenue dans la photo d'origine ;
-\item \textbf{renommage par UUID} : aucun nom fourni par le client ne participe au chemin de stockage, ce qui empêche à la fois la traversée de répertoire et la fuite d'information par le nom du fichier ;
-\item \textbf{stockage local} : les images restent sur la machine qui héberge l'application, sans envoi à un service tiers ;
-\item \textbf{suppression} : l'utilisateur peut effacer une analyse et son image depuis l'historique.
+\item \textbf{traitement en mémoire} : le flux du fichier est lu directement par Pillow, sans écriture dans un répertoire temporaire ;
+\item \textbf{aucun chemin construit} à partir du nom fourni par le client : ce nom sert uniquement à vérifier l'extension, ce qui exclut toute traversée de répertoire ;
+\item \textbf{aucun envoi à un tiers} : l'inférence est exécutée par le serveur local, sans API externe ni service cloud ;
+\item \textbf{aucun cookie de suivi, aucun compte, aucune adresse IP enregistrée} : l'application ne tient pas de session et n'a pas de base de données.
 \end{itemize}
 
-Limites assumées : il n'existe \textbf{ni authentification, ni chiffrement au repos, ni purge automatique}. L'historique est donc partagé entre tous les utilisateurs d'une même instance, et les images y restent jusqu'à suppression manuelle. Dans un déploiement multi-utilisateurs réel, cela ne satisferait pas aux exigences d'un traitement conforme au RGPD (base légale, information des personnes, droit d'accès et d'effacement, durée de conservation définie). Ces manques sont documentés comme limites et non masqués.
+Limites assumées : le serveur de développement Flask sert la page \textbf{en HTTP}, sans chiffrement ; une image transite donc en clair sur le réseau si l'application est exposée autre part qu'en local, et les journaux du serveur conservent l'heure et le code de réponse des requêtes. Pour un déploiement réel, il faudrait ajouter HTTPS, une politique de rétention des journaux et une information explicite des utilisateurs. Ces points sont documentés comme limites et non masqués.
 
 \subsection{Risque d'un mauvais diagnostic}
 
@@ -1223,7 +1127,7 @@ Deux réserves d'honnêteté accompagneront la lecture des chiffres : l'expérie
 
 \subsection{Synthèse des risques et des mesures}
 
-\begin{center}\small\itshape Tableau 21 --- Synthèse des risques éthiques identifiés et des mesures d'atténuation.\end{center}
+\begin{center}\small\itshape Tableau 18 --- Synthèse des risques éthiques identifiés et des mesures d'atténuation.\end{center}
 {\footnotesize
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.24\linewidth}>{\raggedright\arraybackslash}p{0.13\linewidth}>{\raggedright\arraybackslash}p{0.27\linewidth}>{\raggedright\arraybackslash}p{0.22\linewidth}@{}}
 \toprule
@@ -1234,7 +1138,7 @@ Deux réserves d'honnêteté accompagneront la lecture des chiffres : l'expérie
 \endlastfoot
 Mauvais diagnostic suivi d'un traitement & Élevée & Avertissement explicite, 4 probabilités affichées, aucune prescription & Seuil de rejet, Grad-CAM, validation par un agronome \\
 Écart entre laboratoire et terrain & Élevée & Limite documentée (\S{}15.1), pas de promesse de performance terrain & Constituer un jeu de test de terrain et le publier \\
-Atteinte à la vie privée & Moyenne & UUID, EXIF supprimé, stockage local, suppression manuelle & Comptes, purge automatique, chiffrement au repos \\
+Atteinte à la vie privée & Faible & Aucune image ni résultat conservé, traitement en mémoire, aucun compte & HTTPS et politique de journaux en cas de déploiement \\
 Biais de représentation et d'équité & Moyenne & Déséquilibre traité par poids de classes, biais explicités & Audit par sous-groupe, augmentation de données variées \\
 Inégalité d'accès à l'outil & Moyenne & Modèle léger, exécution CPU, aucune API payante & Interface multilingue, mode hors-ligne quantifié \\
 Coût de calcul & Faible & Transfer learning, 37,7 min de CPU, pas de GPU & Réutiliser le modèle, quantifier pour l'inférence \\

@@ -1,192 +1,103 @@
 ## 11. Développement de l'application Web
 
-### 11.1 Objectifs et architecture générale
+### 11.1 Objectif et principe
 
-L'application Web constitue la couche de restitution du projet : elle doit rendre le
-modèle utilisable par une personne qui ne connaît rien à l'apprentissage automatique.
-Elle a été conçue selon une architecture en trois couches :
+L'application Web constitue la couche de restitution du projet : elle rend le modèle
+utilisable par une personne qui ne connaît rien à l'apprentissage automatique. Son
+périmètre a été volontairement limité à **une seule fonction** : recevoir une image de
+feuille et afficher la prédiction du modèle.
 
-1. **couche de présentation** : templates Jinja2, HTML5, CSS3, Bootstrap 5, JavaScript
-   natif et Chart.js ;
-2. **couche applicative** : Flask, validation des entrées, routage, API JSON, gestion des
-   erreurs ;
-3. **couche métier** : prédicteur Keras (chargé une seule fois), base SQLite pour
-   l'historique, utilitaires de prétraitement.
+Deux routes suffisent :
 
-Chaque responsabilité est isolée dans un module distinct, ce qui facilite la maintenance
-et les tests :
+| Route | Méthode | Rôle |
+| --- | --- | --- |
+| `/` | GET | affiche le formulaire de téléversement |
+| `/analyser` | POST | valide l'image, lance la prédiction, réaffiche la page avec le résultat |
+
+Le modèle Keras est chargé **une seule fois** au démarrage (singleton protégé par un
+verrou) : chaque analyse évite ainsi plusieurs secondes de chargement. L'application ne
+maintient ni session, ni compte, ni base de données.
+
+### 11.2 Architecture
+
+Le code reste organisé par responsabilité, comme le reste du projet :
 
 | Module | Responsabilité |
 | --- | --- |
-| `config.py` | chemins, hyperparamètres, paramètres de sécurité |
-| `app.py` | routes, API, gestion des erreurs, rendu des templates |
+| `config.py` | chemins, hyperparamètres, libellés français des classes |
+| `app.py` | les deux routes, la validation, le rendu de la page |
 | `utils/preprocessing.py` | pipeline d'image partagé entraînement / inférence |
 | `utils/predictor.py` | chargement unique du modèle et prédiction |
-| `utils/database.py` | accès SQLite (une seule couche qui parle SQL) |
-| `utils/helpers.py` | validation des fichiers, métadonnées, formatage |
+| `utils/helpers.py` | validation du fichier téléversé, libellés, formatage |
 
-*Tableau 11 — Modules du projet et responsabilités.*
+*Tableau 11 — Modules de l'application et responsabilités.*
 
-### 11.2 Pages et fonctionnalités
+Cette séparation est ce qui garantit la cohérence scientifique du système : le
+prétraitement appliqué à la prédiction est **le même code** que celui utilisé pendant
+l'entraînement, ce qui élimine la principale source d'écart entre validation et usage réel.
 
-| Page | Route | Contenu principal |
-| --- | --- | --- |
-| Tableau de bord | `/` | compteurs, état du modèle, classes, répartition, dernières analyses |
-| Analyse | `/analyse` | dépôt d'image, aperçu, prédiction, probabilités, description |
-| Détail d'analyse | `/analyse/<id>` | image, classe, confiance, probabilités, symptômes |
-| Historique | `/historique` | tableau des analyses, suppression, accès aux détails |
-| Maladies | `/maladies` | fiches des quatre classes avec exemples et prévention |
-| À propos | `/a-propos` | contexte, méthodologie, architecture, limites, références |
+### 11.3 Parcours utilisateur
 
-*Tableau 12 — Pages de l'application et routes associées.*
+1. l'utilisateur ouvre <http://127.0.0.1:5000> ; la page affiche un formulaire et rappelle
+   les quatre classes reconnues ;
+2. il choisit un fichier JPG ou PNG de 8 Mo maximum ;
+3. le serveur vérifie l'extension, le type MIME, décode réellement l'image avec Pillow et
+   contrôle ses dimensions ;
+4. l'image est convertie en RGB, redimensionnée à 224 × 224 puis normalisée dans
+   l'intervalle [-1, 1] avant d'être passée au modèle ;
+5. la page réaffiche le résultat : classe prédite, confiance en pourcentage, durée de
+   l'inférence, les quatre probabilités triées, et un message adapté — « feuille saine »
+   ou « maladie détectée, faites confirmer par un agronome ».
 
-**Tableau de bord.** Il affiche le nombre total d'analyses, la confiance moyenne, les
-analyses de la semaine, le nombre de classes, l'état de chargement du modèle, la
-répartition des prédictions sous forme de graphique en anneau et les cinq dernières
-analyses. C'est la page d'accueil : elle doit donner en un coup d'œil une idée du
-fonctionnement et de l'activité du système.
+Aucune image n'est écrite sur le disque : le fichier est traité en mémoire, puis oublié.
+Il n'y a donc ni historique, ni fichier téléversé à nettoyer, ni donnée personnelle
+conservée.
 
-![Tableau de bord de l'application](captures/01_tableau_de_bord.png)
+### 11.4 Choix de simplicité
 
-*Figure 5 — Tableau de bord : présentation du projet et état du système (affichage mobile).*
+Trois simplifications ont été assumées par rapport à une application « complète » :
 
-![Statistiques et répartition des prédictions](captures/02_statistiques_classes.png)
+- **pas de base de données ni d'historique** : le besoin exprimé est une inférence, pas un
+  suivi d'activité ; supprimer la persistance supprime aussi le stockage d'images ;
+- **pas d'API JSON ni de JavaScript** : un formulaire HTML classique et un rendu côté
+  serveur suffisent, la page fonctionne même si les scripts sont désactivés ;
+- **pas de framework CSS** : une feuille de style d'environ 130 lignes remplace Bootstrap
+  et Chart.js, ce qui allège le dépôt de plusieurs mégaoctets et supprime toute dépendance
+  externe.
 
-*Figure 6 — Tableau de bord : répartition des classes prédites sous forme de graphique.*
-
-**Page d'analyse.** L'utilisateur dépose une image par glisser-déposer ou par sélection
-de fichier. Un aperçu s'affiche immédiatement, avant toute analyse, accompagné du nom et
-de la taille du fichier. Le bouton « Lancer l'analyse » déclenche un appel asynchrone
-(`fetch`) vers `/api/analyser`, sans rechargement de page, avec un indicateur de
-chargement (spinner) pendant l'inférence.
-
-![Page d'analyse avec aperçu de l'image](captures/05_apercu_image.png)
-
-*Figure 7 — Page d'analyse : aperçu de l'image avant lancement de la prédiction.*
-
-Le résultat présente la classe prédite, un résumé de la maladie, le pourcentage de
-confiance, la durée de l'inférence, un graphique en barres des quatre probabilités, la
-liste détaillée des scores, la description de la maladie et ses symptômes
-caractéristiques. L'utilisateur peut relancer une analyse ou consulter la fiche
-complète de l'analyse enregistrée.
-
-![Résultat d'une analyse](captures/07_resultat_entete.png)
-
-*Figure 8 — Résultat d'une analyse : classe prédite, confiance et distribution des
-probabilités.*
-
-**Historique.** Les analyses sont conservées dans une base SQLite et affichées dans un
-tableau trié par date décroissante : identifiant, date et heure, nom de l'image, maladie
-prédite, score de confiance, accès au détail et suppression. La suppression est protégée
-par une fenêtre de confirmation et efface également le fichier image associé.
-
-![Historique des analyses](captures/08_historique.png)
-
-*Figure 9 — Historique des analyses enregistrées dans la base SQLite.*
-
-**Fiches maladies.** Chaque classe est présentée avec trois images d'exemple issues du
-dataset, une description, les symptômes visuels caractéristiques, des conseils de
-prévention et une mention des confusions possibles. Cette page rappelle explicitement que
-le périmètre est limité à quatre catégories.
-
-![Fiche descriptive d'une maladie](captures/10_maladies.png)
-
-*Figure 10 — Fiche maladie : description, symptômes et prévention.*
-
-**À propos.** Cette page documente le contexte scientifique, la problématique, les
-objectifs, l'architecture, les technologies, la configuration réelle du modèle et ses
-limites. Elle contribue à la posture honnête du projet.
-
-![Page À propos](captures/11_a_propos.png)
-
-*Figure 11 — Page « À propos » : contexte, objectifs et méthodologie.*
-
-### 11.3 API JSON
-
-L'application expose une API simple, utilisée par le frontend et exploitable par un
-script :
-
-| Méthode | Route | Rôle |
-| --- | --- | --- |
-| POST | `/api/analyser` | téléversement + prédiction + enregistrement |
-| GET | `/api/historique` | liste des analyses au format JSON |
-| DELETE | `/api/historique/<id>` | suppression d'une analyse et de son image |
-| GET | `/api/statistiques` | statistiques agrégées |
-| GET | `/sante` | sonde de disponibilité (modèle chargé, nombre de classes) |
-
-*Tableau 13 — Points d'entrée de l'API JSON.*
-
-La réponse de `/api/analyser` contient la classe, le nom français, la confiance, les
-quatre probabilités triées, la durée d'inférence, l'URL de l'image et le lien vers la
-fiche détaillée. En cas d'erreur, un code HTTP approprié (400, 404, 413, 500, 503) est
-renvoyé avec un message compréhensible en français.
-
-### 11.4 Base de données
-
-L'historique est stocké dans une base SQLite unique, créée automatiquement au premier
-lancement. Le schéma est volontairement minimal :
-
-| Colonne | Type | Rôle |
-| --- | --- | --- |
-| `id` | INTEGER (PK) | identifiant de l'analyse |
-| `nom_stocke` | TEXT | nom aléatoire du fichier sur le serveur (UUID) |
-| `nom_original` | TEXT | nom d'origine assaini, pour l'affichage |
-| `classe_predite` | TEXT | classe retournée par le modèle |
-| `confiance` | REAL | probabilité de la classe prédite (0 à 1) |
-| `probabilites` | TEXT | distribution complète au format JSON |
-| `modele` | TEXT | nom du fichier modèle utilisé |
-| `duree_ms` | INTEGER | durée de l'inférence en millisecondes |
-| `created_at` | TEXT | horodatage ISO 8601 |
-
-*Tableau 14 — Schéma de la table `analyses`.*
-
-Toutes les requêtes utilisent des paramètres liés (`?`), ce qui élimine les risques
-d'injection SQL. Aucune donnée personnelle n'est stockée : ni adresse IP, ni identifiant
-utilisateur.
+Il en résulte une application de **130 lignes environ**, deux gabarits HTML et une feuille
+de style : le comportement complet se lit d'un coup d'œil, ce qui facilite la relecture,
+les tests et la démonstration. Pour un usage par lot, le script `training/predict.py`
+reste disponible en ligne de commande.
 
 ### 11.5 Sécurité et robustesse
 
-Les mesures suivantes ont été mises en œuvre :
+Les contrôles appliqués au fichier téléversé sont les suivants :
 
-- **validation des extensions** contre une liste blanche (`.jpg`, `.jpeg`, `.png`) ;
-- **vérification du type MIME** déclaré par le navigateur ;
-- **décodage réel du fichier** par Pillow : une image corrompue ou un fichier renommé
-  est rejeté, l'extension seule ne suffit pas ;
-- **taille maximale** de 8 Mo, appliquée par Flask (`MAX_CONTENT_LENGTH`) et par le
-  frontend ;
-- **dimensions maximales** de 4 000 pixels et taille minimale de 32 pixels ;
-- **renommage systématique** par UUID : aucun nom fourni par l'utilisateur n'est utilisé
-  pour construire un chemin ;
-- **ré-encodage en JPEG RGB** : neutralise les métadonnées et les charges utiles cachées ;
-- **service des images** via une route validant un motif strict
-  (`^[0-9a-f]{32}\.jpg$`), ce qui empêche toute traversée de répertoire ;
-- **aucun chemin interne** renvoyé par l'API ; les erreurs techniques sont journalisées
-  côté serveur et remplacées par un message générique ;
-- **chargement unique du modèle** au démarrage (singleton protégé par un verrou), et non
-  à chaque requête ;
-- **gestion explicite** des erreurs 404, 413, 500 et du cas « modèle absent » (503).
+- **extension** en liste blanche (`.jpg`, `.jpeg`, `.png`) ;
+- **type MIME** déclaré par le navigateur ;
+- **décodage réel** par Pillow : un fichier renommé ou corrompu est rejeté, l'extension
+  seule ne suffit pas ;
+- **taille maximale** de 8 Mo, appliquée par Flask (`MAX_CONTENT_LENGTH`) ;
+- **dimensions** comprises entre 32 et 4 000 pixels ;
+- **traitement en mémoire** : aucun nom fourni par l'utilisateur ne participe à la
+  construction d'un chemin, ce qui exclut toute traversée de répertoire ;
+- **aucun chemin interne** renvoyé au navigateur ; les erreurs techniques sont
+  journalisées côté serveur et remplacées par un message générique ;
+- **codes HTTP explicites** : 400 (fichier refusé), 404 (page inconnue), 413 (image trop
+  volumineuse), 500 (échec de prédiction) et 503 lorsque le modèle est absent.
 
-### 11.6 Choix d'interface et accessibilité
+Si le fichier `models/best_model.keras` est manquant, l'application démarre quand même et
+affiche un message clair au lieu de planter.
 
-L'interface utilise une palette verte et rouge évoquant le végétal et la tomate, des
-cartes arrondies, des transitions discrètes et une typographie lisible. Les éléments
-interactifs possèdent un état de focus visible, la zone de dépôt est utilisable au clavier
-(`tabindex` et gestion des touches Entrée/Espace), les images ont un texte alternatif et
-les graphiques portent un label ARIA. Bootstrap 5 assure la responsivité : sur mobile, la
-navigation se replie et les cartes passent sur une colonne.
+### 11.6 Tests
 
-Bootstrap, Bootstrap Icons et Chart.js sont **embarqués localement** dans
-`static/vendor/`, ce qui permet une démonstration hors ligne, sans dépendance à un CDN.
-
-### 11.7 Tests de l'application
-
-Quarante-quatre tests automatisés (pytest) couvrent le prétraitement, les utilitaires, la
-base de données et l'application. Ils incluent un parcours complet réel :
-téléversement d'une image du jeu de test → prédiction par le vrai modèle → enregistrement
-→ consultation de l'historique et du détail → suppression → vérification de la
-disparition en base et sur le disque. Les tests vérifient également le refus d'un fichier
-non-image, d'une extension interdite, d'un dépassement de taille et d'un nom de fichier
-malveillant.
+Trente-trois tests automatisés (pytest) couvrent le prétraitement, les utilitaires et
+l'application. Le parcours réel est testé de bout en bout : envoi d'une image, prédiction
+par le vrai modèle, affichage de la classe, de la confiance et des quatre probabilités.
+Les cas de rejet sont également vérifiés : absence de fichier, extension interdite, faux
+type MIME, contenu qui n'est pas une image, image trop petite ou trop grande, page
+inconnue (404).
 
 ## 12. Résultats expérimentaux
 
@@ -202,7 +113,7 @@ scikit-learn. Les figures et les fichiers CSV sont générés automatiquement.
 
 ![Courbes d'accuracy et de perte](../../results/figures/training_curves.png)
 
-*Figure 12 — Courbes d'apprentissage : accuracy et perte, entraînement et validation,
+*Figure 5 — Courbes d'apprentissage : accuracy et perte, entraînement et validation,
 avec la séparation entre phase 1 et fine-tuning (ligne pointillée).*
 
 L'accuracy d'entraînement progresse régulièrement de 77,7 % à 96,7 %. L'accuracy de
@@ -225,7 +136,7 @@ un sur-apprentissage limité.
 | Images de test | 820 |
 | Images mal classées | 34 (4,15 %) |
 
-*Tableau 15 — Métriques globales du modèle sur l'ensemble de test.*
+*Tableau 12 — Métriques globales du modèle sur l'ensemble de test.*
 
 L'accuracy de 95,85 % signifie que 786 images sur 820 ont été correctement classées. La
 faible différence entre les moyennes macro (95,34 %) et pondérée (95,82 %) indique que
@@ -242,11 +153,11 @@ les classes minoritaires au profit des classes majoritaires.
 | Feuille saine | 97,56 % | 100,00 % | 98,77 % | 240 | 240 |
 | **Macro** | **95,47 %** | **95,25 %** | **95,34 %** | 820 | 786 |
 
-*Tableau 16 — Métriques détaillées par classe.*
+*Tableau 13 — Métriques détaillées par classe.*
 
 ![Performances par classe](../../results/figures/per_class_performance.png)
 
-*Figure 13 — Precision, recall et F1-score pour chacune des quatre classes.*
+*Figure 6 — Precision, recall et F1-score pour chacune des quatre classes.*
 
 Trois observations se dégagent :
 
@@ -269,11 +180,11 @@ Trois observations se dégagent :
 | **Moisissure** | 3 | 2 | **138** | 0 |
 | **Saine** | 0 | 0 | 0 | **240** |
 
-*Tableau 17 — Matrice de confusion (effectifs) sur les 820 images de test.*
+*Tableau 14 — Matrice de confusion (effectifs) sur les 820 images de test.*
 
 ![Matrice de confusion](../../results/figures/confusion_matrix.png)
 
-*Figure 14 — Matrice de confusion en effectifs (à gauche) et en proportions par classe
+*Figure 7 — Matrice de confusion en effectifs (à gauche) et en proportions par classe
 réelle (à droite).*
 
 La lecture par ligne est la plus instructive : 88,7 % des alternarioses sont correctement
@@ -292,7 +203,7 @@ erreurs se concentrent sur la frontière alternariose / mildiou, avec 15 confusi
 | Confiance médiane globale | 99,95 % |
 | Confusion la plus fréquente | Alternariose → Mildiou (9 cas) |
 
-*Tableau 18 — Statistiques de confiance et principales confusions.*
+*Tableau 15 — Statistiques de confiance et principales confusions.*
 
 La confiance moyenne des erreurs (70,2 %) est très inférieure à celle des prédictions
 correctes (97,5 %) : le modèle « sait » en partie qu'il hésite. C'est un signal utile pour
@@ -301,11 +212,11 @@ probabilités plutôt que d'une classe unique.
 
 ![Distribution de la confiance](../../results/figures/confidence_distribution.png)
 
-*Figure 15 — Distribution de la confiance selon que la prédiction est correcte ou non.*
+*Figure 8 — Distribution de la confiance selon que la prédiction est correcte ou non.*
 
 ![Planche d'erreurs de classification](../../results/predictions/error_grid.png)
 
-*Figure 16 — Exemples d'images mal classées : classe réelle, classe prédite et confiance.*
+*Figure 9 — Exemples d'images mal classées : classe réelle, classe prédite et confiance.*
 
 La planche d'erreurs montre que les images mal classées sont souvent des cas ambigus :
 lésions peu contrastées, feuille partiellement floue, ou symptômes mélangés. Certaines
@@ -321,7 +232,7 @@ faiblesse du modèle, mais aussi de la frontière floue entre deux pathologies.
 | Requêtes suivantes (modèle en mémoire) | 68 – 80 ms |
 | Batch d'évaluation (16 images) | ≈ 1,2 s, soit ≈ 75 ms par image |
 
-*Tableau 19 — Temps d'inférence mesurés sur le processeur de test.*
+*Tableau 16 — Temps d'inférence mesurés sur le processeur de test.*
 
 Le chargement unique du modèle au démarrage permet de répondre en moins de 100 ms par
 image, ce qui rend l'expérience fluide dans le navigateur. La première requête est plus
@@ -411,7 +322,7 @@ La progression observée valide l'intérêt du Transfer Learning :
 | Meilleure phase 1 (époque 4) | 94,52 % |
 | Meilleure phase 2 (époque 22) | **95,98 %** |
 
-*Tableau 20 — Progression de la validation au fil de l'expérience.*
+*Tableau 17 — Progression de la validation au fil de l'expérience.*
 
 Atteindre 86 % dès la première époque, avec seulement 164 484 paramètres entraînables,
 aurait été impossible avec un réseau initialisé aléatoirement. Le gain du fine-tuning
@@ -488,9 +399,10 @@ Ce projet illustre plusieurs principes importants :
 
 **Limites liées à l'application**
 
-- pas d'authentification ni de comptes utilisateurs : l'historique est partagé ;
-- pas de déploiement en production (serveur de développement Flask) ;
-- base SQLite adaptée à un usage local, non à un usage multi-utilisateurs intensif ;
+- pas de déploiement en production : serveur de développement Flask, sans HTTPS ;
+- une seule image analysée à la fois, sans traitement par lot dans l'interface ;
+- pas d'historique ni de suivi des analyses : choix de simplicité, aucune donnée
+  n'est conservée ;
 - interface en français uniquement.
 
 ### 15.2 Perspectives techniques
@@ -513,9 +425,8 @@ Ce projet illustre plusieurs principes importants :
 
 ### 15.3 Perspectives applicatives
 
-- ajout d'un compte utilisateur et d'un historique personnel ;
-- export PDF d'un rapport d'analyse ;
 - prise de photo directe depuis le smartphone (API `getUserMedia`) ;
+- export PDF d'une fiche de résultat ;
 - mode hors-ligne complet avec un modèle quantifié exécuté dans le navigateur
   (TensorFlow.js) ;
 - extension à d'autres cultures (pomme de terre, vigne, pommier) ;
@@ -577,28 +488,29 @@ l'objet d'un audit exhaustif ; ce point est signalé par prudence.
 
 ### 16.3 Vie privée des utilisateurs de l'application
 
-Le principe appliqué est la **minimisation** : l'application ne stocke que le nom de
-fichier d'origine (nettoyé), l'image ré-encodée, la classe prédite, les probabilités,
-la durée d'inférence et l'horodatage. Aucun compte, aucune adresse IP, aucun cookie de
-suivi, aucune donnée de localisation.
+Le principe appliqué est la **minimisation absolue** : l'image téléversée n'est **jamais
+écrite sur le disque**. Elle est décodée en mémoire, convertie en tenseur, passée au
+modèle, puis oubliée à la fin de la requête. L'application ne conserve donc ni image, ni
+nom de fichier, ni résultat : aucune analyse n'est consultable après coup, aucune donnée
+personnelle n'est stockée.
 
 Mesures techniques concrètes :
 
-- **suppression des métadonnées** : l'image est ré-encodée en JPEG RGB, ce qui élimine
-  l'EXIF et donc une éventuelle position GPS contenue dans la photo d'origine ;
-- **renommage par UUID** : aucun nom fourni par le client ne participe au chemin de
-  stockage, ce qui empêche à la fois la traversée de répertoire et la fuite d'information
-  par le nom du fichier ;
-- **stockage local** : les images restent sur la machine qui héberge l'application, sans
-  envoi à un service tiers ;
-- **suppression** : l'utilisateur peut effacer une analyse et son image depuis l'historique.
+- **traitement en mémoire** : le flux du fichier est lu directement par Pillow, sans
+  écriture dans un répertoire temporaire ;
+- **aucun chemin construit** à partir du nom fourni par le client : ce nom sert uniquement
+  à vérifier l'extension, ce qui exclut toute traversée de répertoire ;
+- **aucun envoi à un tiers** : l'inférence est exécutée par le serveur local, sans API
+  externe ni service cloud ;
+- **aucun cookie de suivi, aucun compte, aucune adresse IP enregistrée** : l'application
+  ne tient pas de session et n'a pas de base de données.
 
-Limites assumées : il n'existe **ni authentification, ni chiffrement au repos, ni purge
-automatique**. L'historique est donc partagé entre tous les utilisateurs d'une même
-instance, et les images y restent jusqu'à suppression manuelle. Dans un déploiement
-multi-utilisateurs réel, cela ne satisferait pas aux exigences d'un traitement conforme au
-RGPD (base légale, information des personnes, droit d'accès et d'effacement, durée de
-conservation définie). Ces manques sont documentés comme limites et non masqués.
+Limites assumées : le serveur de développement Flask sert la page **en HTTP**, sans
+chiffrement ; une image transite donc en clair sur le réseau si l'application est exposée
+autre part qu'en local, et les journaux du serveur conservent l'heure et le code de
+réponse des requêtes. Pour un déploiement réel, il faudrait ajouter HTTPS, une politique
+de rétention des journaux et une information explicite des utilisateurs. Ces points sont
+documentés comme limites et non masqués.
 
 ### 16.4 Risque d'un mauvais diagnostic
 
@@ -666,12 +578,12 @@ doivent donc pas être présentés comme une borne supérieure de performance.
 | --- | --- | --- | --- |
 | Mauvais diagnostic suivi d'un traitement | Élevée | Avertissement explicite, 4 probabilités affichées, aucune prescription | Seuil de rejet, Grad-CAM, validation par un agronome |
 | Écart entre laboratoire et terrain | Élevée | Limite documentée (§15.1), pas de promesse de performance terrain | Constituer un jeu de test de terrain et le publier |
-| Atteinte à la vie privée | Moyenne | UUID, EXIF supprimé, stockage local, suppression manuelle | Comptes, purge automatique, chiffrement au repos |
+| Atteinte à la vie privée | Faible | Aucune image ni résultat conservé, traitement en mémoire, aucun compte | HTTPS et politique de journaux en cas de déploiement |
 | Biais de représentation et d'équité | Moyenne | Déséquilibre traité par poids de classes, biais explicités | Audit par sous-groupe, augmentation de données variées |
 | Inégalité d'accès à l'outil | Moyenne | Modèle léger, exécution CPU, aucune API payante | Interface multilingue, mode hors-ligne quantifié |
 | Coût de calcul | Faible | Transfer learning, 37,7 min de CPU, pas de GPU | Réutiliser le modèle, quantifier pour l'inférence |
 
-*Tableau 21 — Synthèse des risques éthiques identifiés et des mesures d'atténuation.*
+*Tableau 18 — Synthèse des risques éthiques identifiés et des mesures d'atténuation.*
 
 En résumé, le projet ne revendique pas la neutralité : il rend explicites ses données, ses
 biais, ses erreurs et son domaine de validité, et il refuse de transformer une prédiction

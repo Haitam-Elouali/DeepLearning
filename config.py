@@ -10,7 +10,6 @@ il peut donc être importé partout, y compris par les tests.
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -28,8 +27,6 @@ METRICS_DIR = RESULTS_DIR / "metrics"
 PREDICTIONS_DIR = RESULTS_DIR / "predictions"
 
 STATIC_DIR = BASE_DIR / "static"
-UPLOAD_DIR = STATIC_DIR / "uploads"
-EXAMPLES_DIR = STATIC_DIR / "images" / "examples"
 
 # Fichiers de données produits par l'entraînement
 CLASS_NAMES_PATH = DATA_DIR / "class_names.json"
@@ -38,12 +35,6 @@ TRAINING_CONFIG_PATH = MODELS_DIR / "training_config.json"
 MODEL_PATH = MODELS_DIR / "best_model.keras"
 HISTORY_PATH = METRICS_DIR / "training_history.json"
 
-# Métadonnées descriptives (rédigées à la main, sans dépendance au dataset)
-DISEASE_INFO_PATH = DATA_DIR / "disease_info.json"
-
-# Base de données de l'historique des analyses
-DATABASE_PATH = Path(os.environ.get("PLANT_DB_PATH", DATA_DIR / "history.db"))
-
 for _directory in (
     DATA_DIR,
     PROCESSED_DATA_DIR,
@@ -51,8 +42,6 @@ for _directory in (
     FIGURES_DIR,
     METRICS_DIR,
     PREDICTIONS_DIR,
-    UPLOAD_DIR,
-    EXAMPLES_DIR,
 ):
     _directory.mkdir(parents=True, exist_ok=True)
 
@@ -71,6 +60,15 @@ CLASS_NAMES = [
 ]
 
 NUM_CLASSES = len(CLASS_NAMES)
+
+#: Nom affiché de chaque classe dans l'interface (aucune fiche externe n'est
+#: nécessaire : le libellé suffit pour une application d'inférence).
+CLASSES_FR = {
+    "Tomato___Early_blight": "Alternariose précoce",
+    "Tomato___Late_blight": "Mildiou",
+    "Tomato___Leaf_Mold": "Moisissure des feuilles",
+    "Tomato___healthy": "Feuille saine",
+}
 
 #: Nombre d'images attendu par classe dans le dataset PlantVillage d'origine.
 #: Utilisé uniquement pour les contrôles de cohérence du script de
@@ -119,10 +117,6 @@ ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png"}
 MAX_UPLOAD_SIZE = 8 * 1024 * 1024  # 8 Mo
 MAX_IMAGE_DIMENSION = 4000  # refus des images démesurées (sécurité)
-HISTORY_PAGE_SIZE = 50
-
-#: Clé de session Flask : surchargeable par variable d'environnement.
-SECRET_KEY = os.environ.get("PLANT_SECRET_KEY", "dev-secret-a-changer-en-production")
 
 #: Version affichée dans l'interface et stockée avec chaque analyse.
 APP_NAME = "TomatoScan"

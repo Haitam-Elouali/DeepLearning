@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import json
 import random
 import shutil
 import sys
@@ -170,32 +169,6 @@ def ecrire_ensembles(
                         shutil.copy2(chemin, destination)
 
 
-def copier_exemples(dossier_brut: Path, nombre: int = 3) -> int:
-    """Copie quelques images d'illustration pour la page « Maladies »."""
-    total = 0
-    for classe in config.CLASS_NAMES:
-        infos = json.loads(config.DISEASE_INFO_PATH.read_text(encoding="utf-8")).get(classe, {})
-        cle = infos.get("image_exemple") or classe.split("___")[-1].lower()
-        dossier = dossier_brut / classe
-        fichiers = sorted(
-            chemin
-            for chemin in dossier.iterdir()
-            if chemin.suffix.lower() in config.ALLOWED_EXTENSIONS
-        )
-        if not fichiers:
-            continue
-        pas = max(1, len(fichiers) // (nombre + 1))
-        for index in range(nombre):
-            source = fichiers[min(len(fichiers) - 1, index * pas)]
-            destination = config.EXAMPLES_DIR / f"{cle}_{index + 1}.jpg"
-            with Image.open(source) as image:
-                image = image.convert("RGB")
-                image.thumbnail((480, 480), Image.Resampling.LANCZOS)
-                image.save(destination, format="JPEG", quality=85, optimize=True)
-            total += 1
-    return total
-
-
 # ---------------------------------------------------------------------------
 # Programme principal
 # ---------------------------------------------------------------------------
@@ -307,8 +280,6 @@ def main() -> int:
     }
     sauvegarder_json(manifeste, manifeste_existant)
 
-    nombre_exemples = copier_exemples(arguments.raw_dir)
-
     # --- Rapport console --------------------------------------------------
     print("\n2. Découpage stratifié")
     entete = f"   {'Classe':<28}{'Train':>8}{'Valid.':>8}{'Test':>8}{'Total':>8}"
@@ -330,7 +301,6 @@ def main() -> int:
     print(f"   Graine aléatoire          : {arguments.seed}")
     print(f"   Doublons exacts détectés  : {details['doublons_exacts']} (placés dans le même ensemble)")
     print(f"   Fichiers illisibles       : {len(invalides)}")
-    print(f"   Images d'illustration     : {nombre_exemples} copiées dans static/images/examples")
     print(f"   Manifeste                 : {manifeste_existant}")
     print("\nPréparation terminée. Étape suivante : python training/train.py")
     return 0

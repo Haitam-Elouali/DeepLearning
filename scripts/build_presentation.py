@@ -170,7 +170,6 @@ def construire() -> Path:
     manifeste = charger_json(config.DATASET_MANIFEST_PATH, defaut={}) or {}
     global_ = metriques.get("global", {})
     par_classe = metriques.get("par_classe", {})
-    captures = RACINE / "docs" / "rapport" / "captures"
     figures = RACINE / "results" / "figures"
 
     d = Diaporama()
@@ -456,39 +455,39 @@ def construire() -> Path:
 
     # 15. Application Web -----------------------------------------------
     slide = d.nouvelle_diapositive(
-        "Application Web : architecture",
-        "Flask · SQLite · Bootstrap 5 · Chart.js · interface en français",
+        "Application Web : une page, deux routes",
+        "Flask · formulaire HTML · rendu serveur · aucune image conservée",
         notes=(
-            "Décrire les couches : présentation, applicative, métier. Insister sur le chargement "
-            "unique du modèle et sur la validation stricte des fichiers. (≈ 1 min)"
+            "Décrire le parcours : formulaire, validation du fichier, prédiction, affichage. "
+            "Insister sur la simplicité assumée : pas de base de données, pas d'API, pas de "
+            "JavaScript. (≈ 1 min)"
         ),
     )
-    d.image(slide, captures / "01_tableau_de_bord.png", Inches(0.4), Inches(1.7), hauteur=Inches(5.0))
     d.puces(slide, [
-        "5 pages : tableau de bord, analyse, historique, fiches maladies, à propos.",
+        "GET / : formulaire de téléversement.",
+        "POST /analyser : validation, prédiction, affichage du résultat.",
         "Modèle chargé une seule fois au démarrage (singleton).",
-        "Validation : extension, MIME, décodage Pillow, taille, renommage UUID.",
-        "Historique SQLite : consultations et suppressions.",
-        "API JSON : /api/analyser, /api/historique, /sante.",
-        "44 tests automatisés (pytest), dont un parcours complet réel.",
-    ], gauche=Inches(3.4), haut=Inches(1.8), largeur=Inches(9.4), hauteur=Inches(4.6), taille=14)
+        "Validation : extension, MIME, décodage Pillow, taille, dimensions.",
+        "Aucune image écrite sur le disque : traitement en mémoire.",
+        "33 tests automatisés (pytest), dont le parcours complet image → résultat.",
+    ], gauche=Inches(0.6), haut=Inches(1.9), largeur=Inches(12.2), hauteur=Inches(4.4), taille=16)
 
     # 16. Démonstration -------------------------------------------------
     slide = d.nouvelle_diapositive(
         "Démonstration : analyse d'une feuille",
-        "Téléversement → prédiction (~70 ms) → probabilités → historique",
+        "Téléversement → prédiction (~70 ms) → classe, confiance et 4 probabilités",
         notes=(
-            "Montrer l'analyse en direct si possible. Sinon commenter la capture : classe prédite, "
-            "confiance, distribution des 4 probabilités, description et symptômes. (≈ 1 min 30)"
+            "Lancer python app.py, ouvrir http://127.0.0.1:5000, choisir une image du jeu de "
+            "test et commenter le résultat affiché. (≈ 1 min 30)"
         ),
     )
-    d.image(slide, captures / "05_apercu_image.png", Inches(0.4), Inches(1.7), hauteur=Inches(5.0))
-    d.image(slide, captures / "07_resultat_entete.png", Inches(3.5), Inches(1.7), hauteur=Inches(5.0))
     d.puces(slide, [
-        "Aperçu avant analyse, spinner pendant l'inférence.",
-        "Résultat : classe, confiance, graphique des probabilités.",
-        "Fiche complète enregistrée et consultable dans l'historique.",
-    ], gauche=Inches(6.8), haut=Inches(1.9), largeur=Inches(6.2), hauteur=Inches(4.8), taille=14)
+        "Ouvrir http://127.0.0.1:5000 et choisir une image JPG ou PNG.",
+        "Cliquer sur « Analyser l'image » : la page affiche le résultat.",
+        "Classe prédite, confiance, durée et quatre probabilités.",
+        "Message adapté : feuille saine ou maladie détectée.",
+        "Rien n'est conservé : une nouvelle analyse ne laisse aucune trace.",
+    ], gauche=Inches(0.6), haut=Inches(1.9), largeur=Inches(12.2), hauteur=Inches(4.4), taille=16)
 
     # 17. Limites -------------------------------------------------------
     slide = d.nouvelle_diapositive(

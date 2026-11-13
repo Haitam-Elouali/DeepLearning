@@ -3,7 +3,7 @@
 **Modèle** : MobileNetV2 + Transfer Learning  
 **Expérience réalisée le** : 2026-11-06  
 **Environnement** : Python 3.12.3, TensorFlow 2.21.0, CPU (sans GPU)  
-**Fiche générée le** : 06/11/2026
+**Fiche générée le** : 13/11/2026
 
 ## 1. Paramètres d'entraînement
 
@@ -31,7 +31,7 @@ Data Augmentation : rotation ±5 %, zoom ±10 %, retournement horizontal, lumino
 | Classe | Dataset brut | Entraînement | Validation | Test |
 | --- | --- | --- | --- | --- |
 | Alternariose précoce (Tomato___Early_blight) | 1000 | 700 | 150 | 150 |
-| Mildiou de la tomate (Tomato___Late_blight) | 1909 | 1334 | 288 | 287 |
+| Mildiou (Tomato___Late_blight) | 1909 | 1334 | 288 | 287 |
 | Moisissure des feuilles (Tomato___Leaf_Mold) | 952 | 666 | 143 | 143 |
 | Feuille saine (Tomato___healthy) | 1591 | 1111 | 240 | 240 |
 | **Total** | **5452** | **3811** | **821** | **820** |
@@ -63,10 +63,10 @@ Meilleure accuracy de validation : **95,98 %** (époque 22, sur 23 époques).
 
 ## 5. Matrice de confusion
 
-| Réel \ Prédit | Alternariose précoce | Mildiou de la tomate | Moisissure des feuilles | Feuille saine |
+| Réel \ Prédit | Alternariose précoce | Mildiou | Moisissure des feuilles | Feuille saine |
 | --- | --- | --- | --- | --- |
 | Alternariose précoce | 133 | 9 | 4 | 4 |
-| Mildiou de la tomate | 6 | 275 | 4 | 2 |
+| Mildiou | 6 | 275 | 4 | 2 |
 | Moisissure des feuilles | 3 | 2 | 138 | 0 |
 | Feuille saine | 0 | 0 | 0 | 240 |
 
@@ -77,7 +77,7 @@ Meilleure accuracy de validation : **95,98 %** (époque 22, sur 23 époques).
 | Classe | Precision | Recall | F1-score | Support | Bien classées | Confiance moyenne |
 | --- | --- | --- | --- | --- | --- | --- |
 | Alternariose précoce | 93,66 % | 88,67 % | 91,10 % | 150 | 133 | 91,44 % |
-| Mildiou de la tomate | 96,15 % | 95,82 % | 95,99 % | 287 | 275 | 95,81 % |
+| Mildiou | 96,15 % | 95,82 % | 95,99 % | 287 | 275 | 95,81 % |
 | Moisissure des feuilles | 94,52 % | 96,50 % | 95,50 % | 143 | 138 | 97,31 % |
 | Feuille saine | 97,56 % | 100,00 % | 98,77 % | 240 | 240 | 99,62 % |
 
@@ -94,10 +94,10 @@ Meilleure accuracy de validation : **95,98 %** (époque 22, sur 23 époques).
 
 | Confusion observée | Nombre de cas |
 | --- | --- |
-| Alternariose précoce → Mildiou de la tomate | 9 |
-| Mildiou de la tomate → Alternariose précoce | 6 |
+| Alternariose précoce → Mildiou | 9 |
+| Mildiou → Alternariose précoce | 6 |
 | Alternariose précoce → Feuille saine | 4 |
-| Mildiou de la tomate → Moisissure des feuilles | 4 |
+| Mildiou → Moisissure des feuilles | 4 |
 | Alternariose précoce → Moisissure des feuilles | 4 |
 
 ![Distribution de la confiance](../../results/figures/confidence_distribution.png)

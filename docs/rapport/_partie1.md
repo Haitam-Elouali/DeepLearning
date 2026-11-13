@@ -76,8 +76,8 @@ une photographie de feuille de tomate et d'obtenir une prédiction parmi quatre 
 accompagnée d'un score de confiance et de la distribution des probabilités. La démarche
 s'appuie sur un modèle **MobileNetV2** pré-entraîné sur ImageNet, adapté par
 **Transfer Learning** à notre problème à quatre classes, puis intégré dans une
-application **Flask** dotée d'une interface en français, d'un historique des analyses et
-de fiches descriptives des maladies.
+application **Flask** minimale, en français : téléversement d'une image, puis classe
+prédite, confiance et distribution des probabilités.
 
 Le rapport est organisé de la manière suivante. Les sections 2 et 3 exposent le contexte,
 la problématique et les objectifs. Les sections 4 à 6 présentent le cadre théorique :
@@ -181,12 +181,10 @@ Learning.
 
 **Sur le plan applicatif**
 
-- développer une application Flask en français, responsive et moderne ;
-- proposer cinq pages : tableau de bord, analyse, historique, fiches maladies, à propos ;
-- stocker les analyses dans une base SQLite et permettre leur consultation et leur
-  suppression ;
-- garantir la sécurité des téléversements et éviter de recharger le modèle à chaque
-  requête ;
+- développer une application Flask en français, limitée à l'essentiel ;
+- proposer une page unique : téléverser une image, afficher le résultat ;
+- ne conserver ni image ni analyse sur le serveur ;
+- valider les fichiers téléversés et éviter de recharger le modèle à chaque requête ;
 - fournir des tests automatisés et une documentation d'installation.
 
 ### 3.3 Contraintes
