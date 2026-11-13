@@ -48,6 +48,7 @@ plant-disease-detection/
 │   ├── best_model.keras        # modèle final (livrable)
 │   └── training_config.json    # hyperparamètres et résultats de l'entraînement
 │
+├── notebooks/                  # notebook d'entraînement (README des scripts)
 ├── training/
 │   ├── prepare_data.py         # contrôle qualité + split stratifié sans fuite
 │   ├── train.py                # MobileNetV2 : phase 1 + fine-tuning
@@ -298,7 +299,7 @@ doublons, hyperparamètres centralisés et journalisés.
 
 | Livrable | Emplacement |
 | --- | --- |
-| Code source complet | ce dépôt |
+| Code source (scripts + notebook) | ce dépôt |
 | Modèle entraîné | `models/best_model.keras` + `models/training_config.json` |
 | Résultats et figures | `results/` |
 | Rapport scientifique (Word) | `docs/rapport/rapport_final.docx` |
