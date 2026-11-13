@@ -31,8 +31,9 @@ Année universitaire : **2025 – 2026**
 13. Évaluation et interprétation des métriques
 14. Discussion des résultats
 15. Limites et perspectives d'amélioration
-16. Conclusion générale
-17. Références bibliographiques
+16. Éthique et impacts du système
+17. Conclusion générale
+18. Références bibliographiques
 
 > **Note sur l'honnêteté scientifique.** Toutes les valeurs numériques de ce rapport
 > proviennent d'un entraînement et d'une évaluation réellement exécutés dans le cadre
@@ -84,8 +85,9 @@ CNN, architecture MobileNetV2 et Transfer Learning. La section 7 décrit le data
 son exploration, la section 8 le prétraitement et la Data Augmentation. Les sections 9
 et 10 détaillent l'architecture du modèle et le protocole d'entraînement. La section 11
 est consacrée à l'application Web. Les sections 12 à 14 présentent et discutent les
-résultats expérimentaux. Les sections 15 et 16 dressent les limites, les perspectives et
-la conclusion. La section 17 rassemble les références.
+résultats expérimentaux. La section 15 dresse les limites et les perspectives, la section
+16 traite de l'éthique et des impacts du système, la section 17 présente la conclusion.
+La section 18 rassemble les références.
 
 ## 2. Contexte et problématique
 

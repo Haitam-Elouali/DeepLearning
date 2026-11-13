@@ -31,8 +31,9 @@ Année universitaire : **2025 – 2026**
 13. Évaluation et interprétation des métriques
 14. Discussion des résultats
 15. Limites et perspectives d'amélioration
-16. Conclusion générale
-17. Références bibliographiques
+16. Éthique et impacts du système
+17. Conclusion générale
+18. Références bibliographiques
 
 > **Note sur l'honnêteté scientifique.** Toutes les valeurs numériques de ce rapport
 > proviennent d'un entraînement et d'une évaluation réellement exécutés dans le cadre
@@ -84,8 +85,9 @@ CNN, architecture MobileNetV2 et Transfer Learning. La section 7 décrit le data
 son exploration, la section 8 le prétraitement et la Data Augmentation. Les sections 9
 et 10 détaillent l'architecture du modèle et le protocole d'entraînement. La section 11
 est consacrée à l'application Web. Les sections 12 à 14 présentent et discutent les
-résultats expérimentaux. Les sections 15 et 16 dressent les limites, les perspectives et
-la conclusion. La section 17 rassemble les références.
+résultats expérimentaux. La section 15 dresse les limites et les perspectives, la section
+16 traite de l'éthique et des impacts du système, la section 17 présente la conclusion.
+La section 18 rassemble les références.
 
 ## 2. Contexte et problématique
 
@@ -1212,7 +1214,164 @@ Ce projet illustre plusieurs principes importants :
 - extension à d'autres cultures (pomme de terre, vigne, pommier) ;
 - interface multilingue.
 
-## 16. Conclusion générale
+## 16. Éthique et impacts du système
+
+Un système de vision artificielle appliqué à l'agriculture ne soulève pas seulement des
+questions techniques. Parce qu'il produit une recommandation qu'un utilisateur pourrait
+suivre pour traiter une culture, il engage une responsabilité : celle de dire clairement
+ce qu'il fait, ce qu'il ne fait pas, et avec quelles données il a été construit. Cette
+section explicite le cadre d'usage, les risques identifiés et les mesures prises ou
+recommandées pour les atténuer.
+
+### 16.1 Usage prévu et limites de responsabilité
+
+L'usage prévu est **pédagogique et expérimental** : illustrer une chaîne complète de Deep
+Learning, de la donnée brute à l'application. Le système n'est ni un dispositif médical ni
+un outil de diagnostic agricole certifié. Trois précautions sont appliquées :
+
+- un avertissement explicite figure dans le README et dans l'interface (page « À propos ») ;
+- l'application affiche **les quatre probabilités**, et non une classe unique, afin que
+  l'utilisateur voie l'incertitude du modèle ;
+- aucune prescription de traitement (dose, produit, fréquence) n'est proposée : les fiches
+  maladies décrivent des symptômes et des principes de prévention, pas une ordonnance.
+
+Toute décision de traitement doit rester celle d'un agronome ou d'un technicien, sur la
+base d'une observation de terrain. Le modèle ne qualifie ni la gravité ni le stade de
+l'infection, deux informations déterminantes pour décider d'une intervention.
+
+### 16.2 Données : licence, représentativité et biais
+
+**Licence et redistribution.** Le dépôt PlantVillage ne comporte pas de fichier de licence
+explicite. Les images sont donc utilisées dans un cadre strictement académique, ne sont
+**pas redistribuées** et ne sont pas versionnées dans le dépôt Git (`.gitignore`), ce qui
+respecte la source et évite toute réutilisation non contrôlée.
+
+**Biais de représentativité.** Le jeu de données est constitué de feuilles isolées,
+photographiées en laboratoire sur fond uniforme, dans des conditions contrôlées et pour un
+nombre limité de variétés. Il sous-représente les situations réelles : symptômes précoces
+ou atypiques, attaques multiples, feuilles sales ou flétries, arrière-plans végétaux,
+éclairages rasants, photos de smartphone compressées. Le modèle n'a jamais vu ces
+conditions : **aucune mesure de performance hors domaine n'est disponible**, et rien ne
+permet d'affirmer que les 95,85 % obtenus se transposeraient au champ. Ce biais est le
+plus important du projet et il est explicité dans les limites (§15.1).
+
+**Biais hérité du pré-entraînement.** Les poids ImageNet proviennent d'images web, avec
+leurs propres déséquilibres géographiques et culturels. Le transfer learning accélère
+l'apprentissage mais transmet une partie de ces biais, impossible à quantifier ici.
+
+**Déséquilibre entre classes.** Les effectifs vont de 952 à 1 909 images. Les poids de
+classes compensent partiellement ce déséquilibre à l'entraînement, mais la classe la plus
+petite (moisissure, 143 images de test) reste celle dont l'estimation est la plus fragile,
+avec un intervalle de confiance plus large.
+
+**Données personnelles dans le dataset.** Les images ne contiennent pas de données
+personnelles identifiantes à notre connaissance, mais leurs métadonnées EXIF n'ont pas fait
+l'objet d'un audit exhaustif ; ce point est signalé par prudence.
+
+### 16.3 Vie privée des utilisateurs de l'application
+
+Le principe appliqué est la **minimisation** : l'application ne stocke que le nom de
+fichier d'origine (nettoyé), l'image ré-encodée, la classe prédite, les probabilités,
+la durée d'inférence et l'horodatage. Aucun compte, aucune adresse IP, aucun cookie de
+suivi, aucune donnée de localisation.
+
+Mesures techniques concrètes :
+
+- **suppression des métadonnées** : l'image est ré-encodée en JPEG RGB, ce qui élimine
+  l'EXIF et donc une éventuelle position GPS contenue dans la photo d'origine ;
+- **renommage par UUID** : aucun nom fourni par le client ne participe au chemin de
+  stockage, ce qui empêche à la fois la traversée de répertoire et la fuite d'information
+  par le nom du fichier ;
+- **stockage local** : les images restent sur la machine qui héberge l'application, sans
+  envoi à un service tiers ;
+- **suppression** : l'utilisateur peut effacer une analyse et son image depuis l'historique.
+
+Limites assumées : il n'existe **ni authentification, ni chiffrement au repos, ni purge
+automatique**. L'historique est donc partagé entre tous les utilisateurs d'une même
+instance, et les images y restent jusqu'à suppression manuelle. Dans un déploiement
+multi-utilisateurs réel, cela ne satisferait pas aux exigences d'un traitement conforme au
+RGPD (base légale, information des personnes, droit d'accès et d'effacement, durée de
+conservation définie). Ces manques sont documentés comme limites et non masqués.
+
+### 16.4 Risque d'un mauvais diagnostic
+
+Sur 820 images, 34 erreurs (4,15 %) subsistent. Leur concentration est le point sensible :
+15 confusions croisées entre **alternariose précoce** et **mildiou**, deux maladies dont
+les lésions se ressemblent mais dont la gestion diffère. Une erreur dans ce couple peut
+conduire à un traitement inadapté, donc à une perte de récolte ou à un usage inutile de
+fongicides.
+
+Deux risques symétriques doivent être nommés :
+
+- **faux négatif** (maladie prédite saine) : risque de propagation silencieuse, le plus
+  grave agronomiquement ; la classe saine est toutefois celle qui obtient le meilleur
+  rappel (100 % sur le test), ce qui limite ce risque dans le domaine étudié ;
+- **faux positif** (sain prédit malade) : traitement inutile, coût économique et intrants
+  supplémentaires.
+
+La confiance moyenne des erreurs (70,23 %) est nettement inférieure à celle des prédictions
+correctes (97,52 %), mais elle reste élevée pour certaines erreurs : l'affichage de la
+confiance **ne suffit pas** à lui seul à alerter l'utilisateur. C'est pourquoi un seuil de
+rejet et une carte d'attention (Grad-CAM) figurent parmi les perspectives prioritaires.
+
+### 16.5 Équité et accessibilité
+
+Le choix de MobileNetV2 (2,4 millions de paramètres, inférence d'environ 70 ms sur CPU)
+relève aussi d'un souci d'équité d'accès : le système fonctionne sans GPU et sur un poste
+modeste, condition indispensable pour un usage dans de petites exploitations. Le modèle est
+en outre suffisamment compact pour envisager une exécution embarquée après quantification.
+
+À l'inverse, trois barrières subsistent : l'interface est uniquement en français ; elle
+suppose un smartphone ou un ordinateur et une instance accessible ; et **aucune mesure de
+performance par sous-groupe** (type d'appareil, conditions d'éclairage, variété, stade de
+la maladie) n'a été réalisée. Il n'est donc pas possible d'affirmer que le modèle est
+équitable entre ces situations : c'est un audit à conduire avant tout usage réel.
+
+### 16.6 Impact environnemental et coût de calcul
+
+L'entraînement complet a duré **37,7 minutes de CPU** (23,4 min pour la phase 1, 14,3 min
+pour le fine-tuning) sur un processeur à deux cœurs, sans GPU. Le transfer learning est ici
+le principal levier environnemental : il évite d'entraîner un CNN from scratch, qui
+exigerait plusieurs heures à plusieurs jours de calcul pour un résultat souvent inférieur.
+L'inférence (environ 70 ms par image) est négligeable à l'échelle d'un usage interactif.
+
+Le projet ne fournit pas d'estimation en kWh ni en équivalent CO₂ : une telle estimation
+n'aurait de sens qu'avec la consommation réelle mesurée de la machine. Les recommandations
+associées sont de réutiliser le modèle existant plutôt que de réentraîner sans nécessité,
+et de privilégier la quantification pour l'inférence mobile.
+
+### 16.7 Conduite scientifique
+
+Toutes les valeurs du rapport proviennent d'un entraînement et d'une évaluation réellement
+exécutés ; aucune métrique n'est simulée ni recopiée d'une publication. Les figures et la
+fiche expérimentale sont générées par script à partir des fichiers de résultats, ce qui
+réduit le risque d'erreur de recopie. Le dataset n'est pas versionné, mais les scripts, les
+métriques, les prédictions et le modèle le sont, ce qui rend l'expérience auditable.
+
+Deux réserves d'honnêteté accompagneront la lecture des chiffres : l'expérience repose sur
+**un seul run** (pas de validation croisée, donc pas d'estimation de la variabilité), et le
+budget d'époques a été réduit (15 + 8 au lieu de 30 + 15) faute de GPU. Les 95,85 % ne
+doivent donc pas être présentés comme une borne supérieure de performance.
+
+### 16.8 Synthèse des risques et des mesures
+
+| Risque | Gravité | Mesure en place | Mesure recommandée |
+| --- | --- | --- | --- |
+| Mauvais diagnostic suivi d'un traitement | Élevée | Avertissement explicite, 4 probabilités affichées, aucune prescription | Seuil de rejet, Grad-CAM, validation par un agronome |
+| Écart entre laboratoire et terrain | Élevée | Limite documentée (§15.1), pas de promesse de performance terrain | Constituer un jeu de test de terrain et le publier |
+| Atteinte à la vie privée | Moyenne | UUID, EXIF supprimé, stockage local, suppression manuelle | Comptes, purge automatique, chiffrement au repos |
+| Biais de représentation et d'équité | Moyenne | Déséquilibre traité par poids de classes, biais explicités | Audit par sous-groupe, augmentation de données variées |
+| Inégalité d'accès à l'outil | Moyenne | Modèle léger, exécution CPU, aucune API payante | Interface multilingue, mode hors-ligne quantifié |
+| Coût de calcul | Faible | Transfer learning, 37,7 min de CPU, pas de GPU | Réutiliser le modèle, quantifier pour l'inférence |
+
+*Tableau 21 — Synthèse des risques éthiques identifiés et des mesures d'atténuation.*
+
+En résumé, le projet ne revendique pas la neutralité : il rend explicites ses données, ses
+biais, ses erreurs et son domaine de validité, et il refuse de transformer une prédiction
+probabiliste en prescription agricole. Cette transparence est la condition minimale d'un
+usage responsable, et la première des améliorations à venir.
+
+## 17. Conclusion générale
 
 Ce projet avait pour objectif de concevoir un système complet de détection et de
 classification des maladies de la feuille de tomate, depuis la donnée brute jusqu'à une
@@ -1251,7 +1410,7 @@ documentation. Il illustre une idée essentielle : la performance d'un modèle d
 de sa complexité que de la qualité des données, de la rigueur du protocole et de
 l'honnêteté de l'interprétation.
 
-## 17. Références bibliographiques
+## 18. Références bibliographiques
 
 1. Hughes, D. P., & Salathé, M. (2015). *An open access repository of images on plant
    health to enable the development of mobile disease diagnostics*. arXiv:1511.08060.
