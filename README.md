@@ -48,8 +48,9 @@ plant-disease-detection/
 │   ├── best_model.keras        # modèle final (livrable)
 │   └── training_config.json    # hyperparamètres et résultats de l'entraînement
 │
-├── notebooks/                  # notebook d'entraînement (README des scripts)
+├── notebooks/                  # notebook d'entraînement (accompagne les scripts)
 ├── training/
+│   ├── download_dataset.py     # récupère les 4 classes PlantVillage (~100 Mo)
 │   ├── prepare_data.py         # contrôle qualité + split stratifié sans fuite
 │   ├── train.py                # MobileNetV2 : phase 1 + fine-tuning
 │   ├── evaluate.py             # métriques, figures, analyse d'erreurs
@@ -124,6 +125,7 @@ utilisées dans un cadre strictement académique, ne sont pas redistribuées et 
 versionnées ici.
 
 ```bash
+python training/download_dataset.py   # clone partiel des 4 dossiers utiles
 python training/prepare_data.py       # contrôle qualité + split 70/15/15
 ```
 
@@ -161,24 +163,22 @@ Paramètres :
 | Poids de classes | activés (compensent le déséquilibre) |
 | Graine | 42 |
 
-Déroulement ((~ 35 min sur CPU à 2 cœurs) :
+Déroulement (≈ 35 min sur CPU à 2 cœurs) :
 
 - **phase 1** : base gelée, Adam 1e-3, Early Stopping + Checkpoint sur la meilleure
   validation ;
 - **phase 2** : on recharge ce meilleur modèle, on dégèle les 30 dernières couches
   (BatchNormalization exclues), on recompile à 1e-5 et on continue les époques.
 
-**Pourquoi deux phases** : pendant la phase 1, la base (MobileNetV2 pré-entraînée sur
-ImageNet) reste gelée, seule la petite tête apprise appris ; lors de la phase 2, on
-relâche les couches les plus spécifiques pour les adapter au domaine des feuilles de
-tomate sans détruire les filtres déjà utiles.
+**Pourquoi deux phases** : en phase 1 la base MobileNetV2 (pré-entraînée sur ImageNet)
+reste gelée et seule la petite tête de classification apprend ; en phase 2 les dernières
+couches sont dégelées avec un learning rate très faible pour les adapter aux feuilles de
+tomate, sans détruire les filtres déjà utiles.
 
-**Pourquoi pas de Data Augmentation imbriquée** : les transformations (rotation, zoom,
-flip, luminosité, translation) restent dans le pipeline de chargement des données, pas
-dans le modèle sauvegardé ; le prétraitement applique donc la même opération à chaque
-image, que ce soit à l'entraînement ou à la prédiction (déjà identique à
-224 × 224 → redimensionnement 224 × 224 → normalisation 224 × 224 → normalisation [-1,
-1]).
+**Data Augmentation** : rotation, zoom, retournement horizontal, luminosité et
+translation sont appliqués uniquement aux images d'entraînement, dans le pipeline de
+chargement. Ces couches ne font pas partie du modèle sauvegardé : l'inférence reste donc
+« RGB → 224 × 224 → normalisation [-1, 1] », identique à l'entraînement.
 
 ---
 
@@ -244,8 +244,7 @@ pytest -q
 - **prétraitement** : conversion RGB, redimensionnement, normalisation, équivalence
   exacte avec `mobilenet_v2.preprocess_input` ;
 - **utilitaires** : extensions autorisées, refus des faux types MIME, des contenus
-  invalides, des images trop petites ou trop grandes ;
-- **modèle** : chargement, prédire(first), prédiction, nommage des classes.
+  invalides, des images trop petites ou trop grandes, formatage des libellés.
 
 ---
 

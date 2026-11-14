@@ -26,8 +26,6 @@ FIGURES_DIR = RESULTS_DIR / "figures"
 METRICS_DIR = RESULTS_DIR / "metrics"
 PREDICTIONS_DIR = RESULTS_DIR / "predictions"
 
-STATIC_DIR = BASE_DIR / "static"
-
 # Fichiers de données produits par l'entraînement
 CLASS_NAMES_PATH = DATA_DIR / "class_names.json"
 DATASET_MANIFEST_PATH = DATA_DIR / "processed" / "dataset_manifest.json"
@@ -84,7 +82,6 @@ EXPECTED_IMAGES_PER_CLASS = {
 # Prétraitement et entraînement
 # ---------------------------------------------------------------------------
 IMAGE_SIZE = (224, 224)  # taille attendue par MobileNetV2
-IMAGE_HEIGHT, IMAGE_WIDTH = IMAGE_SIZE
 
 BATCH_SIZE = 32
 EPOCHS = 30  # nombre maximal d'époques pour la phase 1 (Transfer Learning)
@@ -118,7 +115,5 @@ ALLOWED_MIME_TYPES = {"image/jpeg", "image/png"}
 MAX_UPLOAD_SIZE = 8 * 1024 * 1024  # 8 Mo
 MAX_IMAGE_DIMENSION = 4000  # refus des images démesurées (sécurité)
 
-#: Version affichée dans l'interface et stockée avec chaque analyse.
+#: Nom affiché dans l'interface.
 APP_NAME = "TomatoScan"
-APP_FULL_NAME = "Détection des maladies de la feuille de tomate"
-APP_VERSION = "1.0.0"
