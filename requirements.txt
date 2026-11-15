@@ -1,10 +1,18 @@
 # ============================================================================
-# Dépendances du projet — Détection des maladies de la feuille de tomate
+# Dépendances du projet — Détection des maladies des feuilles (PlantVillage,
+# 38 classes) — MobileNetV2 / TensorFlow / Flask
+#
+# Environnement validé : Python 3.12.10 (Windows 11, CPU). Python 3.10 à 3.12
+# est supporté par TensorFlow 2.21 ; Python 3.13+ n'est pas garanti.
 #
 # Installation :
 #   python -m venv .venv
 #   source .venv/bin/activate        (Windows : .venv\Scripts\activate)
 #   pip install -r requirements.txt
+#
+# Pour reproduire exactement l'environnement de l'expérience (versions figées,
+# y compris les dépendances transitives) :
+#   pip install -r requirements-lock.txt
 #
 # Sur une machine avec GPU NVIDIA, remplacer « tensorflow-cpu » par
 # « tensorflow » (même API, entraînement accéléré).
@@ -14,6 +22,8 @@
 Flask>=3.0,<4.0
 
 # --- Deep Learning ----------------------------------------------------------
+# tensorflow-cpu 2.21 embarque Keras 3.11+ ; les modèles .keras sont
+# interchangeables entre tensorflow-cpu et tensorflow de même version.
 tensorflow-cpu>=2.16,<2.22
 
 # --- Traitement d'images et calcul numérique --------------------------------

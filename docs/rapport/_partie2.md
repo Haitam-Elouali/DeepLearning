@@ -97,14 +97,20 @@ Avant toute utilisation, chaque fichier a été vérifié par `training/prepare_
 
 - ouverture et décodage complet par Pillow : **0 image illisible** sur 54 305 ;
 - vérification des dimensions : toutes les images sont en 256 × 256 pixels, en RGB ;
-- calcul d'une empreinte **MD5** pour chaque fichier : **21 groupes de doublons
-  exacts** ont été détectés.
+- calcul d'une empreinte **MD5** sur **l'ensemble du dataset, toutes classes
+  confondues**, avant tout découpage (le dictionnaire d'empreintes n'est jamais
+  réinitialisé au changement de classe) : **21 groupes de doublons exacts** (21 images
+  dupliquées), **0 doublon inter-classes** et **196 groupes de quasi-doublons**
+  (empreinte dHash, 263 images dont 56 inter-classes).
 
-Les doublons ne sont pas supprimés — une image présente légitimement dans sa classe le
-reste — mais ils sont **regroupés** lors du découpage : toutes les copies d'une même
-image tombent dans le même ensemble. Sans cette précaution, une image pourrait se
-retrouver à la fois dans l'entraînement et dans le test, et gonfler artificiellement les
-performances mesurées.
+La politique est explicite : les copies identiques d'une même classe sont **regroupées**
+et tombent dans le même ensemble — sinon une image pourrait figurer à la fois dans
+l'entraînement et dans le test et gonfler les performances. Une image identique
+étiquetée dans deux classes serait un **conflit d'annotation** : écartée et signalée,
+sans choisir de classe arbitrairement. Les quasi-doublons sont seulement **signalés**,
+car deux feuilles malades différentes se ressemblent légitimement. Le rapport détaillé
+est écrit dans `results/metrics/qualite_donnees.json`, et relancer le découpage redonne
+exactement 37 992 / 8 157 / 8 156 images.
 
 #### 3.1.4. Découpage des données
 

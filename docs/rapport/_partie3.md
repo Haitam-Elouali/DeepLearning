@@ -464,7 +464,7 @@ Ce projet illustre plusieurs principes importants :
   rares (pomme de terre saine, pêche saine, cerise saine) reposent sur 30 à 54 images de
   test seulement, donc sur des estimations fragiles ;
 - absence de regroupement par feuille (*leaf grouping*), qui peut laisser passer des
-  quasi-doublons entre ensembles ;
+  quasi-doublons entre ensembles (196 groupes signalés, non écartés) ;
 - une seule culture par image : le modèle ne sait pas traiter une feuille portant deux
   maladies simultanées.
 

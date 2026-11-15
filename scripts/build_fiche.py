@@ -43,6 +43,8 @@ def main() -> int:
 
     phase1 = configuration.get("phase1", {})
     phase2 = configuration.get("phase2_fine_tuning", {})
+    fine_tuning = phase2.get("fine_tuning", {})
+    doublons = manifeste.get("doublons", {})
     global_ = metriques.get("global", {})
     comptages = manifeste.get("comptages", {})
     par_classe = metriques.get("par_classe", {})
@@ -71,7 +73,10 @@ def main() -> int:
         f"| Learning rate phase 1 | {phase1.get('learning_rate')} |",
         f"| Époques phase 2 (fine-tuning) | {phase2.get('epochs', 0)} |",
         f"| Learning rate phase 2 | {phase2.get('learning_rate', '—')} |",
-        f"| Couches dégelées | {phase2.get('couches_degelees', 0)} |",
+        f"| Couches examinées en fin de base | {fine_tuning.get('couches_examinees', 0)} |",
+        f"| Couches dégelées (drapeau trainable) | {fine_tuning.get('couches_degelees_par_drapeau', phase2.get('couches_degelees', 0))} |",
+        f"| Couches réellement réentraînées (porteuses de poids) | {fine_tuning.get('couches_entrainables_avec_poids', 0)} |",
+        f"| BatchNormalization maintenues gelées | {fine_tuning.get('batch_normalization_gelees', 0)} / {fine_tuning.get('batch_normalization_total', 0)} |",
         f"| Graine aléatoire | {configuration.get('graine')} |",
         f"| Early Stopping | patience {configuration.get('callbacks', {}).get('early_stopping', {}).get('patience')} sur val_loss |",
         f"| Model Checkpoint | meilleur val_accuracy ({configuration.get('fichier_modele')}) |",
@@ -101,7 +106,9 @@ def main() -> int:
         f"**{manifeste.get('totaux', {}).get('test', '—')}** |",
         "",
         f"Découpage stratifié, graine {manifeste.get('graine')}, "
-        f"{manifeste.get('doublons_exacts_ecartes_de_groupes', 0)} doublons exacts regroupés, "
+        f"{doublons.get('groupes_exacts', 0)} groupes de doublons exacts (MD5 global) regroupés, "
+        f"{doublons.get('conflits_annotation', 0)} conflit(s) d'annotation, "
+        f"{doublons.get('groupes_quasi_doublons', 0)} groupes de quasi-doublons signalés, "
         f"{len(manifeste.get('images_invalides', []))} image(s) illisible(s).",
         "",
         "## 3. Courbes d'apprentissage",
@@ -236,9 +243,11 @@ def main() -> int:
         f"total sur 4 threads CPU (≈ {duree_totale:.0f} minutes).",
         "- **Dataset de laboratoire** : les images ont un fond uniforme ; les performances "
         "mesurées ne préjugent pas du comportement sur des photos de terrain.",
-        f"- **Doublons** : {manifeste.get('doublons_exacts_ecartes_de_groupes', 0)} groupes "
-        "d'images identiques ont été détectés et regroupés pour éviter toute fuite entre "
-        "entraînement et test.",
+        f"- **Doublons** : {doublons.get('groupes_exacts', 0)} groupes d'images identiques "
+        "ont été détectés (empreinte MD5 calculée sur l'ensemble du dataset, toutes classes "
+        f"confondues) et regroupés pour éviter toute fuite ; {doublons.get('conflits_annotation', 0)} "
+        f"conflit(s) d'annotation et {doublons.get('groupes_quasi_doublons', 0)} groupes de "
+        "quasi-doublons (empreinte perceptuelle) sont signalés pour inspection.",
         "",
         "## 9. Conclusion de l'expérience",
         "",

@@ -1,8 +1,8 @@
 {
-  "dataset": "PlantVillage (sous-ensemble tomate, images couleur)",
+  "dataset": "PlantVillage (images couleur, 38 classes, 14 cultures)",
   "source": "https://github.com/spMohanty/PlantVillage-Dataset",
   "citation": "Mohanty, Hughes & Salathé (2016), Frontiers in Plant Science",
-  "genere_le": "2026-11-14T11:35:20",
+  "genere_le": "2026-11-15T15:42:33",
   "graine": 42,
   "ratios_demandes": {
     "train": 0.7,
@@ -229,7 +229,14 @@
     "Tomato___Tomato_mosaic_virus": 373,
     "Tomato___healthy": 1591
   },
-  "doublons_exacts_ecartes_de_groupes": 21,
+  "doublons": {
+    "methode": "MD5 global avant découpage",
+    "groupes_exacts": 21,
+    "conflits_annotation": 0,
+    "images_ecartees_conflits": 0,
+    "groupes_quasi_doublons": 196,
+    "rapport_detaille": "results\\metrics\\qualite_donnees.json"
+  },
   "images_utilisees": 54305,
   "images_invalides": [],
   "mise_en_lien": "lien physique (hardlink)"

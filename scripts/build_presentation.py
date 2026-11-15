@@ -279,7 +279,8 @@ def construire() -> Path:
     ], Inches(9.1), Inches(1.8), Inches(3.7), Inches(2.6), taille=12)
     d.puces(slide, [
         "Déséquilibre de 152 à 5 507 images par classe (rapport 36) → poids de classes.",
-        "21 groupes de doublons exacts détectés (MD5) et regroupés dans un même ensemble.",
+        "21 groupes de doublons exacts (MD5 global), 0 conflit inter-classes, "
+        "196 groupes de quasi-doublons signalés.",
     ], haut=Inches(4.9), largeur=Inches(8.6), hauteur=Inches(1.6), taille=14)
 
     # 6. Préparation ----------------------------------------------------

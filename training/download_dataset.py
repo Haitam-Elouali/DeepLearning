@@ -1,9 +1,9 @@
-"""Téléchargement du sous-ensemble « tomate » du dataset PlantVillage.
+"""Téléchargement des 38 classes couleur du dataset PlantVillage.
 
-Le dataset complet (54 306 images, 38 classes, 14 cultures) n'est pas
-versionné : ce script récupère uniquement les quatre dossiers utiles du dépôt
-GitHub officiel, via un clone partiel (``--filter=blob:none`` + checkout
-creux), afin de ne télécharger que quelques dizaines de mégaoctets.
+Le dataset complet (54 305 images, 38 classes, 14 cultures) n'est pas
+versionné : ce script récupère uniquement les dossiers utiles du dépôt GitHub
+officiel, via un clone partiel (``--filter=blob:none`` + checkout creux), afin
+de ne télécharger que les images couleur des classes utilisées.
 
 Source  : https://github.com/spMohanty/PlantVillage-Dataset
 Article : Mohanty, Hughes & Salathé (2016), Frontiers in Plant Science 7:1419.
@@ -48,7 +48,9 @@ def compter_images(dossier: Path) -> int:
 
 
 def main() -> int:
-    parseur = argparse.ArgumentParser(description="Téléchargement de PlantVillage (tomate).")
+    parseur = argparse.ArgumentParser(
+        description=f"Téléchargement de PlantVillage ({config.NUM_CLASSES} classes)."
+    )
     parseur.add_argument("--destination", type=Path, default=config.RAW_DATA_DIR)
     parseur.add_argument("--force", action="store_true", help="Retélécharge même si présent.")
     arguments = parseur.parse_args()
@@ -63,7 +65,7 @@ def main() -> int:
     if shutil.which("git") is None:
         raise SystemExit(
             "git est requis. Installez-le (apt install git) ou téléchargez manuellement\n"
-            f"les dossiers {DOSSIER_BRUT}/Tomato___* depuis {DEPOT}"
+            f"les dossiers {DOSSIER_BRUT}/<Classe> depuis {DEPOT} ({config.NUM_CLASSES} classes)"
         )
 
     temporaire = config.BASE_DIR / ".plantvillage_tmp"

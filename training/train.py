@@ -7,10 +7,15 @@ Phase 1 — Extraction de caractéristiques :
 Phase 2 — Fine-Tuning partiel :
     les dernières couches de la base sont **dégelées** et ré-entraînées avec un
     learning rate très faible, afin d'adapter les filtres les plus spécifiques
-    au domaine des feuilles de tomate.
+    au domaine des feuilles de plantes.
 
 Le meilleur modèle (au sens de l'accuracy de validation) est sauvegardé dans
 ``models/best_model.keras``, avec la configuration complète de l'expérience.
+
+Toutes les métadonnées du modèle (nombre de classes, couches entraînables)
+sont **calculées à partir du modèle réel**, jamais recopiées à la main : le
+nombre de classes vient de ``config.NUM_CLASSES`` et le décompte des couches
+du fine-tuning de ``resume_fine_tuning``.
 
 Usage :
     python training/train.py
@@ -181,6 +186,70 @@ def degeler_fines_couches(base: keras.Model, nombre_couches: int) -> int:
     return sum(1 for couche in base.layers if couche.trainable)
 
 
+def decrire_architecture(modele: keras.Model, base: keras.Model) -> dict[str, object]:
+    """Décrit l'architecture réelle du modèle (aucune valeur codée en dur)."""
+    nombre_classes = int(modele.output_shape[-1])
+    return {
+        "resume": (
+            "MobileNetV2 (ImageNet) + GlobalAveragePooling2D + Dense(128) + Dropout "
+            f"+ Dense({nombre_classes}, softmax)"
+        ),
+        "base": base.name,
+        "nombre_classes": nombre_classes,
+        "entree": list(modele.input_shape[1:]),
+        "parametres_totaux": int(modele.count_params()),
+        "parametres_entrainables_modeles": int(
+            sum(np.prod(p.shape) for p in modele.trainable_weights)
+        ),
+        "couches_modele": len(modele.layers),
+        "couches_base": len(base.layers),
+    }
+
+
+def resume_fine_tuning(
+    base: keras.Model, couches_demandees: int, learning_rate: float
+) -> dict[str, object]:
+    """Décrit précisément l'état réel des couches après dégel.
+
+    ``couches_demandees`` est le nombre de dernières couches *examinées* ; les
+    couches BatchNormalization restant gelées, le nombre de couches réellement
+    entraînables est inférieur. Les deux valeurs sont donc distinguées.
+    """
+    # Les couches sans poids (InputLayer, ReLU, Reshape…) n'ont rien à
+    # entraîner : elles fausseraient le décompte si on les comptait seules.
+    examinees = base.layers[-int(couches_demandees) :]
+    avec_poids = [couche for couche in base.layers if len(couche.weights) > 0]
+    normalisations = [
+        couche for couche in base.layers if isinstance(couche, layers.BatchNormalization)
+    ]
+    return {
+        "couches_demandees": int(couches_demandees),
+        "couches_examinees": len(examinees),
+        # Drapeau « trainable » activé parmi les couches examinées (y compris
+        # les activations, qui ne portent aucun paramètre).
+        "couches_degelees_par_drapeau": sum(1 for couche in examinees if couche.trainable),
+        # Couches examinées qui possèdent réellement des poids à réentraîner.
+        "couches_entrainables_avec_poids": sum(
+            1 for couche in examinees if couche.trainable and len(couche.weights) > 0
+        ),
+        "couches_gelees_avec_poids": sum(
+            1 for couche in avec_poids if not couche.trainable
+        ),
+        "couches_totales_base": len(base.layers),
+        "couches_sans_poids": len(base.layers) - len(avec_poids),
+        "batch_normalization_total": len(normalisations),
+        "batch_normalization_gelees": sum(
+            1 for couche in normalisations if not couche.trainable
+        ),
+        "batch_normalization_gelees_dans_demiere_couches": sum(
+            1
+            for couche in examinees
+            if isinstance(couche, layers.BatchNormalization) and not couche.trainable
+        ),
+        "learning_rate": float(learning_rate),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Callbacks
 # ---------------------------------------------------------------------------
@@ -277,6 +346,7 @@ def main() -> int:
           f"Test : {sum(comptages['test'].values())} (non utilisé ici)")
 
     modele, base = construire_modele(config.NUM_CLASSES, arguments.learning_rate)
+    architecture = decrire_architecture(modele, base)
 
     resume_lignes: list[str] = []
     modele.summary(print_fn=lambda ligne: resume_lignes.append(ligne), expand_nested=False)
@@ -379,6 +449,11 @@ def main() -> int:
         parametres_phase2.update(
             {
                 "couches_degelees": nombre_degeles,
+                "fine_tuning": resume_fine_tuning(
+                    base_rechargee,
+                    arguments.fine_tune_layers,
+                    arguments.fine_tune_learning_rate,
+                ),
                 "epochs": arguments.fine_tune_epochs,
                 "learning_rate": arguments.fine_tune_learning_rate,
                 "duree_min": round(duree_phase2 / 60, 2),
@@ -399,7 +474,8 @@ def main() -> int:
 
     configuration = {
         "date": datetime.now().isoformat(timespec="seconds"),
-        "modele": "MobileNetV2 (ImageNet) + GlobalAveragePooling2D + Dense(128) + Dense(4, softmax)",
+        "modele": architecture["resume"],
+        "architecture": architecture,
         "tensorflow": tf.__version__,
         "python": platform.python_version(),
         "graine": arguments.seed,

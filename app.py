@@ -1,4 +1,4 @@
-"""Application Web minimale — maladie de la feuille de tomate.
+"""Application Web — reconnaissance des maladies des feuilles (38 classes).
 
 Lancement :
 
@@ -7,7 +7,8 @@ Lancement :
 puis ouvrir http://127.0.0.1:5000
 
 L'application ne fait qu'une chose : recevoir une image, la passer au modèle
-entraîné et afficher les quatre probabilités. Aucune image n'est enregistrée.
+entraîné et afficher les cinq probabilités les plus élevées (sur les 38 classes
+PlantVillage). Aucune image n'est enregistrée.
 """
 
 from __future__ import annotations

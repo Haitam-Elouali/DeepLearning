@@ -17,7 +17,10 @@
 | Learning rate phase 1 | 0.001 |
 | Époques phase 2 (fine-tuning) | 15 |
 | Learning rate phase 2 | 1e-05 |
-| Couches dégelées | 19 |
+| Couches examinées en fin de base | 30 |
+| Couches dégelées (drapeau trainable) | 19 |
+| Couches réellement réentraînées (porteuses de poids) | 10 |
+| BatchNormalization maintenues gelées | 52 / 52 |
 | Graine aléatoire | 42 |
 | Early Stopping | patience 5 sur val_loss |
 | Model Checkpoint | meilleur val_accuracy (best_model.keras) |
@@ -70,7 +73,7 @@ Data Augmentation : rotation ±5 %, zoom ±10 %, retournement horizontal, lumino
 | Feuille saine (Tomato___healthy) | 1591 | 1111 | 240 | 240 |
 | **Total** | **54305** | **37992** | **8157** | **8156** |
 
-Découpage stratifié, graine 42, 21 doublons exacts regroupés, 0 image(s) illisible(s).
+Découpage stratifié, graine 42, 21 groupes de doublons exacts (MD5 global) regroupés, 0 conflit(s) d'annotation, 196 groupes de quasi-doublons signalés, 0 image(s) illisible(s).
 
 ## 3. Courbes d'apprentissage
 
@@ -215,7 +218,7 @@ Meilleure accuracy de validation : **97,01 %** (époque 45, sur 45 époques).
 - **Le modèle est sur-confiant** : la confiance médiane atteint 99,999 % ; cette quasi-certitude justifie l'affichage des probabilités plutôt qu'une classe unique.
 - **Budget d'entraînement lourd** : 45 époques au total sur 4 threads CPU (≈ 765 minutes).
 - **Dataset de laboratoire** : les images ont un fond uniforme ; les performances mesurées ne préjugent pas du comportement sur des photos de terrain.
-- **Doublons** : 21 groupes d'images identiques ont été détectés et regroupés pour éviter toute fuite entre entraînement et test.
+- **Doublons** : 21 groupes d'images identiques ont été détectés (empreinte MD5 calculée sur l'ensemble du dataset, toutes classes confondues) et regroupés pour éviter toute fuite ; 0 conflit(s) d'annotation et 196 groupes de quasi-doublons (empreinte perceptuelle) sont signalés pour inspection.
 
 ## 9. Conclusion de l'expérience
 

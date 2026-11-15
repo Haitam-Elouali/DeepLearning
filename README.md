@@ -33,10 +33,11 @@ Moisissure des feuilles, Feuille saine) ; les autres sont affichées sous la for
 ## 2. Structure du dépôt
 
 ```text
-plant-disease-detection/
+DeepLearning/
 ├── app.py                      # application Flask : 2 routes (page + analyse)
 ├── config.py                   # chemins, hyperparamètres, libellés des classes
-├── requirements.txt
+├── requirements.txt            # dépendances (bornes compatibles)
+├── requirements-lock.txt       # versions exactes validées de l'expérience
 ├── README.md
 │
 ├── data/
@@ -48,7 +49,9 @@ plant-disease-detection/
 │   ├── best_model.keras        # modèle final (livrable)
 │   └── training_config.json    # hyperparamètres et résultats de l'entraînement
 │
-├── notebooks/                  # notebook d'entraînement (accompagne les scripts)
+├── notebooks/
+│   ├── 01_exploration.ipynb    # dataset, distribution, qualité, prétraitement
+│   └── 02_training.ipynb       # architecture, hyperparamètres, courbes, résultats
 ├── training/
 │   ├── download_dataset.py     # récupère les 38 classes couleur (~955 Mo)
 │   ├── prepare_data.py         # contrôle qualité + split stratifié sans fuite
@@ -67,10 +70,12 @@ plant-disease-detection/
 │
 ├── results/
 │   ├── figures/                # courbes, matrice, performances, dataset
-│   ├── metrics/                # evaluation.json, classification_report.txt
+│   ├── metrics/                # evaluation.json, classification_report.txt,
+│   │                           #   qualite_donnees.json (doublons)
 │   └── predictions/            # prédictions du test, erreurs
 │
-├── tests/                      # pytest : prétraitement, utilitaires, application
+├── tests/                      # pytest : prétraitement, doublons, cohérence,
+│                               #   résultats, utilitaires, application
 │
 ├── scripts/                    # génération des livrables (rapport, fiche, slides)
 └── docs/
@@ -89,20 +94,28 @@ entraînement et inférence, `utils/predictor.py` charge le modèle une seule fo
 
 ## 3. Installation
 
-Prérequis : Python 3.10 à 3.12 et `git` (pour le téléchargement du dataset).
+Prérequis : Python 3.10 à 3.12 (environnement validé : **3.12.10**) et `git` (pour
+le téléchargement du dataset).
 
 ```bash
-git clone <url-du-depot> plant-disease-detection
-cd plant-disease-detection
+git clone https://github.com/Haitam-Elouali/DeepLearning.git
+cd DeepLearning
 
-python3 -m venv .venv
+python -m venv .venv
 source .venv/bin/activate          # Windows : .venv\Scripts\activate
 
-pip install -r requirements.txt
+pip install -r requirements.txt    # ou requirements-lock.txt (versions exactes)
+```
+
+Vérification immédiate de l'installation :
+
+```bash
+python -c "import tensorflow as tf, flask, sklearn; print(tf.__version__, flask.__version__)"
+python -m pytest -q                # doit se terminer sans échec
 ```
 
 > Sur une machine équipée d'un GPU NVIDIA, remplacer `tensorflow-cpu` par
-> `tensorflow` dans `requirements.txt`.
+> `tensorflow` dans `requirements.txt` (même API, mêmes fichiers `.keras`).
 
 ---
 
@@ -131,9 +144,28 @@ python training/prepare_data.py       # contrôle qualité + split 70/15/15
 python training/explore_data.py       # figures d'exploration (optionnel)
 ```
 
-`prepare_data.py` vérifie chaque image, détecte les doublons exacts (MD5) et les place
-dans le même ensemble, réalise un découpage **stratifié** avec la graine 42, puis écrit
-`data/processed/dataset_manifest.json` (effectifs par classe et par ensemble).
+`prepare_data.py` vérifie chaque image, réalise un découpage **stratifié** avec la
+graine 42, puis écrit `data/processed/dataset_manifest.json` (effectifs par classe et
+par ensemble).
+
+La détection des doublons est **globale** : les empreintes MD5 sont calculées sur
+l'ensemble du dataset, toutes classes confondues, *avant* le découpage (le dictionnaire
+d'empreintes n'est jamais réinitialisé au changement de classe). Politique appliquée :
+
+| Cas | Traitement |
+| --- | --- |
+| Images identiques dans une même classe | regroupées et placées dans le **même** ensemble (jamais séparées) |
+| Images identiques étiquetées dans **deux classes différentes** | **conflit d'annotation** : écartées du découpage et signalées, aucune classe n'est choisie arbitrairement |
+| Images différentes | conservées telles quelles |
+| Quasi-doublons (empreinte perceptuelle dHash, distance de Hamming ≤ 2) | **signalés** pour inspection, jamais supprimés |
+
+Le rapport complet (groupes, fichiers, conflits, quasi-doublons) est écrit dans
+`results/metrics/qualite_donnees.json`. Pour le recalculer seul, sans toucher au
+découpage existant :
+
+```bash
+python training/prepare_data.py --analyse-doublons
+```
 
 Résultat mesuré sur cette machine :
 
@@ -147,7 +179,12 @@ TOTAL                                        37992    8157    8156  54305
 ```
 
 Constats du contrôle qualité : **0 image illisible**, **21 groupes de doublons exacts**
-regroupés, déséquilibre de **152 à 5 507 images** par classe (rapport 36).
+(21 images dupliquées, toutes dans une même classe), **0 conflit d'annotation** entre
+classes, **196 groupes de quasi-doublons** signalés (dont 56 inter-classes) et un
+déséquilibre de **152 à 5 507 images** par classe (rapport 36).
+
+Vérification de reproductibilité : relancer `prepare_data.py --force` dans un dossier
+vide redonne exactement 37 992 / 8 157 / 8 156 images, classe par classe.
 
 ---
 
@@ -164,7 +201,7 @@ Paramètres (valeurs réellement utilisées, centralisées dans `config.py`) :
 | Taille d'entrée | 224 × 224 × 3 |
 | Batch size | 32 |
 | Phase 1 (base gelée) | 30 époques, Early Stopping (patience 5), Checkpoint |
-| Phase 2 (fine-tuning) | 15 époques, 19 dernières couches dégelées, Adam 1e-5 |
+| Phase 2 (fine-tuning) | 15 époques, 30 dernières couches examinées, Adam 1e-5 |
 | Poids de classes | activés (compensent le déséquilibre, poids de 0,26 à 10,87) |
 | Graine | 42 |
 | Durée observée | 498 min (phase 1) + 267 min (phase 2) ≈ **12 h 45** sur 4 threads CPU |
@@ -173,9 +210,17 @@ Déroulement :
 
 - **phase 1** : base gelée, Adam 1e-3, Early Stopping + Checkpoint sur la meilleure
   validation ; meilleure accuracy de validation **94,75 %** (époque 27) ;
-- **phase 2** : on recharge ce meilleur modèle, on dégèle les 30 dernières couches
-  (BatchNormalization exclues), on recompile à 1e-5 et on continue les époques ;
+- **phase 2** : on recharge ce meilleur modèle, on examine les 30 dernières couches de
+  MobileNetV2 et on dégèle toutes celles qui ne sont pas des BatchNormalization (elles
+  restent gelées, ce qui stabilise l'apprentissage avec de petits lots) ; on recompile à
+  1e-5 et on continue les époques. Bilan réel : **19 couches dégelées**, dont **10
+  porteuses de poids** effectivement réentraînées (les autres sont des activations),
+  **134 couches à poids restées gelées**, **52 BatchNormalization sur 52 gelées** ;
   meilleure accuracy de validation **97,01 %** (époque 45).
+
+Ces valeurs ne sont pas recopiées à la main : elles sont calculées par
+`resume_fine_tuning()` à partir du modèle réel et écrites dans
+`models/training_config.json` (bloc `phase2_fine_tuning.fine_tuning`).
 
 **Pourquoi deux phases** : en phase 1 la base MobileNetV2 (pré-entraînée sur ImageNet)
 reste gelée et seule la petite tête de classification apprend (168 870 paramètres
@@ -247,12 +292,24 @@ python training/predict.py --dossier mes_photos/ --json resultats.json
 pytest -q
 ```
 
-33 tests couvrent :
+68 tests couvrent :
 
 - **app** : page d'accueil, analyse réelle de bout en bout (image → prédiction →
   affichage), refus des fichiers invalides, erreurs 400/404/413 ;
 - **prétraitement** : conversion RGB, redimensionnement, normalisation, équivalence
   exacte avec `mobilenet_v2.preprocess_input` ;
+- **pipeline** : identité stricte entre les tenseurs du `tf.data` d'entraînement et ceux
+  de l'inférence (aucune double normalisation), encodage one-hot, métadonnées du
+  fine-tuning ;
+- **doublons** : images identiques dans une classe, images identiques dans deux classes
+  (conflit d'annotation), images différentes, homonymes de contenu différent, détection
+  des quasi-doublons, non-séparation des doublons lors du découpage ;
+- **cohérence** : 38 classes uniques, 14 cultures, ordre des classes identique dans
+  `config.py`, `class_names.json`, le manifeste et les métadonnées ; absence de toute
+  référence à un modèle à quatre classes ;
+- **résultats** : métriques recalculées depuis `predictions_test.csv`, supports par
+  classe conformes au manifeste, matrice de confusion cohérente, 45 époques dans
+  l'historique, chiffres du README et de la fiche identiques au JSON ;
 - **utilitaires** : extensions autorisées, refus des faux types MIME, des contenus
   invalides, des images trop petites ou trop grandes, formatage des libellés.
 

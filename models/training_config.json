@@ -1,6 +1,6 @@
 {
   "date": "2026-11-15T00:34:46",
-  "modele": "MobileNetV2 (ImageNet) + GlobalAveragePooling2D + Dense(128) + Dense(4, softmax)",
+  "modele": "MobileNetV2 (ImageNet) + GlobalAveragePooling2D + Dense(128) + Dropout + Dense(38, softmax)",
   "tensorflow": "2.21.0",
   "python": "3.12.10",
   "graine": 42,
@@ -21,10 +21,22 @@
   },
   "phase2_fine_tuning": {
     "active": true,
-    "couches_degelees": 19,
     "epochs": 15,
     "learning_rate": 1e-05,
-    "duree_min": 267.25
+    "duree_min": 267.25,
+    "fine_tuning": {
+      "couches_demandees": 30,
+      "couches_examinees": 30,
+      "couches_degelees_par_drapeau": 19,
+      "couches_entrainables_avec_poids": 10,
+      "couches_gelees_avec_poids": 94,
+      "couches_totales_base": 154,
+      "couches_sans_poids": 50,
+      "batch_normalization_total": 52,
+      "batch_normalization_gelees": 52,
+      "batch_normalization_gelees_dans_demiere_couches": 11,
+      "learning_rate": 1e-05
+    }
   },
   "callbacks": {
     "early_stopping": {
@@ -255,5 +267,19 @@
     "Tomato___Tomato_mosaic_virus",
     "Tomato___healthy"
   ],
-  "fichier_modele": "best_model.keras"
+  "fichier_modele": "best_model.keras",
+  "architecture": {
+    "resume": "MobileNetV2 (ImageNet) + GlobalAveragePooling2D + Dense(128) + Dropout + Dense(38, softmax)",
+    "base": "mobilenetv2_1.00_224",
+    "nombre_classes": 38,
+    "entree": [
+      224,
+      224,
+      3
+    ],
+    "parametres_totaux": 2426854,
+    "parametres_entrainables_modeles": 1679590,
+    "couches_modele": 7,
+    "couches_base": 154
+  }
 }

@@ -1,0 +1,40 @@
+# ============================================================================
+# Versions exactes validées sur la machine de l'expérience
+# ----------------------------------------------------------------------------
+# Python 3.12.10 — Windows 11 — CPU (12 cœurs logiques, 4 threads TensorFlow)
+# Modèle entraîné et métriques produites avec ces versions.
+#
+# Installation :
+#   pip install -r requirements-lock.txt
+#
+# Ce fichier fige les dépendances directes et les dépendances transitives
+# sensibles (Keras, Werkzeug, protobuf). Les autres paquets transitifs sont
+# résolus automatiquement par pip à partir de ces contraintes.
+# ============================================================================
+
+# --- Application Web --------------------------------------------------------
+Flask==3.1.3
+Werkzeug==3.1.9
+
+# --- Deep Learning ----------------------------------------------------------
+tensorflow-cpu==2.21.0
+keras==3.15.1
+absl-py==2.5.1
+protobuf==7.36.2
+
+# --- Calcul numérique et images --------------------------------------------
+numpy==2.5.4
+Pillow==13.0.0
+pandas==3.1.1
+scikit-learn==1.9.1
+
+# --- Visualisation ----------------------------------------------------------
+matplotlib==3.11.2
+seaborn==0.13.2
+
+# --- Tests ------------------------------------------------------------------
+pytest==9.2.0
+
+# --- Génération des livrables ----------------------------------------------
+python-docx==1.2.0
+python-pptx==1.0.2
