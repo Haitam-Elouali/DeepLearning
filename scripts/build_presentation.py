@@ -99,7 +99,7 @@ class Diaporama:
                     str(self.numero), taille=11, couleur=GRIS, alignement=PP_ALIGN.RIGHT)
         # pied de page
         self._texte(slide, Inches(0.55), Inches(7.0), Inches(8), Inches(0.3),
-                    "Détection des maladies de la feuille de tomate — CNN & Transfer Learning",
+                    "Détection des maladies des feuilles — PlantVillage, CNN & Transfer Learning",
                     taille=9, couleur=GRIS)
         if notes:
             slide.notes_slide.notes_text_frame.text = notes
@@ -183,7 +183,7 @@ def construire() -> Path:
              taille=16, couleur=VERT_CLAIR, gras=True)
     d._texte(slide, Inches(0.9), Inches(1.75), Inches(11.5), Inches(1.6),
              "Détection et classification des maladies\n"
-             "de la feuille de tomate",
+             "des feuilles — PlantVillage",
              taille=40, couleur=BLANC, gras=True)
     d._texte(slide, Inches(0.9), Inches(2.85), Inches(11.5), Inches(0.9),
              "Réseaux de neurones convolutifs et Transfer Learning — MobileNetV2, TensorFlow/Keras, Flask",
@@ -198,9 +198,9 @@ def construire() -> Path:
              f"{len(config.CLASS_NAMES)} classes · {global_.get('nb_images', '—')} images de test",
              taille=14, couleur=VERT_CLAIR, gras=True, alignement=PP_ALIGN.RIGHT)
     slide.notes_slide.notes_text_frame.text = (
-        "Bonjour. Je présente un système de détection des maladies de la feuille de tomate "
-        "fondé sur un CNN pré-entraîné, MobileNetV2, adapté par Transfer Learning, et intégré "
-        "dans une application Web Flask. (≈ 40 s)"
+        "Bonjour. Je présente un système de détection des maladies des feuilles, fondé sur "
+        "un CNN pré-entraîné, MobileNetV2, adapté par Transfer Learning à 38 classes, et "
+        "intégré dans une application Web Flask. (≈ 40 s)"
     )
 
     # 2. Plan ----------------------------------------------------------
@@ -224,16 +224,16 @@ def construire() -> Path:
         "Pourquoi automatiser la reconnaissance visuelle des maladies foliaires ?",
         notes=(
             "Insister sur l'enjeu agronomique, puis sur la difficulté du diagnostic visuel : "
-            "symptômes proches entre alternariose et mildiou, besoin d'expertise, diagnostic tardif. "
-            "(≈ 1 min)"
+            "symptômes proches entre maladies d'une même culture, besoin d'expertise, "
+            "diagnostic tardif. (≈ 1 min)"
         ),
     )
     d.puces(slide, [
-        "Les maladies foliaires de la tomate (alternariose, mildiou, moisissure) réduisent fortement les rendements.",
+        "Les maladies foliaires réduisent fortement les rendements des grandes cultures.",
         "Le diagnostic visuel est tardif, subjectif et dépend d'un expert disponible.",
         "Les CNN apprennent automatiquement des caractéristiques visuelles discriminantes.",
-        "Problématique : classer automatiquement une photo de feuille parmi 4 catégories, "
-        "localement, en moins d'une seconde, avec une interface compréhensible.",
+        "Problématique : classer automatiquement une photo de feuille parmi 38 classes "
+        "(14 cultures), localement, en moins d'une seconde, avec une interface compréhensible.",
     ], taille=17)
 
     # 4. Objectifs ------------------------------------------------------
@@ -245,7 +245,7 @@ def construire() -> Path:
         ("Données", "Découpage stratifié\nsans fuite (70/15/15)"),
         ("Modèle", "MobileNetV2\nTransfer Learning en 2 phases"),
         ("Évaluation", "Accuracy, F1, matrice\nde confusion, erreurs"),
-        ("Application", "Flask + SQLite\ninterface en français"),
+        ("Application", "Flask, 2 routes\ninterface en français"),
     ]
     for index, (titre, texte) in enumerate(objectifs):
         gauche = Inches(0.55 + index * 3.1)
@@ -261,26 +261,25 @@ def construire() -> Path:
 
     # 5. Dataset --------------------------------------------------------
     slide = d.nouvelle_diapositive(
-        "Dataset : PlantVillage (sous-ensemble tomate)",
-        "5 452 images couleur 256 × 256 — 4 classes — sources publiques",
+        "Dataset : PlantVillage (38 classes, 14 cultures)",
+        "54 305 images couleur 256 × 256 — source publique, ≈ 955 Mo",
         notes=(
             "Citer Hughes & Salathé (2015) et Mohanty et al. (2016). Mentionner le déséquilibre "
-            "des classes (952 à 1 909 images) et le fait que les images sont prises en laboratoire. "
-            "(≈ 1 min 15)"
+            "des classes (152 à 5 507 images) et le fait que les images sont prises en "
+            "laboratoire. (≈ 1 min 15)"
         ),
     )
     d.image(slide, figures / "dataset_examples.png", Inches(0.5), Inches(1.75), largeur=Inches(8.2))
     d.tableau(slide, [
-        ["Classe", "Images"],
-        ["Alternariose", "1 000"],
-        ["Mildiou", "1 909"],
-        ["Moisissure", "952"],
-        ["Saine", "1 591"],
-        ["Total", "5 452"],
+        ["Indicateur", "Valeur"],
+        ["Cultures", "14"],
+        ["Classes", "38"],
+        ["Images", "54 305"],
+        ["Min / max par classe", "152 / 5 507"],
     ], Inches(9.1), Inches(1.8), Inches(3.7), Inches(2.6), taille=12)
     d.puces(slide, [
-        "Déséquilibre : de 952 à 1 909 images par classe → poids de classes.",
-        "14 doublons exacts détectés (MD5) et regroupés dans un même ensemble.",
+        "Déséquilibre de 152 à 5 507 images par classe (rapport 36) → poids de classes.",
+        "21 groupes de doublons exacts détectés (MD5) et regroupés dans un même ensemble.",
     ], haut=Inches(4.9), largeur=Inches(8.6), hauteur=Inches(1.6), taille=14)
 
     # 6. Préparation ----------------------------------------------------
@@ -295,9 +294,9 @@ def construire() -> Path:
     d.image(slide, figures / "dataset_distribution.png", Inches(0.5), Inches(1.7), largeur=Inches(8.4))
     d.tableau(slide, [
         ["Ensemble", "Images"],
-        ["Entraînement", "3 811"],
-        ["Validation", "821"],
-        ["Test", "820"],
+        ["Entraînement", "37 992"],
+        ["Validation", "8 157"],
+        ["Test", "8 156"],
     ], Inches(9.3), Inches(1.9), Inches(3.4), Inches(1.8), taille=13)
     d.puces(slide, [
         "Graine fixée (42) et découpage par classe.",
@@ -331,9 +330,9 @@ def construire() -> Path:
     )
     d.image(slide, figures / "model_architecture.png", Inches(0.6), Inches(1.6), largeur=Inches(11.6))
     d.puces(slide, [
-        "Phase 1 : base gelée → seuls 164 484 paramètres apprennent (Adam 1e-3).",
+        "Phase 1 : base gelée → seuls 168 870 paramètres apprennent (Adam 1e-3).",
         "Phase 2 : 19 dernières couches dégelées, BatchNormalization gelées (Adam 1e-5).",
-        "Justification : modèle léger, 70 ms par image sur CPU.",
+        "Justification : modèle léger (2,4 M), 110 ms par image sur CPU.",
     ], haut=Inches(4.8), hauteur=Inches(1.9), taille=15)
 
     # 9. Entraînement ---------------------------------------------------
@@ -351,16 +350,16 @@ def construire() -> Path:
         ["Batch size", "32"],
         ["Optimiseur", "Adam (1e-3 puis 1e-5)"],
         ["Perte", "Categorical crossentropy"],
-        ["Époques", "15 + 8 (max : 30 + 15)"],
+        ["Époques", "30 + 15 (toutes effectuées)"],
         ["Callbacks", "EarlyStopping, Checkpoint, ReduceLROnPlateau"],
         ["Graine", "42"],
     ], Inches(0.6), Inches(1.8), Inches(7.2), Inches(3.4), taille=13)
     d.encadre(slide, Inches(8.3), Inches(1.9), Inches(4.4), Inches(1.25),
-              "Durée totale (CPU 2 cœurs)", "≈ 38 min", VERT)
+              "Durée totale (CPU 4 threads)", "≈ 12 h 45", VERT)
     d.encadre(slide, Inches(8.3), Inches(3.35), Inches(4.4), Inches(1.25),
               "Meilleure accuracy de validation", pourcent(configuration.get("meilleure_val_accuracy", 0)), VERT)
     d.encadre(slide, Inches(8.3), Inches(4.8), Inches(4.4), Inches(1.25),
-              "Paramètres entraînés (phase 1)", "164 484 / 2 422 468", ROUGE)
+              "Paramètres entraînés (phase 1)", "168 870 / 2 426 854", ROUGE)
 
     # 10. Courbes -------------------------------------------------------
     slide = d.nouvelle_diapositive(
@@ -368,8 +367,9 @@ def construire() -> Path:
         f"Phase 1 : {pourcent(configuration.get('phase1', {}).get('meilleure_val_accuracy', 0))} — "
         f"phase 2 (fine-tuning) : {pourcent(configuration.get('meilleure_val_accuracy', 0))}",
         notes=(
-            "Commenter la convergence très rapide dès l'époque 1 (86 %) grâce à ImageNet, puis "
-            "le gain du fine-tuning. Mentionner la variabilité de la validation. (≈ 1 min)"
+            "Commenter la convergence rapide dès l'époque 1 (86,6 %) grâce à ImageNet, puis "
+            "le gain du fine-tuning (+2,3 points). Mentionner la variabilité de la validation. "
+            "(≈ 1 min)"
         ),
     )
     d.image(slide, figures / "training_curves.png", Inches(0.75), Inches(1.75), largeur=Inches(11.6))
@@ -397,50 +397,54 @@ def construire() -> Path:
     d.puces(slide, [
         f"{global_.get('nb_images', 0) - global_.get('nb_erreurs', 0)} images correctement classées "
         f"sur {global_.get('nb_images', 0)}.",
-        f"{global_.get('nb_erreurs', 0)} erreurs ({pourcent(global_.get('nb_erreurs', 0) / max(global_.get('nb_images', 1), 1))}) "
-        "concentrées sur alternariose ↔ mildiou.",
-        "Performances homogènes : F1 macro (95,34 %) proche du F1 pondéré (95,82 %).",
+        f"{global_.get('nb_erreurs', 0)} erreurs ({pourcent(global_.get('nb_erreurs', 0) / max(global_.get('nb_images', 1), 1))}), "
+        "dont 30 % sur cinq paires de classes proches.",
+        f"F1 macro {pourcent(global_.get('f1_macro', 0))} vs F1 pondéré "
+        f"{pourcent(global_.get('f1_weighted', 0))} : les classes rares tirent la moyenne vers le bas.",
     ], haut=Inches(3.8), hauteur=Inches(2.4), taille=16)
 
     # 12. Matrice de confusion ------------------------------------------
     slide = d.nouvelle_diapositive(
         "Matrice de confusion",
         notes=(
-            "Lire la matrice par ligne : 88,7 % des alternarioses, 95,8 % des mildious, 96,5 % "
-            "des moisissures, 100 % des feuilles saines. Les confusions sont biologiquement "
-            "cohérentes. (≈ 1 min 15)"
+            "Lire la matrice par ligne : la diagonale domine, 34 classes sur 38 gardent un "
+            "rappel supérieur à 92 %. Les confusions sont biologiquement cohérentes "
+            "(maïs, tomate). (≈ 1 min 15)"
         ),
     )
     d.image(slide, figures / "confusion_matrix.png", Inches(0.6), Inches(1.45), largeur=Inches(11.8))
     d._texte(slide, Inches(0.6), Inches(6.3), Inches(12.2), Inches(0.6),
-             "Diagonale dominante · 15 confusions alternariose ↔ mildiou sur 34 erreurs totales.",
+             "Diagonale dominante · 30 erreurs maïs (brûlure nordique → tache grise) sur 240 erreurs.",
              taille=14, couleur=VERT_FONCE, gras=True, alignement=PP_ALIGN.CENTER)
 
     # 13. Par classe ----------------------------------------------------
     slide = d.nouvelle_diapositive(
         "Performances par classe",
         notes=(
-            "Souligner le rappel de 100 % sur les feuilles saines (pas de fausse alerte) et la "
-            "difficulté de l'alternariose (F1 91,1 %). (≈ 1 min)"
+            "Souligner les 14 classes au-dessus de 99 % de F1 et les classes fragiles "
+            "(alternariose, maïs). (≈ 1 min)"
         ),
     )
     d.image(slide, figures / "per_class_performance.png", Inches(0.5), Inches(1.7), largeur=Inches(8.0))
-    lignes = [["Classe", "F1"]]
-    for classe in config.CLASS_NAMES:
-        lignes.append([
-            nom_affichage(classe).split(" de la")[0],
-            pourcent(par_classe.get(classe, {}).get("f1_score", 0), 1),
-        ])
-    d.tableau(slide, lignes, Inches(8.8), Inches(1.9), Inches(4.0), Inches(2.4), taille=13)
+    # Les 38 classes ne tiennent pas sur une diapositive : on montre les extrêmes.
+    classe_fragile = min(
+        config.CLASS_NAMES, key=lambda c: par_classe.get(c, {}).get("f1_score", 1.0)
+    )
+    nb_fortes = sum(
+        1 for c in config.CLASS_NAMES if par_classe.get(c, {}).get("f1_score", 0) >= 0.99
+    )
     d.puces(slide, [
-        "Feuille saine : rappel 100 % — aucune fausse alerte.",
-        "Alternariose : classe la plus difficile.",
-    ], haut=Inches(4.6), gauche=Inches(8.8), largeur=Inches(4.0), hauteur=Inches(1.8), taille=13)
+        f"{nb_fortes} classes dépassent 99 % de F1-score (orange, courge, framboise…).",
+        f"Classe la plus fragile : {nom_affichage(classe_fragile)} "
+        f"(F1 {pourcent(par_classe.get(classe_fragile, {}).get('f1_score', 0), 1)}).",
+        "Feuille saine : rappel 99,6 % — très peu de fausses alertes.",
+        "Détail complet des 38 classes dans la fiche expérimentale.",
+    ], haut=Inches(1.9), gauche=Inches(8.8), largeur=Inches(4.0), hauteur=Inches(3.6), taille=13)
 
     # 14. Erreurs -------------------------------------------------------
     slide = d.nouvelle_diapositive(
         "Analyse des erreurs",
-        "Confiance moyenne : 97,5 % (correct) contre 70,2 % (erreur)",
+        "Confiance moyenne : 98,5 % (correct) contre 74,4 % (erreur)",
         notes=(
             "Les erreurs sont souvent des cas ambigus : lésions peu contrastées, symptômes "
             "mélangés. Le modèle est moins confiant quand il se trompe. (≈ 1 min)"
@@ -475,7 +479,7 @@ def construire() -> Path:
     # 16. Démonstration -------------------------------------------------
     slide = d.nouvelle_diapositive(
         "Démonstration : analyse d'une feuille",
-        "Téléversement → prédiction (~70 ms) → classe, confiance et 4 probabilités",
+        "Téléversement → prédiction (~110 ms) → classe, confiance et probabilités",
         notes=(
             "Lancer python app.py, ouvrir http://127.0.0.1:5000, choisir une image du jeu de "
             "test et commenter le résultat affiché. (≈ 1 min 30)"
@@ -484,7 +488,7 @@ def construire() -> Path:
     d.puces(slide, [
         "Ouvrir http://127.0.0.1:5000 et choisir une image JPG ou PNG.",
         "Cliquer sur « Analyser l'image » : la page affiche le résultat.",
-        "Classe prédite, confiance, durée et quatre probabilités.",
+        "Classe prédite, confiance, durée et cinq probabilités les plus élevées.",
         "Message adapté : feuille saine ou maladie détectée.",
         "Rien n'est conservé : une nouvelle analyse ne laisse aucune trace.",
     ], gauche=Inches(0.6), haut=Inches(1.9), largeur=Inches(12.2), hauteur=Inches(4.4), taille=16)
@@ -493,13 +497,13 @@ def construire() -> Path:
     slide = d.nouvelle_diapositive(
         "Limites et perspectives",
         notes=(
-            "Assumer clairement les limites : quatre classes, images de laboratoire, "
+            "Assumer clairement les limites : images de laboratoire, déséquilibre, "
             "sur-confiance, absence d'explicabilité. Présenter les perspectives concrètes. "
             "(≈ 1 min 15)"
         ),
     )
     d.puces(slide, [
-        "Données : 4 classes sur 38, images de laboratoire, déséquilibre, test de 820 images.",
+        "Données : images de laboratoire, déséquilibre (152 à 5 507 images), test de 8 156 images.",
         "Modèle : une seule architecture, pas de validation croisée, probabilités mal calibrées.",
         "Application : pas d'authentification, serveur de développement Flask.",
         "Perspectives : Grad-CAM, détection d'inconnu, calibration (température scaling), "
@@ -519,7 +523,7 @@ def construire() -> Path:
         f"Résultats réels : {pourcent(global_.get('accuracy', 0))} d'accuracy, "
         f"F1 macro {pourcent(global_.get('f1_macro', 0))} sur {global_.get('nb_images', '—')} images de test.",
         "Transfer Learning efficace : 86 % de validation dès la première époque.",
-        "Erreurs concentrées sur deux maladies visuellement proches.",
+        "240 erreurs, concentrées sur quelques paires de maladies proches.",
         "Outil expérimental d'aide à la reconnaissance visuelle — pas un diagnostic agricole.",
         "Perspectives : explicabilité, calibration, données de terrain, déploiement mobile.",
     ], taille=17)

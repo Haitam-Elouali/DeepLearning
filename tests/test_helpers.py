@@ -82,8 +82,8 @@ def test_nom_affichage_utilise_les_libelles_francais():
     assert nom_affichage("Tomato___Late_blight") == "Mildiou"
 
 
-def test_nom_affichage_repli_sur_le_nom_brut():
-    assert nom_affichage("Tomato___Inconnue") == "Inconnue"
+def test_nom_affichage_repli_sur_un_libelle_mis_en_forme():
+    assert nom_affichage("Apple___Apple_scab") == "Apple — Apple scab"
 
 
 def test_classe_est_saine():

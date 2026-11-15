@@ -10,48 +10,96 @@ référence de nombreux travaux en vision par ordinateur appliquée à l'agricul
   `raw/color` (images couleur d'origine, 256 × 256 pixels) ;
 - **Article associé** : Mohanty, Hughes et Salathé (2016), *Using Deep Learning for
   Image-Based Plant Disease Detection*, Frontiers in Plant Science, 7:1419 ;
-- **Périmètre retenu** : 4 classes de tomate, soit **5 452 images**.
+- **Périmètre retenu** : **l'intégralité des 38 classes** couleur, soit
+  **54 305 images** réparties sur **14 cultures**.
 
 Le dépôt officiel ne comporte pas de fichier de licence explicite. Les images sont
 diffusées à des fins de recherche ; elles ont donc été utilisées dans un cadre
 strictement académique et **ne sont pas redistribuées** dans le dépôt du projet. Le
 script `training/download_dataset.py` permet à quiconque de les récupérer depuis la
-source d'origine.
+source d'origine par un clone partiel (sparse checkout) limité au dossier couleur.
+
+Le choix des 38 classes, et non d'un sous-ensemble, répond à un objectif précis :
+mesurer le comportement du modèle à l'échelle réelle du dataset, où les classes sont
+à la fois nombreuses (38 sorties softmax) et très inégalement représentées. Un
+sous-ensemble de quatre classes de tomate, beaucoup plus facile, avait servi de
+prototype ; il a été abandonné au profit de la version complète.
 
 ### 7.2 Classes et effectifs
 
-| Code de classe | Nom français | Agent pathogène | Images |
-| --- | --- | --- | --- |
-| `Tomato___Early_blight` | Alternariose précoce | *Alternaria solani* (champignon) | 1 000 |
-| `Tomato___Late_blight` | Mildiou de la tomate | *Phytophthora infestans* (oomycète) | 1 909 |
-| `Tomato___Leaf_Mold` | Moisissure des feuilles | *Passalora fulva* (champignon) | 952 |
-| `Tomato___healthy` | Feuille saine | — | 1 591 |
-| **Total** | | | **5 452** |
+Les 38 classes couvrent le pommier, la myrtille, la cerise, le maïs, la vigne,
+l'orange, la pêche, le poivron, la pomme de terre, la framboise, le soja, la courge,
+la fraise et la tomate. Le tableau suivant donne les effectifs réellement comptés
+après contrôle qualité.
 
-*Tableau 3 — Classes retenues et effectifs du dataset.*
+| Classe | Brut | Entraînement | Validation | Test |
+| --- | --- | --- | --- | --- |
+| Apple — Apple scab | 630 | 442 | 94 | 94 |
+| Apple — Black rot | 621 | 435 | 93 | 93 |
+| Apple — Cedar apple rust | 275 | 193 | 41 | 41 |
+| Apple — healthy | 1 645 | 1 149 | 248 | 248 |
+| Blueberry — healthy | 1 502 | 1 052 | 225 | 225 |
+| Cherry (including sour) — Powdery mildew | 1 052 | 736 | 158 | 158 |
+| Cherry (including sour) — healthy | 854 | 598 | 128 | 128 |
+| Corn (maize) — Cercospora leaf spot Gray leaf spot | 513 | 359 | 77 | 77 |
+| Corn (maize) — Common rust | 1 192 | 834 | 179 | 179 |
+| Corn (maize) — Northern Leaf Blight | 985 | 689 | 148 | 148 |
+| Corn (maize) — healthy | 1 162 | 814 | 174 | 174 |
+| Grape — Black rot | 1 180 | 826 | 177 | 177 |
+| Grape — Esca (Black Measles) | 1 383 | 969 | 207 | 207 |
+| Grape — Leaf blight (Isariopsis Leaf Spot) | 1 076 | 754 | 161 | 161 |
+| Grape — healthy | 423 | 297 | 63 | 63 |
+| Orange — Haunglongbing (Citrus greening) | 5 507 | 3 855 | 826 | 826 |
+| Peach — Bacterial spot | 2 297 | 1 607 | 345 | 345 |
+| Peach — healthy | 360 | 252 | 54 | 54 |
+| Pepper, bell — Bacterial spot | 997 | 697 | 150 | 150 |
+| Pepper, bell — healthy | 1 478 | 1 034 | 222 | 222 |
+| Potato — Early blight | 1 000 | 700 | 150 | 150 |
+| Potato — Late blight | 1 000 | 700 | 150 | 150 |
+| Potato — healthy | 152 | 92 | 30 | 30 |
+| Raspberry — healthy | 371 | 259 | 56 | 56 |
+| Soybean — healthy | 5 090 | 3 562 | 764 | 764 |
+| Squash — Powdery mildew | 1 835 | 1 285 | 275 | 275 |
+| Strawberry — Leaf scorch | 1 109 | 777 | 166 | 166 |
+| Strawberry — healthy | 456 | 320 | 68 | 68 |
+| Tomato — Bacterial spot | 2 127 | 1 489 | 319 | 319 |
+| Tomato — Early blight (alternariose précoce) | 1 000 | 700 | 150 | 150 |
+| Tomato — Late blight (mildiou) | 1 909 | 1 334 | 288 | 287 |
+| Tomato — Leaf Mold (moisissure des feuilles) | 952 | 666 | 143 | 143 |
+| Tomato — Septoria leaf spot | 1 771 | 1 239 | 266 | 266 |
+| Tomato — Spider mites Two-spotted spider mite | 1 676 | 1 174 | 251 | 251 |
+| Tomato — Target Spot | 1 404 | 982 | 211 | 211 |
+| Tomato — Tomato Yellow Leaf Curl Virus | 5 357 | 3 749 | 804 | 804 |
+| Tomato — Tomato mosaic virus | 373 | 261 | 56 | 56 |
+| Tomato — healthy (feuille saine) | 1 591 | 1 111 | 240 | 240 |
+| **Total** | **54 305** | **37 992** | **8 157** | **8 156** |
 
-Le dataset est **déséquilibré** : la classe la plus représentée (mildiou, 1 909 images)
-contient deux fois plus d'images que la classe la moins représentée (moisissure,
-952 images). Ce déséquilibre doit être pris en compte, sous peine d'obtenir un modèle
-qui prédit plus volontiers les classes majoritaires.
+*Tableau 3 — Classes retenues et effectifs réels, avant et après découpage.*
 
-![Un exemple de feuille par classe, extrait du dataset PlantVillage](../../results/figures/dataset_examples.png)
+Le dataset est **très déséquilibré** : la classe la plus fournie (orange, 5 507 images)
+contient **36 fois** plus d'images que la moins fournie (pomme de terre saine, 152
+images). Six classes dépassent 2 000 images alors que quatre en comptent moins de 500.
+Ce déséquilibre est traité explicitement (section 8.3), sans quoi le modèle
+sacrifierait mécaniquement les classes rares.
 
-*Figure 1 — Exemples d'images du dataset (une par classe).*
+![Une image par classe, extrait du dataset PlantVillage](../../results/figures/dataset_examples.png)
+
+*Figure 1 — Une image représentative par classe, sur les 38 classes du dataset.*
 
 ### 7.3 Contrôle qualité
 
-Avant toute utilisation, chaque fichier a été vérifié :
+Avant toute utilisation, chaque fichier a été vérifié par `training/prepare_data.py` :
 
-- ouverture et décodage complet par Pillow : **0 image illisible** sur 5 452 ;
+- ouverture et décodage complet par Pillow : **0 image illisible** sur 54 305 ;
 - vérification des dimensions : toutes les images sont en 256 × 256 pixels, en RGB ;
-- calcul d'une empreinte **MD5** pour chaque fichier : **14 doublons exacts** ont été
-  détectés (même image présente plusieurs fois dans le dataset).
+- calcul d'une empreinte **MD5** pour chaque fichier : **21 groupes de doublons
+  exacts** ont été détectés.
 
-Les doublons détectés ne sont pas supprimés, car ils correspondent à des images
-légitimement présentes dans leur classe. En revanche, ils sont **regroupés** lors du
-découpage afin qu'une même image ne puisse jamais se retrouver simultanément dans
-l'ensemble d'entraînement et dans l'ensemble de test.
+Les doublons ne sont pas supprimés — une image présente légitimement dans sa classe le
+reste — mais ils sont **regroupés** lors du découpage : toutes les copies d'une même
+image tombent dans le même ensemble. Sans cette précaution, une image pourrait se
+retrouver à la fois dans l'entraînement et dans le test, et gonfler artificiellement les
+performances mesurées.
 
 ### 7.4 Découpage des données
 
@@ -60,27 +108,19 @@ garantir la reproductibilité, selon les proportions 70 % / 15 % / 15 % :
 
 | Ensemble | Rôle | Images |
 | --- | --- | --- |
-| Entraînement | Apprentissage des poids | 3 811 |
-| Validation | Suivi, Early Stopping, sélection du modèle | 821 |
-| Test | Évaluation finale, jamais utilisé pendant l'entraînement | 820 |
+| Entraînement | Apprentissage des poids | 37 992 |
+| Validation | Suivi, Early Stopping, sélection du modèle | 8 157 |
+| Test | Évaluation finale, jamais utilisé pendant l'entraînement | 8 156 |
 
 *Tableau 4 — Rôle et taille des trois ensembles.*
 
-La répartition détaillée par classe est la suivante :
-
-| Classe | Entraînement | Validation | Test |
-| --- | --- | --- | --- |
-| Alternariose précoce | 700 | 150 | 150 |
-| Mildiou de la tomate | 1 334 | 288 | 287 |
-| Moisissure des feuilles | 666 | 143 | 143 |
-| Feuille saine | 1 111 | 240 | 240 |
-| **Total** | **3 811** | **821** | **820** |
-
-*Tableau 5 — Découpage stratifié détaillé par classe.*
-
 ![Répartition du dataset et des ensembles préparés](../../results/figures/dataset_distribution.png)
 
-*Figure 2 — Répartition des images par classe, avant et après découpage.*
+*Figure 2 — Effectifs par classe, empilés par ensemble (entraînement, validation, test).*
+
+Avec 8 156 images de test, l'intervalle de confiance à 95 % sur l'accuracy est de
+l'ordre de ±0,4 point : le chiffre final est donc une estimation raisonnablement
+précise, ce qui n'était pas le cas du prototype à quatre classes (820 images de test).
 
 ### 7.5 Garanties contre la fuite de données
 
@@ -94,12 +134,19 @@ optimistes. Trois mesures ont été prises :
 3. **absence totale d'utilisation du test** pendant l'entraînement et la sélection du
    modèle (le test n'est chargé que par `training/evaluate.py`).
 
+De plus, la normalisation appliquée est une transformation **déterministe** (aucune
+statistique n'est estimée sur les données), et la Data Augmentation est générée à la
+volée, uniquement sur le jeu d'entraînement : aucun paramètre appris sur les données
+n'est ajusté avant le découpage.
+
 ### 7.6 Limites du dataset
 
 - **Images de laboratoire** : les feuilles sont photographiées sur un fond uniforme,
   souvent gris, avec un éclairage contrôlé. Les performances mesurées ne peuvent pas être
   transposées directement à des photos prises au champ.
-- **Une seule culture** : le modèle ne connaît que la tomate.
+- **Déséquilibre extrême** : de 152 à 5 507 images selon la classe, soit un rapport de
+  36 ; les classes rares (pomme de terre saine, pêche saine, cerise saine) restent les
+  plus fragiles à estimer.
 - **Pas de niveau de gravité** : seules les classes sont étiquetées, pas le stade de la
   maladie.
 - **Regroupement par feuille** : le dépôt fournit des métadonnées de regroupement par
@@ -107,9 +154,9 @@ optimistes. Trois mesures ont été prises :
   feuille sous des angles légèrement différents peuvent donc se retrouver dans deux
   ensembles. C'est une limite reconnue, qui plaide pour une évaluation future plus
   stricte.
-- **Quatre classes sur trente-huit** : les autres maladies de la tomate (septoriose,
-  brûlure bactérienne, virus de l'enroulement jaune, tache cible, etc.) sont hors
-  périmètre et seront de toute façon classées dans l'une des quatre catégories.
+- **Une seule image par classe et par plante** : le modèle apprend des signatures
+  visuelles globales, pas une notion de contexte (parcelle, stade, co-occurrence de
+  maladies).
 
 ## 8. Prétraitement et Data Augmentation
 
@@ -127,7 +174,7 @@ scripts d'entraînement et par l'application Flask.
 | 4 | Conversion en tableau `float32` | Format numérique attendu par Keras |
 | 5 | Normalisation `x / 127.5 - 1` | Ramène les valeurs dans [-1, 1], convention MobileNetV2 |
 
-*Tableau 6 — Pipeline de prétraitement des images.*
+*Tableau 5 — Pipeline de prétraitement des images.*
 
 La normalisation utilisée reproduit exactement
 `tensorflow.keras.applications.mobilenet_v2.preprocess_input`. Un test automatisé
@@ -150,7 +197,7 @@ centrées :
 | Luminosité | ±15 % | Robustesse aux conditions d'éclairage |
 | Translation | ±5 % | Robustesse au cadrage |
 
-*Tableau 7 — Transformations de Data Augmentation.*
+*Tableau 6 — Transformations de Data Augmentation.*
 
 Ces couches sont appliquées **uniquement** au jeu d'entraînement et sont inactives à
 l'inférence. Elles ne font pas partie du modèle sauvegardé : le prétraitement de
@@ -158,17 +205,22 @@ prédiction reste donc simplement « redimensionnement + normalisation ».
 
 ![Effet de la Data Augmentation](../../results/figures/augmentation_examples.png)
 
-*Figure 3 — Exemples de variantes générées par la Data Augmentation sur une même image.*
+*Figure 3 — Une image d'origine et cinq variantes générées par la Data Augmentation.*
 
 ### 8.3 Gestion du déséquilibre des classes
 
 Deux mécanismes complémentaires ont été mis en place :
 
 1. **poids de classes** lors de la phase 1 : chaque classe reçoit un poids inversement
-   proportionnel à son effectif (mildiou ≈ 0,72 ; alternariose ≈ 1,36 ; moisissure
-   ≈ 1,43 ; feuille saine ≈ 0,86) ;
+   proportionnel à son effectif. Les poids effectifs vont de **0,26** (orange, 3 855
+   images d'entraînement) à **10,87** (pomme de terre saine, 92 images), soit un facteur
+   42 entre la classe la plus favorisée et la plus pénalisée ;
 2. **métriques par classe** dans l'évaluation, afin de ne pas masquer une classe
    défavorisée par une bonne accuracy globale.
+
+Sans ces poids, un modèle qui prédirait toujours la classe majoritaire obtiendrait déjà
+47 % d'accuracy sur le test (orange + soja + virus YLCV représentent près de la moitié
+des images) : l'accuracy globale, seule, serait trompeuse.
 
 ## 9. Architecture du modèle proposé
 
@@ -183,11 +235,11 @@ Le modèle est construit en Keras selon l'enchaînement suivant :
 4. **Dropout (0,2)** ;
 5. **Dense(128, activation ReLU)** : couche de caractéristiques spécifiques au problème ;
 6. **Dropout (0,3)** ;
-7. **Dense(4, activation Softmax)** : distribution de probabilités sur les quatre classes.
+7. **Dense(38, activation Softmax)** : distribution de probabilités sur les 38 classes.
 
 ![Architecture du modèle MobileNetV2 adapté](../../results/figures/model_architecture.png)
 
-*Figure 4 — Architecture du modèle : base MobileNetV2 et tête de classification.*
+*Figure 4 — Architecture du modèle : base MobileNetV2 et tête de classification à 38 sorties.*
 
 ### 9.2 Détail des couches et des paramètres
 
@@ -199,14 +251,15 @@ Le modèle est construit en Keras selon l'enchaînement suivant :
 | Régularisation | Dropout (0,2) | 1 280 | 0 |
 | Classification | Dense (ReLU) | 128 | 163 968 |
 | Régularisation | Dropout (0,3) | 128 | 0 |
-| Sortie | Dense (Softmax) | 4 | 516 |
-| **Total** | | | **2 422 468** |
+| Sortie | Dense (Softmax) | 38 | 4 902 |
+| **Total** | | | **2 426 854** |
 
-*Tableau 8 — Détail des couches et du nombre de paramètres.*
+*Tableau 7 — Détail des couches et du nombre de paramètres.*
 
-Les 2 257 984 paramètres de la base sont **gelés** en phase 1 : seuls 164 484 paramètres
-sont alors entraînables, soit moins de 7 % du total. Cette réduction drastique explique
-la rapidité de convergence observée.
+Les 2 257 984 paramètres de la base sont **gelés** en phase 1 : seuls **168 870**
+paramètres sont alors entraînables, soit moins de 7 % du total. Le passage de 4 à 38
+classes ne coûte que **4 386 paramètres supplémentaires** (38 × 129 au lieu de 4 × 129) :
+l'essentiel de la capacité du modèle se trouve dans la base convolutive partagée.
 
 ### 9.3 Choix de la fonction de perte et de l'optimiseur
 
@@ -228,11 +281,11 @@ le temps de calcul.
 | --- | --- |
 | Taille d'image | 224 × 224 × 3 |
 | Batch size | 32 |
-| Époques maximales (phase 1) | 15 (configuration : 30) |
-| Époques maximales (phase 2) | 8 (configuration : 15) |
+| Époques (phase 1) | 30 (toutes effectuées) |
+| Époques (phase 2) | 15 (toutes effectuées) |
 | Learning rate phase 1 | 1e-3 |
 | Learning rate phase 2 | 1e-5 |
-| Couches dégelées | 19 (30 dernières couches, BatchNormalization exclues) |
+| Couches dégelées | 19 (les 30 dernières couches, BatchNormalization exclues) |
 | Perte | Categorical crossentropy |
 | Optimiseur | Adam |
 | Graine aléatoire | 42 |
@@ -240,57 +293,82 @@ le temps de calcul.
 | Model Checkpoint | sauvegarde si `val_accuracy` s'améliore |
 | ReduceLROnPlateau | facteur 0,5, patience 2, learning rate minimal 1e-6 |
 
-*Tableau 9 — Hyperparamètres d'entraînement.*
+*Tableau 8 — Hyperparamètres d'entraînement.*
 
-> **Remarque sur le budget d'époques.** Le nombre maximal d'époques prévu par la
-> configuration est de 30 (phase 1) et 15 (phase 2). L'expérience présentée ici a été
-> exécutée avec un budget réduit (15 + 8 époques) car elle a été réalisée sur un
-> processeur à deux cœurs, sans GPU : chaque époque dure environ 90 secondes. Ce budget
-> reste suffisant pour observer la convergence, comme le montrent les courbes.
+Le nombre d'images par époque (37 992) impose 1 188 lots de 32 : une époque dure donc
+plusieurs minutes, et le budget complet 30 + 15 époques représente une douzaine d'heures
+de calcul. L'Early Stopping n'a pas été déclenché, ce qui signifie que la validation
+progressait encore à la dernière époque : le budget maximal a été entièrement consommé.
 
 ### 10.2 Environnement d'exécution
 
 | Élément | Valeur |
 | --- | --- |
-| Processeur | 2 cœurs (x86-64, AVX2) |
-| Mémoire | 16 Go |
+| Processeur | 12 cœurs logiques (x86-64, AVX2), 4 threads alloués à TensorFlow |
 | GPU | aucun |
-| Système | Linux (Ubuntu 24.04) |
-| Python | 3.12 |
+| Système | Windows 11 |
+| Python | 3.12.10 |
 | TensorFlow | 2.21 (version CPU) |
-| Durée phase 1 | 23,4 minutes (15 époques) |
-| Durée phase 2 | 14,3 minutes (8 époques) |
-| Durée totale | ≈ 38 minutes |
+| Durée phase 1 | 498 minutes (30 époques, ≈ 16,6 min/époque) |
+| Durée phase 2 | 267 minutes (15 époques, ≈ 17,8 min/époque) |
+| Durée totale | ≈ 765 minutes, soit environ 12 h 45 |
 
-*Tableau 10 — Environnement d'exécution de l'expérience.*
+*Tableau 9 — Environnement d'exécution de l'expérience.*
+
+Le nombre de threads a été volontairement limité à 4 sur 12 cœurs logiques afin de
+laisser la machine utilisable pendant l'entraînement. C'est un choix assumé : il
+multiplie la durée par environ deux par rapport à une utilisation pleine de tous les
+cœurs.
 
 ### 10.3 Déroulement de la phase 1
 
 La base MobileNetV2 est gelée et seules les couches de classification apprennent. Dès la
-première époque, l'accuracy de validation atteint **86,2 %**, ce qui illustre la qualité
-des caractéristiques ImageNet. La progression est rapide : 89,40 % à l'époque 2, 91,84 %
-à l'époque 3, puis un maximum de **94,52 % dès l'époque 4**. La validation oscille ensuite
-entre 91 % et 94,5 % jusqu'à la fin de la phase.
-Le learning rate est réduit automatiquement à 5e-4 puis 2,5e-4 et 1,25e-4, sans gain
-supplémentaire sur la validation : le modèle commence à plafonner.
+première époque, l'accuracy de validation atteint **86,6 %**, ce qui illustre la qualité
+des caractéristiques ImageNet. La progression est ensuite régulière :
+
+| Époque | Accuracy entraînement | Accuracy validation | Perte validation |
+| --- | --- | --- | --- |
+| 1 | 72,42 % | 86,59 % | 0,426 |
+| 2 | 84,43 % | 90,46 % | 0,291 |
+| 5 | 87,72 % | 91,86 % | 0,253 |
+| 10 | 90,90 % | 92,64 % | 0,215 |
+| 15 | 92,04 % | 93,94 % | 0,177 |
+| 20 | 92,78 % | 94,72 % | 0,161 |
+| 25 | 92,78 % | 94,64 % | 0,160 |
+| 30 | 92,86 % | 94,70 % | 0,159 |
+
+*Tableau 10 — Phase 1 : suivi de l'apprentissage (extrait du journal réel).*
+
+Le learning rate est réduit automatiquement de 1e-3 à 5e-4, 2,5e-4, 1,25e-4 puis
+6,25e-5, et la validation se stabilise autour de **94,7 %**. Le meilleur modèle de la
+phase 1 est atteint à l'époque 27, avec **94,75 %** de validation.
 
 ### 10.4 Déroulement de la phase 2 (fine-tuning)
 
 Les 19 dernières couches de la base sont dégelées et ré-entraînées avec un learning rate
-de 1e-5. Après une légère dégradation initiale (92,8 % à l'époque 16), la validation
-remonte progressivement. Les époques 21 et 22 apportent les meilleurs résultats :
+de 1e-5. L'accuracy d'entraînement repart à la hausse et la validation suit, sans
+dégradation initiale marquée :
 
-- époque 18 : 92,81 % ;
-- époque 20 : 94,76 % ;
-- époque 21 : 94,52 % ;
-- **époque 22 : 95,98 %** (meilleur modèle retenu) ;
-- époque 23 : 94,52 % (légère baisse, non conservée).
+| Époque | Accuracy entraînement | Accuracy validation | Perte validation |
+| --- | --- | --- | --- |
+| 31 | 92,74 % | 93,98 % | 0,188 |
+| 35 | 94,96 % | 95,16 % | 0,150 |
+| 40 | 96,53 % | 96,44 % | 0,105 |
+| 43 | 96,89 % | 96,60 % | 0,098 |
+| 44 | 96,97 % | 96,98 % | 0,092 |
+| **45** | **96,98 %** | **97,01 %** | **0,090** |
 
-Le fine-tuning apporte donc un gain réel de **+1,46 point** d'accuracy de validation par
-rapport au meilleur modèle de la phase 1 (94,52 % → 95,98 %). Le meilleur modèle est
+*Tableau 11 — Phase 2 : suivi du fine-tuning (extrait du journal réel).*
+
+Le fine-tuning apporte donc un gain réel de **+2,26 points** d'accuracy de validation
+par rapport au meilleur modèle de la phase 1 (94,75 % → 97,01 %). Le meilleur modèle est
 sauvegardé automatiquement dans `models/best_model.keras`, avec la contrainte de ne
 jamais remplacer un modèle de phase 1 par un modèle de phase 2 moins bon
 (`initial_value_threshold`).
+
+Le fait que le gain soit plus marqué qu'avec 4 classes (+1,46 point) est cohérent : avec
+38 classes, les frontières de décision sont plus fines et les filtres profonds de la base
+bénéficient davantage d'un ajustement aux textures de feuilles.
 
 ### 10.5 Suivi et reproductibilité
 
@@ -300,3 +378,13 @@ Tous les paramètres, comptages, durées et versions de bibliothèques sont enre
 42 est fixée pour Python, NumPy et TensorFlow. Le découpage des données est lui aussi
 déterministe. Ces précautions permettent de rejouer l'expérience dans des conditions
 comparables.
+
+La chaîne d'exécution complète est la suivante :
+
+```bash
+python training/download_dataset.py   # récupération des 38 classes (~955 Mo)
+python training/prepare_data.py       # contrôle qualité + split stratifié
+python training/explore_data.py       # figures d'exploration du rapport
+python training/train.py              # phases 1 et 2 (~12 h)
+python training/evaluate.py           # métriques et figures sur le test
+```

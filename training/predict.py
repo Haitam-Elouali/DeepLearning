@@ -41,6 +41,13 @@ def analyser(chemin: Path, predictor) -> dict:
 
 
 def main() -> int:
+    # La console Windows utilise cp1252 par défaut : sans cela, les accents et les
+    # caractères de barre lèvent une UnicodeEncodeError.
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, OSError):
+        pass
+
     parseur = argparse.ArgumentParser(description="Prédiction d'une ou plusieurs images.")
     parseur.add_argument("images", nargs="*", type=Path, help="Chemins des images à analyser.")
     parseur.add_argument("--dossier", type=Path, help="Analyser toutes les images d'un dossier.")
@@ -79,7 +86,9 @@ def main() -> int:
         print(f"\n{resultat['fichier']}")
         print(f"  Classe prédite : {resultat['nom_fr']} ({resultat['confiance'] * 100:.1f} %)")
         print(f"  Inférence      : {resultat['duree_ms']} ms")
-        for nom, proba in resultat["probabilites"].items():
+        # Seules les cinq meilleures classes sont affichées (38 classes au total).
+        meilleures = list(resultat["probabilites"].items())[:5]
+        for nom, proba in meilleures:
             barre = "█" * int(round(proba * 30))
             print(f"    {nom:<28} {proba * 100:5.1f} % {barre}")
 

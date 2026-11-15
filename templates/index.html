@@ -41,7 +41,7 @@
       </p>
     {% endif %}
 
-    <h3>Probabilités pour chaque classe</h3>
+    <h3>Probabilités les plus élevées</h3>
     <ul class="probabilites">
       {% for probabilite in probabilites %}
         <li>
@@ -54,7 +54,8 @@
 {% endif %}
 
 <p class="note">
-  Classes reconnues : {{ classes.values()|join(', ') }}.
+  Classes reconnues : {{ nombre_classes }} classes (tomate, pomme de terre, maïs,
+  pommier, vigne, pêcher, poivron, fraise…).
 </p>
 
 {% endblock %}

@@ -47,7 +47,7 @@ def creer_application() -> Flask:
         return render_template(
             "index.html",
             app_nom=config.APP_NAME,
-            classes=config.CLASSES_FR,
+            nombre_classes=config.NUM_CLASSES,
             modele_pret=erreur_modele is None,
             erreur_modele=erreur_modele,
             **contexte,
@@ -83,7 +83,9 @@ def creer_application() -> Flask:
                 "nom_fr": nom_affichage(element["classe"]),
                 "pourcentage": formater_pourcentage(element["probabilite"], 1),
             }
-            for element in resultat["classement"]
+            # Seules les cinq meilleures classes sont affichées : avec 38 classes,
+            # lister toutes les probabilités rendrait la page illisible.
+            for element in resultat["classement"][:5]
         ]
         return rendre(
             resultat={

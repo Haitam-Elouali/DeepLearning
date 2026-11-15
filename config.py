@@ -1,11 +1,7 @@
-"""Configuration centrale du projet de détection des maladies de la tomate.
+"""Configuration centrale du projet.
 
-Tous les chemins et hyperparamètres du projet sont regroupés ici afin de
-pouvoir adapter le comportement des scripts d'entraînement, d'évaluation et
-de l'application Web sans modifier le reste du code.
-
-Le module ne dépend d'aucune bibliothèque lourde (ni TensorFlow, ni Flask) :
-il peut donc être importé partout, y compris par les tests.
+Regroupe les chemins, les classes et les hyperparamètres afin de ne pas les
+répéter dans le reste du code. Ce module n'importe ni TensorFlow ni Flask.
 """
 
 from __future__ import annotations
@@ -13,7 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Arborescence du projet
+# Arborescence
 # ---------------------------------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -26,56 +22,71 @@ FIGURES_DIR = RESULTS_DIR / "figures"
 METRICS_DIR = RESULTS_DIR / "metrics"
 PREDICTIONS_DIR = RESULTS_DIR / "predictions"
 
-# Fichiers de données produits par l'entraînement
+# Fichiers produits par l'entraînement
+DATASET_MANIFEST_PATH = PROCESSED_DATA_DIR / "dataset_manifest.json"
 CLASS_NAMES_PATH = DATA_DIR / "class_names.json"
-DATASET_MANIFEST_PATH = DATA_DIR / "processed" / "dataset_manifest.json"
 TRAINING_CONFIG_PATH = MODELS_DIR / "training_config.json"
 MODEL_PATH = MODELS_DIR / "best_model.keras"
 HISTORY_PATH = METRICS_DIR / "training_history.json"
 
-for _directory in (
-    DATA_DIR,
-    PROCESSED_DATA_DIR,
-    MODELS_DIR,
-    FIGURES_DIR,
-    METRICS_DIR,
-    PREDICTIONS_DIR,
-):
-    _directory.mkdir(parents=True, exist_ok=True)
+for _dossier in (DATA_DIR, PROCESSED_DATA_DIR, MODELS_DIR, FIGURES_DIR, METRICS_DIR, PREDICTIONS_DIR):
+    _dossier.mkdir(parents=True, exist_ok=True)
 
 # ---------------------------------------------------------------------------
-# Classes du problème
+# Classes du dataset PlantVillage (38 classes, images couleur)
 # ---------------------------------------------------------------------------
-# Le nom des dossiers est celui du dataset PlantVillage d'origine. L'ordre
-# alphabétique est celui utilisé par `image_dataset_from_directory`, il est
-# sauvegardé dans data/class_names.json pour garantir la cohérence entre
-# l'entraînement et l'inférence.
+# L'ordre est figé : la sortie du modèle est indexée sur cette liste, et il est
+# recopié dans data/class_names.json pour que l'application utilise le même.
 CLASS_NAMES = [
+    "Apple___Apple_scab",
+    "Apple___Black_rot",
+    "Apple___Cedar_apple_rust",
+    "Apple___healthy",
+    "Blueberry___healthy",
+    "Cherry_(including_sour)___Powdery_mildew",
+    "Cherry_(including_sour)___healthy",
+    "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot",
+    "Corn_(maize)___Common_rust_",
+    "Corn_(maize)___Northern_Leaf_Blight",
+    "Corn_(maize)___healthy",
+    "Grape___Black_rot",
+    "Grape___Esca_(Black_Measles)",
+    "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)",
+    "Grape___healthy",
+    "Orange___Haunglongbing_(Citrus_greening)",
+    "Peach___Bacterial_spot",
+    "Peach___healthy",
+    "Pepper,_bell___Bacterial_spot",
+    "Pepper,_bell___healthy",
+    "Potato___Early_blight",
+    "Potato___Late_blight",
+    "Potato___healthy",
+    "Raspberry___healthy",
+    "Soybean___healthy",
+    "Squash___Powdery_mildew",
+    "Strawberry___Leaf_scorch",
+    "Strawberry___healthy",
+    "Tomato___Bacterial_spot",
     "Tomato___Early_blight",
     "Tomato___Late_blight",
     "Tomato___Leaf_Mold",
+    "Tomato___Septoria_leaf_spot",
+    "Tomato___Spider_mites Two-spotted_spider_mite",
+    "Tomato___Target_Spot",
+    "Tomato___Tomato_Yellow_Leaf_Curl_Virus",
+    "Tomato___Tomato_mosaic_virus",
     "Tomato___healthy",
 ]
 
 NUM_CLASSES = len(CLASS_NAMES)
 
-#: Nom affiché de chaque classe dans l'interface (aucune fiche externe n'est
-#: nécessaire : le libellé suffit pour une application d'inférence).
+#: Libellés français des classes de tomate (les autres sont mis en forme
+#: automatiquement par ``utils.helpers.nom_affichage``).
 CLASSES_FR = {
     "Tomato___Early_blight": "Alternariose précoce",
     "Tomato___Late_blight": "Mildiou",
     "Tomato___Leaf_Mold": "Moisissure des feuilles",
     "Tomato___healthy": "Feuille saine",
-}
-
-#: Nombre d'images attendu par classe dans le dataset PlantVillage d'origine.
-#: Utilisé uniquement pour les contrôles de cohérence du script de
-#: téléchargement (le dataset complet n'est pas versionné).
-EXPECTED_IMAGES_PER_CLASS = {
-    "Tomato___Early_blight": 1000,
-    "Tomato___Late_blight": 1909,
-    "Tomato___Leaf_Mold": 952,
-    "Tomato___healthy": 1591,
 }
 
 # ---------------------------------------------------------------------------
@@ -84,27 +95,22 @@ EXPECTED_IMAGES_PER_CLASS = {
 IMAGE_SIZE = (224, 224)  # taille attendue par MobileNetV2
 
 BATCH_SIZE = 32
-EPOCHS = 30  # nombre maximal d'époques pour la phase 1 (Transfer Learning)
-FINE_TUNE_EPOCHS = 15  # nombre maximal d'époques pour la phase 2 (Fine-Tuning)
-LEARNING_RATE = 1e-3  # phase 1 : seules les couches ajoutées apprennent
-FINE_TUNE_LEARNING_RATE = 1e-5  # phase 2 : apprentissage très lent
-FINE_TUNE_LAYERS = 30  # nombre de couches dégelées en fin de MobileNetV2
+EPOCHS = 30
+FINE_TUNE_EPOCHS = 15
+LEARNING_RATE = 1e-3
+FINE_TUNE_LEARNING_RATE = 1e-5
+FINE_TUNE_LAYERS = 30
 
-VALIDATION_SPLIT = 0.15  # 15 % validation
-TEST_SPLIT = 0.15  # 15 % test (indépendant, jamais vu à l'entraînement)
-SEED = 42  # graine globale pour la reproductibilité
+VALIDATION_SPLIT = 0.15
+TEST_SPLIT = 0.15
+SEED = 42
 
 EARLY_STOPPING_PATIENCE = 5
 REDUCE_LR_PATIENCE = 2
 REDUCE_LR_FACTOR = 0.5
 MIN_LEARNING_RATE = 1e-6
 
-#: Taille maximale du sous-échantillon par classe pour l'entraînement.
-#: ``None`` = dataset complet. Ce paramètre existe pour permettre un
-#: entraînement rapide sur une machine modeste (CPU) tout en documentant
-#: précisément le sous-ensemble utilisé dans le rapport.
-MAX_IMAGES_PER_CLASS: int | None = None
-#: Nombre d'images conservées au minimum par classe dans chaque ensemble.
+#: Nombre minimal d'images par classe et par ensemble.
 MIN_IMAGES_PER_SPLIT = 30
 
 # ---------------------------------------------------------------------------
@@ -113,7 +119,6 @@ MIN_IMAGES_PER_SPLIT = 30
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png"}
 MAX_UPLOAD_SIZE = 8 * 1024 * 1024  # 8 Mo
-MAX_IMAGE_DIMENSION = 4000  # refus des images démesurées (sécurité)
+MAX_IMAGE_DIMENSION = 4000
 
-#: Nom affiché dans l'interface.
 APP_NAME = "TomatoScan"

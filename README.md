@@ -1,4 +1,4 @@
-# Détection et classification des maladies de la feuille de tomate
+# Détection et classification des maladies des feuilles — PlantVillage (38 classes)
 
 **Application expérimentale de reconnaissance visuelle par CNN et Transfer Learning.**
 
@@ -17,16 +17,16 @@ Interface entièrement en français.
 | --- | --- |
 | Téléversement | une image JPG ou PNG, 8 Mo maximum |
 | Prétraitement | RGB, redimensionnement 224 × 224, normalisation [-1, 1] |
-| Prédiction | MobileNetV2 + Transfer Learning, 4 classes, sortie softmax |
-| Résultat | classe prédite, confiance, durée, probabilités des 4 classes |
+| Prédiction | MobileNetV2 + Transfer Learning, **38 classes**, sortie softmax |
+| Résultat | classe prédite, confiance, durée, 5 probabilités les plus élevées |
 | Confidentialité | aucune image ni aucun résultat conservé (traitement en mémoire) |
 
-**Classes reconnues**
-
-1. `Tomato___healthy` — feuille saine
-2. `Tomato___Early_blight` — alternariose précoce (*Alternaria solani*)
-3. `Tomato___Late_blight` — mildiou (*Phytophthora infestans*)
-4. `Tomato___Leaf_Mold` — moisissure des feuilles (*Passalora fulva*)
+**Classes reconnues** : les **38 classes** du dataset PlantVillage (couleur), soit
+14 cultures (tomate, pomme de terre, maïs, pommier, vigne, pêcher, poivron, fraise,
+cerise, agrume, framboise, soja, courge, myrtille) et leurs maladies foliaires.
+Les quatre classes de tomate ont un libellé français (Alternariose précoce, Mildiou,
+Moisissure des feuilles, Feuille saine) ; les autres sont affichées sous la forme
+« Culture — Maladie ».
 
 ---
 
@@ -40,7 +40,7 @@ plant-disease-detection/
 ├── README.md
 │
 ├── data/
-│   ├── raw/PlantVillage/       # images brutes (non versionnées)
+│   ├── raw/PlantVillage/       # images brutes (non versionnées, 38 dossiers)
 │   ├── processed/              # train/validation/test + dataset_manifest.json
 │   └── class_names.json        # ordre des classes du modèle
 │
@@ -50,8 +50,9 @@ plant-disease-detection/
 │
 ├── notebooks/                  # notebook d'entraînement (accompagne les scripts)
 ├── training/
-│   ├── download_dataset.py     # récupère les 4 classes PlantVillage (~100 Mo)
+│   ├── download_dataset.py     # récupère les 38 classes couleur (~955 Mo)
 │   ├── prepare_data.py         # contrôle qualité + split stratifié sans fuite
+│   ├── explore_data.py         # figures d'exploration (dataset, augmentation, modèle)
 │   ├── train.py                # MobileNetV2 : phase 1 + fine-tuning
 │   ├── evaluate.py             # métriques, figures, analyse d'erreurs
 │   └── predict.py              # inférence en ligne de commande
@@ -65,7 +66,7 @@ plant-disease-detection/
 ├── static/css/style.css        # feuille de style unique
 │
 ├── results/
-│   ├── figures/                # courbes, matrice, performances
+│   ├── figures/                # courbes, matrice, performances, dataset
 │   ├── metrics/                # evaluation.json, classification_report.txt
 │   └── predictions/            # prédictions du test, erreurs
 │
@@ -106,74 +107,80 @@ pip install -r requirements.txt
 
 ## 4. Dataset
 
-- **Nom** : PlantVillage Dataset (sous-ensemble tomate, images couleur)
+- **Nom** : PlantVillage Dataset (dossier `raw/color`, images couleur 256 × 256)
 - **Source** : <https://github.com/spMohanty/PlantVillage-Dataset>
 - **Publication** : Hughes & Salathé (2015), arXiv:1511.08060 ; Mohanty, Hughes &
   Salathé (2016), *Frontiers in Plant Science*, 7, 1419.
-- **Images** : 5 452 photographies couleur 256 × 256, 4 classes.
+- **Images** : 54 305 photographies couleur, **38 classes**, 14 cultures, ≈ 955 Mo.
 
-| Classe | Images |
+| Ensemble | Images |
 | --- | --- |
-| Tomato___Early_blight | 1 000 |
-| Tomato___Late_blight | 1 909 |
-| Tomato___Leaf_Mold | 952 |
-| Tomato___healthy | 1 591 |
-| **Total** | **5 452** |
+| Entraînement (70 %) | 37 992 |
+| Validation (15 %) | 8 157 |
+| Test (15 %) | 8 156 |
+| **Total** | **54 305** |
 
 Le dépôt d'origine ne contient pas de fichier de licence explicite : les images sont
 utilisées dans un cadre strictement académique, ne sont pas redistribuées et ne sont pas
 versionnées ici.
 
 ```bash
-python training/download_dataset.py   # clone partiel des 4 dossiers utiles
+python training/download_dataset.py   # clone partiel des 38 dossiers couleur (~955 Mo)
 python training/prepare_data.py       # contrôle qualité + split 70/15/15
+python training/explore_data.py       # figures d'exploration (optionnel)
 ```
 
 `prepare_data.py` vérifie chaque image, détecte les doublons exacts (MD5) et les place
 dans le même ensemble, réalise un découpage **stratifié** avec la graine 42, puis écrit
-`data/processed/dataset_manifest.json`.
+`data/processed/dataset_manifest.json` (effectifs par classe et par ensemble).
 
-Résultat attendu :
+Résultat mesuré sur cette machine :
 
 ```text
-Classe                         Train  Valid.    Test   Total
-Tomato___Early_blight            700     150     150    1000
-Tomato___Late_blight            1334     288     287    1909
-Tomato___Leaf_Mold               666     143     143     952
-Tomato___healthy                1111     240     240    1591
-TOTAL                           3811     821     820    5452
+Classe                                       Train  Valid.   Test   Brut
+Apple___Apple_scab                             442      94      94    630
+...
+Potato___healthy                                92      30      30    152
+Tomato___Tomato_Yellow_Leaf_Curl_Virus        3749     804     804   5357
+TOTAL                                        37992    8157    8156  54305
 ```
+
+Constats du contrôle qualité : **0 image illisible**, **21 groupes de doublons exacts**
+regroupés, déséquilibre de **152 à 5 507 images** par classe (rapport 36).
 
 ---
 
-## 5. Entraînement réduit (CPU)
+## 5. Entraînement
 
 ```bash
-python training/train.py --epochs 15 --fine-tune-epochs 8
+python training/train.py
 ```
 
-Paramètres :
+Paramètres (valeurs réellement utilisées, centralisées dans `config.py`) :
 
 | Paramètre | Valeur |
 | --- | --- |
 | Taille d'entrée | 224 × 224 × 3 |
 | Batch size | 32 |
-| Phase 1 (base gelée) | 30 époques max, Early Stopping (patience 5), Checkpoint |
-| Phase 2 (fine-tuning) | 15 époques max, 30 dernières couches dégelées, Adam 1e-5 |
-| Poids de classes | activés (compensent le déséquilibre) |
+| Phase 1 (base gelée) | 30 époques, Early Stopping (patience 5), Checkpoint |
+| Phase 2 (fine-tuning) | 15 époques, 19 dernières couches dégelées, Adam 1e-5 |
+| Poids de classes | activés (compensent le déséquilibre, poids de 0,26 à 10,87) |
 | Graine | 42 |
+| Durée observée | 498 min (phase 1) + 267 min (phase 2) ≈ **12 h 45** sur 4 threads CPU |
 
-Déroulement (≈ 35 min sur CPU à 2 cœurs) :
+Déroulement :
 
 - **phase 1** : base gelée, Adam 1e-3, Early Stopping + Checkpoint sur la meilleure
-  validation ;
+  validation ; meilleure accuracy de validation **94,75 %** (époque 27) ;
 - **phase 2** : on recharge ce meilleur modèle, on dégèle les 30 dernières couches
-  (BatchNormalization exclues), on recompile à 1e-5 et on continue les époques.
+  (BatchNormalization exclues), on recompile à 1e-5 et on continue les époques ;
+  meilleure accuracy de validation **97,01 %** (époque 45).
 
 **Pourquoi deux phases** : en phase 1 la base MobileNetV2 (pré-entraînée sur ImageNet)
-reste gelée et seule la petite tête de classification apprend ; en phase 2 les dernières
-couches sont dégelées avec un learning rate très faible pour les adapter aux feuilles de
-tomate, sans détruire les filtres déjà utiles.
+reste gelée et seule la petite tête de classification apprend (168 870 paramètres
+entraînables sur 2 426 854) ; en phase 2 les dernières couches sont dégelées avec un
+learning rate très faible pour les adapter aux textures de feuilles, sans détruire les
+filtres déjà utiles.
 
 **Data Augmentation** : rotation, zoom, retournement horizontal, luminosité et
 translation sont appliqués uniquement aux images d'entraînement, dans le pipeline de
@@ -192,7 +199,8 @@ Sorties : `results/metrics/evaluation.json`, `classification_report.txt`,
 `evaluation_summary.md`, `results/figures/*.png`, `results/predictions/*`.
 
 Toutes les métriques sont calculées à partir des prédictions réelles du modèle sur
-l'ensemble de test. Aucune valeur n'est simulée ni recopiée d'une publication.
+l'ensemble de test (8 156 images). Aucune valeur n'est simulée ni recopiée d'une
+publication.
 
 ---
 
@@ -213,9 +221,10 @@ L'application tient en **deux routes** :
 | `/` | GET | formulaire de téléversement |
 | `/analyser` | POST | validation, prédiction, affichage du résultat |
 
-Le résultat affiche la classe prédite, la confiance, la durée de l'inférence et les
-quatre probabilités. Aucune image n'est enregistrée : le fichier est traité en mémoire.
-Il n'y a ni base de données, ni historique, ni API JSON, ni JavaScript.
+Le résultat affiche l'image analysée, la classe prédite, la confiance, la durée de
+l'inférence et les **cinq probabilités les plus élevées** (sur 38 classes, tout afficher
+rendrait la page illisible). Aucune image n'est enregistrée : le fichier est traité en
+mémoire. Il n'y a ni base de données, ni historique, ni API JSON, ni JavaScript.
 
 Si `models/best_model.keras` est absent, l'application démarre quand même et affiche un
 message clair au lieu de planter.
@@ -250,47 +259,60 @@ pytest -q
 
 ## 10. Résultats expérimentaux
 
-Résultats mesurés sur l'ensemble de test indépendant (820 images) :
+Résultats mesurés sur l'ensemble de test indépendant (**8 156 images, 38 classes**) :
 
-| Métrique (test, 820 images) | Valeur |
+| Métrique (test) | Valeur |
 | --- | --- |
-| Exactitude (accuracy) | **95,85 %** |
-| Précision macro | 95,47 % |
-| Rappel macro | 95,25 % |
-| F1-score macro | **95,34 %** |
-| F1-score pondéré | 95,82 % |
-| Images mal classées | 34 (4,15 %) |
-| Meilleure exactitude de validation | 95,98 % (époque 22) |
+| Exactitude (accuracy) | **97,06 %** |
+| Précision macro | 95,98 % |
+| Rappel macro | 96,66 % |
+| F1-score macro | **96,17 %** |
+| F1-score pondéré | 97,05 % |
+| Images mal classées | 240 (2,94 %) |
+| Meilleure exactitude de validation | 97,01 % (époque 45) |
+| Temps d'inférence | ≈ 110 ms par image (CPU) |
+
+Comparaison avec la littérature : Mohanty et al. (2016) rapportent plus de 99 % sur les
+38 classes avec AlexNet ou GoogLeNet et un entraînement bien plus long. Notre modèle,
+2,4 millions de paramètres seulement, atteint 97,06 % : c'est un compromis
+précision / coût assumé.
+
+Classes les mieux reconnues (F1 = 100 %) : orange (HLB), courge (oïdium), framboise,
+fraise saine, cerise (oïdium), pommier (rouille). **Quatorze classes** dépassent 99 % de
+F1-score.
+
+Classes les plus difficiles :
 
 | Classe | Précision | Rappel | F1-score | Support |
 | --- | --- | --- | --- | --- |
-| Alternariose précoce | 93,66 % | 88,67 % | 91,10 % | 150 |
-| Mildiou | 96,15 % | 95,82 % | 95,99 % | 287 |
-| Moisissure des feuilles | 94,52 % | 96,50 % | 95,50 % | 143 |
-| Feuille saine | 97,56 % | 100,00 % | 98,77 % | 240 |
+| Alternariose précoce | 93,81 % | 70,67 % | 80,61 % | 150 |
+| Maïs — tache grise (Cercospora) | 70,87 % | 94,81 % | 81,11 % | 77 |
+| Maïs — brûlure nordique | 98,32 % | 79,05 % | 87,64 % | 148 |
+| Tomate — tache cible | 85,91 % | 89,57 % | 87,70 % | 211 |
+| Pomme de terre saine | 82,86 % | 96,67 % | 89,23 % | 30 |
 
-Les 34 erreurs se concentrent sur la paire alternariose / mildiou (9 + 6 cas). La
-confiance moyenne est de 97,52 % pour les prédictions correctes contre 70,23 % pour les
-erreurs.
-
-Ces résultats portent sur un entraînement réellement exécuté en deux phases, avec un
-budget d'époques réduit (15 + 8) en raison d'un environnement sans GPU.
+Les 240 erreurs se concentrent sur cinq paires de classes visuellement proches
+(brûlure nordique → tache grise : 30 cas ; alternariose → tache cible : 14 cas ;
+virus YLCV → brûlure bactérienne : 11 cas). La confiance moyenne est de 98,53 % pour les
+prédictions correctes contre 74,44 % pour les erreurs.
 
 ---
 
 ## 11. Reproductibilité et limites
 
 **Reproductibilité** : graine fixée (42), découpage stratifié déterministe, détection des
-doublons, hyperparamètres centralisés et journalisés.
+doublons, hyperparamètres centralisés et journalisés, figures générées par script.
 
 **Limites principales** :
 
-- quatre classes seulement, alors que PlantVillage en compte 38 ;
 - images de laboratoire (fond uniforme) ; le modèle n'a jamais vu de conditions réelles ;
-- déséquilibre entre classes (952 à 1 909 images) ;
-- similarité visuelle entre mildiou et alternariose : principale source de confusion ;
+- déséquilibre extrême entre classes (152 à 5 507 images) : les classes rares reposent sur
+  30 à 54 images de test seulement ;
+- similarité visuelle entre certaines maladies (maïs, tomate) : principale source de
+  confusion ;
 - aucune indication sur la gravité ou le stade de la maladie ;
-- ensemble de test issu de la même distribution que l'entraînement.
+- pas de détection d'image hors domaine : toute image est classée dans l'une des 38 classes ;
+- un seul run d'entraînement, sans validation croisée.
 
 ---
 

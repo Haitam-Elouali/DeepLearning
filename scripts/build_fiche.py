@@ -51,7 +51,7 @@ def main() -> int:
     erreurs = metriques.get("erreurs", {})
 
     lignes: list[str] = [
-        "# Fiche expérimentale — Détection des maladies de la feuille de tomate",
+        "# Fiche expérimentale — Détection des maladies des feuilles (PlantVillage, 38 classes)",
         "",
         f"**Modèle** : MobileNetV2 + Transfer Learning  ",
         f"**Expérience réalisée le** : {configuration.get('date', '—')[:10]}  ",
@@ -184,6 +184,32 @@ def main() -> int:
             f"| {nom_affichage(paire['reelle'])} → {nom_affichage(paire['predite'])} | {paire['nombre']} |"
         )
 
+    # Valeurs calculées à partir des artefacts, pour ne rien recopier à la main.
+    premiere_val = 0.0
+    try:
+        premiere_val = float(historique["val_accuracy"][0])
+    except (KeyError, IndexError, TypeError, ValueError):
+        premiere_val = 0.0
+    gain_fine_tuning = (
+        configuration.get("meilleure_val_accuracy", 0)
+        - phase1.get("meilleure_val_accuracy", 0)
+    ) * 100
+    classe_fragile = min(
+        config.CLASS_NAMES,
+        key=lambda c: par_classe.get(c, {}).get("f1_score", 1.0),
+    )
+    f1_fragile = par_classe.get(classe_fragile, {}).get("f1_score", 0.0)
+    nb_classes_fortes = sum(
+        1 for c in config.CLASS_NAMES if par_classe.get(c, {}).get("f1_score", 0) >= 0.99
+    )
+    rapport_macro = (
+        global_.get("f1_weighted", 0) - global_.get("f1_macro", 0)
+    ) * 100
+    duree_totale = (phase1.get("duree_min") or 0) + (phase2.get("duree_min") or 0)
+    gain_txt = f"{gain_fine_tuning:+.2f}".replace(".", ",")
+    ecart_txt = f"{rapport_macro:.2f}".replace(".", ",")
+    mediane_txt = f"{confiance.get('mediane', 0) * 100:.3f}".replace(".", ",")
+
     lignes += [
         "",
         "![Distribution de la confiance](../../results/figures/confidence_distribution.png)",
@@ -192,31 +218,36 @@ def main() -> int:
         "",
         "## 8. Observations et difficultés rencontrées",
         "",
-        "- **Convergence très rapide de la phase 1** : dès la première époque, la validation "
-        "atteint 86,2 %, ce qui confirme la qualité des caractéristiques ImageNet.",
-        "- **Le fine-tuning apporte un gain modeste mais réel** (+1,46 point de validation) ; "
-        "son learning rate très faible (1e-5) est indispensable pour ne pas détruire les poids "
-        "pré-entraînés.",
-        "- **La validation est irrégulière** (±2 points entre époques voisines) en raison de la "
-        "taille limitée du jeu de validation (821 images) et de l'augmentation aléatoire.",
-        "- **L'alternariose précoce est la classe la plus difficile** : ses lésions brunes la "
-        "rapprochent du mildiou, ce qui explique la majorité des confusions.",
-        "- **Le modèle est sur-confiant** : la confiance médiane dépasse 99 %, ce qui justifie "
-        "l'affichage de la distribution complète des probabilités dans l'application.",
-        "- **Budget d'entraînement contraint** : 23 époques au total sur un processeur à deux "
-        "cœurs (≈ 38 minutes), contre 30 + 15 époques prévues par la configuration.",
+        f"- **Convergence rapide de la phase 1** : dès la première époque, la validation "
+        f"atteint {pourcent(premiere_val)}, ce qui confirme la qualité des caractéristiques "
+        f"ImageNet.",
+        f"- **Le fine-tuning apporte un gain réel de {gain_txt} point de validation** ; son "
+        f"learning rate très faible (1e-5) est indispensable pour ne pas détruire les poids "
+        f"pré-entraînés.",
+        f"- **Les classes rares restent fragiles** : « {nom_affichage(classe_fragile)} » "
+        f"obtient le F1-score le plus bas ({pourcent(f1_fragile)}), alors que "
+        f"{nb_classes_fortes} classes dépassent 99 %.",
+        f"- **Le déséquilibre pèse sur les moyennes** : l'écart entre F1 pondéré et F1 macro "
+        f"est de {ecart_txt} point, trace du traitement inégal des classes rares.",
+        f"- **Le modèle est sur-confiant** : la confiance médiane atteint {mediane_txt} % ; "
+        f"cette quasi-certitude justifie l'affichage des probabilités plutôt qu'une classe "
+        f"unique.",
+        f"- **Budget d'entraînement lourd** : {configuration.get('epochs_total')} époques au "
+        f"total sur 4 threads CPU (≈ {duree_totale:.0f} minutes).",
         "- **Dataset de laboratoire** : les images ont un fond uniforme ; les performances "
         "mesurées ne préjugent pas du comportement sur des photos de terrain.",
-        "- **Doublons** : 14 images identiques ont été détectées et regroupées pour éviter "
-        "toute fuite entre entraînement et test.",
+        f"- **Doublons** : {manifeste.get('doublons_exacts_ecartes_de_groupes', 0)} groupes "
+        "d'images identiques ont été détectés et regroupés pour éviter toute fuite entre "
+        "entraînement et test.",
         "",
         "## 9. Conclusion de l'expérience",
         "",
         f"Le modèle MobileNetV2 adapté par Transfer Learning atteint **{pourcent(global_.get('accuracy', 0))} "
         f"d'accuracy** et un **F1-score macro de {pourcent(global_.get('f1_macro', 0))}** sur "
-        f"{global_.get('nb_images')} images de test indépendantes, avec un temps d'inférence "
-        "d'environ 70 ms par image sur CPU. Ces résultats confirment la faisabilité d'un outil "
-        "local d'aide à la reconnaissance visuelle, dans les limites du périmètre étudié.",
+        f"{global_.get('nb_images', 0)} images de test indépendantes, avec un temps "
+        f"d'inférence d'environ 110 ms par image sur CPU. Ces résultats confirment la "
+        f"faisabilité d'un outil local d'aide à la reconnaissance visuelle, dans les limites "
+        f"du périmètre étudié.",
         "",
         "## 10. Fichiers de référence",
         "",

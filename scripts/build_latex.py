@@ -312,7 +312,7 @@ def preambule(infos: dict[str, str]) -> list[str]:
         "",
         r"\pagestyle{fancy}",
         r"\fancyhf{}",
-        r"\fancyhead[L]{\small\itshape Détection des maladies de la feuille de tomate}",
+        r"\fancyhead[L]{\small\itshape Détection des maladies des feuilles — PlantVillage}",
         r"\fancyhead[R]{\small\thepage}",
         r"\renewcommand{\headrulewidth}{0.4pt}",
         "",
@@ -452,6 +452,22 @@ def convertir_corps(lignes: list[str], dossier: Path) -> list[str]:
             sortie.append("")
             continue
 
+        # --- bloc de code ----------------------------------------------
+        if brute.startswith("```"):
+            index += 1
+            bloc_code: list[str] = []
+            while index < total and not lignes[index].strip().startswith("```"):
+                bloc_code.append(lignes[index])
+                index += 1
+            index += 1  # ligne de fermeture
+            sortie.append(r"\begin{quote}\ttfamily\small")
+            for ligne_code in bloc_code:
+                echappee = en_ligne(ligne_code.strip())
+                sortie.append(echappee + r"\\")
+            sortie.append(r"\end{quote}")
+            sortie.append("")
+            continue
+
         # --- listes ----------------------------------------------------
         if LISTE_PUCE.match(brute) or LISTE_NUM.match(brute):
             elements: list[tuple[int, str, str]] = []
@@ -497,6 +513,10 @@ def convertir_corps(lignes: list[str], dossier: Path) -> list[str]:
         if paragraphe:
             sortie.append(en_ligne(" ".join(paragraphe)))
             sortie.append("")
+        else:
+            # Sécurité : aucune branche n'a consommé la ligne, on avance pour
+            # éviter une boucle infinie sur un cas non prévu.
+            index += 1
 
     return sortie
 

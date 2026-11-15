@@ -71,7 +71,7 @@ def test_analyse_reelle_affiche_un_resultat(client, image_feuille):
     )
     assert reponse.status_code == 200
     assert "Confiance".encode() in reponse.data
-    assert "Probabilités pour chaque classe".encode() in reponse.data
+    assert "Probabilités les plus élevées".encode() in reponse.data
     assert b'src="data:image/jpeg;base64,' in reponse.data
 
 

@@ -14,7 +14,7 @@ Garanties anti-fuite :
 
 Usage :
     python training/prepare_data.py
-    python training/prepare_data.py --max-per-class 400 --force
+    python training/prepare_data.py --force
 """
 
 from __future__ import annotations
@@ -92,7 +92,6 @@ def construire_decoupage(
     ratio_val: float,
     ratio_test: float,
     graine: int,
-    max_par_classe: int | None,
 ) -> tuple[dict[str, dict[str, list[Path]]], dict[str, object]]:
     """Construit les trois ensembles de façon stratifiée et reproductible."""
     generateur = random.Random(graine)
@@ -112,8 +111,6 @@ def construire_decoupage(
         empreintes.clear()
 
         generateur.shuffle(groupes)
-        if max_par_classe is not None and len(groupes) > max_par_classe:
-            groupes = groupes[:max_par_classe]
 
         nombre = len(groupes)
         total_utilise += sum(len(groupe) for groupe in groupes)
@@ -179,12 +176,6 @@ def main() -> int:
     parseur.add_argument("--val-size", type=float, default=config.VALIDATION_SPLIT)
     parseur.add_argument("--test-size", type=float, default=config.TEST_SPLIT)
     parseur.add_argument("--seed", type=int, default=config.SEED)
-    parseur.add_argument(
-        "--max-per-class",
-        type=int,
-        default=config.MAX_IMAGES_PER_CLASS,
-        help="Limite le nombre d'images par classe (utile sur machine modeste).",
-    )
     parseur.add_argument("--copy", action="store_true", help="Copier au lieu de lier les fichiers.")
     parseur.add_argument("--force", action="store_true", help="Écrase un découpage existant.")
     arguments = parseur.parse_args()
@@ -220,8 +211,7 @@ def main() -> int:
 
     print("\n1. Inventaire brut")
     for classe, fichiers in images.items():
-        attendu = config.EXPECTED_IMAGES_PER_CLASS.get(classe)
-        print(f"   {classe:<28} {len(fichiers):>5} images (attendu : {attendu})")
+        print(f"   {classe:<50} {len(fichiers):>5} images")
     print(f"   Images illisibles écartées : {len(invalides)}")
     print(f"   Formats rencontrés : {dict(tailles.most_common(3))}")
 
@@ -231,7 +221,6 @@ def main() -> int:
         ratio_val=arguments.val_size,
         ratio_test=arguments.test_size,
         graine=arguments.seed,
-        max_par_classe=arguments.max_per_class,
     )
 
     arguments.output_dir.mkdir(parents=True, exist_ok=True)
@@ -244,8 +233,6 @@ def main() -> int:
     }
     totaux = {split: sum(comptages[split].values()) for split in SPLITS}
     total_general = sum(totaux.values())
-
-    sauvegarder_json(config.CLASS_NAMES, config.CLASS_NAMES_PATH)
 
     manifeste = {
         "dataset": "PlantVillage (sous-ensemble tomate, images couleur)",
@@ -267,7 +254,6 @@ def main() -> int:
             "variation de luminosité (±15 %)",
             "translation (±5 %)",
         ],
-        "max_images_par_classe": arguments.max_per_class,
         "classes": config.CLASS_NAMES,
         "comptages": comptages,
         "totaux": totaux,

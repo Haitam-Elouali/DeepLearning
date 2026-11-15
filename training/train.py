@@ -255,7 +255,7 @@ def main() -> int:
         )
 
     print("=" * 72)
-    print(" ENTRAÎNEMENT — MobileNetV2 + Transfer Learning (4 classes de tomate)")
+    print(f" ENTRAÎNEMENT — MobileNetV2 + Transfer Learning ({config.NUM_CLASSES} classes)")
     print("=" * 72)
     print(f" TensorFlow : {tf.__version__} | Python : {platform.python_version()}")
     print(f" Images     : {config.IMAGE_SIZE[0]}x{config.IMAGE_SIZE[1]} | batch : {arguments.batch_size}")
@@ -330,6 +330,9 @@ def main() -> int:
     # Le meilleur modèle de la phase 1 devient la référence.
     modele = keras.models.load_model(chemin_phase1)
     modele.save(config.MODEL_PATH)
+    # Le fichier des classes est écrit en même temps que le modèle : le modèle
+    # et l'ordre des classes restent ainsi toujours cohérents pour l'application.
+    sauvegarder_json(config.CLASS_NAMES, config.CLASS_NAMES_PATH)
 
     historiques = [historique_1.history]
     parametres_phase2: dict[str, object] = {"active": not arguments.no_fine_tune}

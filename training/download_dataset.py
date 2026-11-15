@@ -71,10 +71,10 @@ def main() -> int:
         shutil.rmtree(temporaire)
 
     print("=" * 70)
-    print(" TÉLÉCHARGEMENT DU DATASET PLANTVILLAGE (4 classes de tomate)")
+    print(" TÉLÉCHARGEMENT DU DATASET PLANTVILLAGE (38 classes, 14 cultures)")
     print("=" * 70)
     print(f" Dépôt : {DEPOT}")
-    print(" Clone partiel : seules les images couleur des 4 classes sont récupérées.\n")
+    print(" Clone partiel : seules les images couleur des 38 classes sont récupérées.\n")
 
     executer(
         [
@@ -117,16 +117,10 @@ def main() -> int:
         shutil.copytree(source, cible)
         nombre = compter_images(cible)
         total += nombre
-        attendu = config.EXPECTED_IMAGES_PER_CLASS.get(classe)
-        avertissement = "" if attendu == nombre else f" (attendu : {attendu})"
-        print(f"   {classe:<28} {nombre:>5} images{avertissement}")
+        print(f"   {classe:<50} {nombre:>5} images")
 
     shutil.rmtree(temporaire, ignore_errors=True)
     print(f"\n Total : {total} images copiées dans {destination}")
-
-    if total < sum(config.EXPECTED_IMAGES_PER_CLASS.values()) * 0.9:
-        print("\n /!\\ Le nombre d'images est inférieur à environ 90 % des valeurs de référence.")
-        print("     Vérifiez votre connexion ou la version du dépôt.")
 
     print(
         "\n Dataset prêt. Étape suivante : python training/prepare_data.py\n"

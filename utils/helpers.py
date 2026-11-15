@@ -70,9 +70,17 @@ def valider_image(fichier: Any) -> Image.Image:
     return image
 
 
-def nom_affichage(nom_classe: str) -> str:
-    """Transforme ``Tomato___Early_blight`` en « Alternariose précoce »."""
-    return config.CLASSES_FR.get(nom_classe, nom_classe.replace("Tomato___", ""))
+def nom_affichage(nom_classe: str) -> str:
+    """Traduit une classe en libellé lisible.
+
+    Les quatre classes de tomate ont un libellé français ; les autres sont
+    mises en forme automatiquement : ``Apple___Apple_scab`` → « Apple — Apple
+    scab ».
+    """
+    if nom_classe in config.CLASSES_FR:
+        return config.CLASSES_FR[nom_classe]
+    culture, _, maladie = nom_classe.partition("___")
+    return f"{culture.replace('_', ' ').strip()} — {maladie.replace('_', ' ').strip()}"
 
 
 def classe_est_saine(nom_classe: str) -> bool:

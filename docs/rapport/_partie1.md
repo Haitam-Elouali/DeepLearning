@@ -1,6 +1,6 @@
 # Détection et classification des maladies des plantes à partir d'images de feuilles à l'aide des réseaux de neurones convolutifs (CNN) et du Transfer Learning
 
-**Application au cas de la feuille de tomate — MobileNetV2, TensorFlow/Keras et Flask**
+**Application à 38 classes et 14 cultures — MobileNetV2, TensorFlow/Keras et Flask**
 
 Projet universitaire de fin d'études — Génie informatique
 
@@ -72,12 +72,12 @@ de données de référence.
 
 Le présent projet s'inscrit dans cette dynamique. Il propose un système complet,
 **de la donnée brute à l'application Web**, permettant à un utilisateur de téléverser
-une photographie de feuille de tomate et d'obtenir une prédiction parmi quatre classes,
-accompagnée d'un score de confiance et de la distribution des probabilités. La démarche
-s'appuie sur un modèle **MobileNetV2** pré-entraîné sur ImageNet, adapté par
-**Transfer Learning** à notre problème à quatre classes, puis intégré dans une
-application **Flask** minimale, en français : téléversement d'une image, puis classe
-prédite, confiance et distribution des probabilités.
+une photographie de feuille et d'obtenir une prédiction parmi **38 classes** couvrant
+**14 cultures**, accompagnée d'un score de confiance et de la distribution des
+probabilités. La démarche s'appuie sur un modèle **MobileNetV2** pré-entraîné sur
+ImageNet, adapté par **Transfer Learning** à notre problème à 38 classes, puis intégré
+dans une application **Flask** minimale, en français : téléversement d'une image, puis
+classe prédite, confiance et distribution des probabilités.
 
 Le rapport est organisé de la manière suivante. Les sections 2 et 3 exposent le contexte,
 la problématique et les objectifs. Les sections 4 à 6 présentent le cadre théorique :
@@ -107,6 +107,14 @@ largement les préoccupations des producteurs :
 À ces trois pathologies s'ajoute la classe « feuille saine », indispensable pour que le
 système apprenne à ne pas signaler de maladie en l'absence de symptôme.
 
+Ces quatre classes de tomate ont servi de prototype. Le projet présenté ici va plus loin :
+il traite **les 38 classes couleur de PlantVillage**, soit 14 cultures (pommier, myrtille,
+cerise, maïs, vigne, orange, pêche, poivron, pomme de terre, framboise, soja, courge,
+fraise, tomate) et leurs principales maladies foliaires. Ce choix augmente fortement la
+difficulté : 38 sorties au lieu de 4, des classes visuellement proches au sein d'une même
+culture, un déséquilibre de 152 à 5 507 images par classe, et un budget d'entraînement
+beaucoup plus lourd.
+
 Sur le plan scientifique, la reconnaissance automatique de maladies des plantes à partir
 d'images est un domaine actif. Le jeu de données **PlantVillage**, publié par Hughes et
 Salathé (2015) puis exploité par Mohanty, Hughes et Salathé (2016), a servi de référence
@@ -120,8 +128,8 @@ proviennent de conditions réelles, différentes de celles du laboratoire.
 La problématique du projet peut être formulée ainsi :
 
 > **Peut-on concevoir un système accessible, fonctionnant localement et sans service
-> payant, capable de classer automatiquement une photographie de feuille de tomate parmi
-> quatre catégories (saine, alternariose précoce, mildiou, moisissure des feuilles), avec
+> payant, capable de classer automatiquement une photographie de feuille parmi les
+> 38 classes du dataset PlantVillage (14 cultures, feuilles saines et malades), avec
 > une précision utile, un temps de réponse de l'ordre de la seconde et une interface
 > compréhensible par un utilisateur non spécialiste ?**
 
@@ -157,7 +165,7 @@ Learning.
 
 **Sur le plan des données**
 
-- télécharger et organiser le sous-ensemble tomate du dataset PlantVillage ;
+- télécharger et organiser l'intégralité des 38 classes couleur du dataset PlantVillage ;
 - vérifier l'intégrité des images et détecter les doublons ;
 - construire un découpage stratifié entraînement / validation / test (70 / 15 / 15)
   reproductible et sans fuite de données ;
@@ -165,7 +173,7 @@ Learning.
 
 **Sur le plan de la modélisation**
 
-- construire un modèle MobileNetV2 pré-entraîné sur ImageNet, adapté à quatre classes ;
+- construire un modèle MobileNetV2 pré-entraîné sur ImageNet, adapté à 38 classes ;
 - entraîner la tête de classification en base gelée, puis réaliser un fine-tuning partiel ;
 - mettre en place les mécanismes de régularisation et de suivi (Early Stopping, Model
   Checkpoint, réduction du learning rate, journalisation) ;
@@ -231,7 +239,7 @@ introduit la non-linéarité nécessaire tout en limitant le problème de dispar
 gradient. La couche de sortie utilise une fonction **softmax**, qui transforme un vecteur
 de scores en une distribution de probabilités dont la somme vaut 1 :
 
-p_i = exp(z_i) / somme_j exp(z_j), pour i = 1 à 4.
+p_i = exp(z_i) / somme_j exp(z_j), pour i = 1 à 38.
 
 **La perte et l'optimisation.** Pour une classification multi-classes, la perte usuelle
 est l'**entropie croisée catégorielle**. L'optimiseur Adam (Kingma et Ba, 2015) adapte le
@@ -291,7 +299,7 @@ MobileNetV2, proposé par Sandler et al. (2018), est une évolution de MobileNet
 et al., 2017). Son objectif est de fournir un réseau convolutif performant avec un coût
 de calcul et un nombre de paramètres très inférieurs à ceux de VGG ou ResNet, afin de
 permettre une exécution sur téléphone ou micro-ordinateur. Notre modèle complet ne
-compte ainsi que **2 422 468 paramètres**, dont seulement **164 484** sont entraînés lors
+compte ainsi que **2 426 854 paramètres**, dont seulement **168 870** sont entraînés lors
 de la première phase.
 
 ### 5.2 Convolutions séparables en profondeur
@@ -350,16 +358,16 @@ motifs génériques (contours, couleurs, textures) qui restent pertinents pour d
 nombreuses tâches visuelles. Seules les couches les plus profondes, spécialisées dans les
 classes d'origine, doivent être remplacées.
 
-Cette approche est particulièrement adaptée ici : notre dataset ne contient que
-5 452 images, un volume insuffisant pour entraîner un CNN profond from scratch sans
-sur-apprentissage sévère.
+Cette approche est particulièrement adaptée ici : notre dataset contient 54 305 images,
+un volume encore modeste au regard des 1,2 million d'images ImageNet, et très inégalement
+réparti entre les 38 classes.
 
 ### 6.2 Deux stratégies complémentaires
 
 **Extraction de caractéristiques (feature extraction).** La base pré-entraînée est
 gelée (`trainable = False`). Seule la nouvelle tête de classification est entraînée. Le
-nombre de paramètres apprenables est faible (164 484 dans notre cas), l'entraînement est
-rapide et le risque de sur-apprentissage limité.
+nombre de paramètres apprenables est faible (168 870 dans notre cas), l'entraînement est
+plus rapide et le risque de sur-apprentissage limité.
 
 **Fine-Tuning.** Les dernières couches de la base sont dégelées et ré-entraînées avec un
 learning rate très faible (1e-5 dans notre cas), afin d'adapter les filtres les plus
