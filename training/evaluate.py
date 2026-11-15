@@ -12,8 +12,10 @@ l'entraînement) et génère les figures du rapport :
 - analyse des erreurs (CSV + planche d'images mal classées).
 
 Sorties :
-    results/metrics/evaluation.json
+    results/metrics/metrics.json
+    results/metrics/evaluation.json          # compatibilite (lecture existante)
     results/metrics/classification_report.txt
+    results/metrics/classification_report.csv
     results/metrics/evaluation_summary.md
     results/figures/{training_curves,confusion_matrix,per_class_performance,confidence_distribution}.png
     results/predictions/{predictions_test.csv,erreurs.csv,error_grid.png}
@@ -345,7 +347,8 @@ def main() -> int:
     for dossier in (config.FIGURES_DIR, config.METRICS_DIR, config.PREDICTIONS_DIR):
         dossier.mkdir(parents=True, exist_ok=True)
 
-    sauvegarder_json(resultat, config.METRICS_DIR / "evaluation.json")
+    sauvegarder_json(resultat, config.METRICS_DIR / "metrics.json")
+    sauvegarder_json(resultat, config.METRICS_DIR / "evaluation.json")  # compatibilite
 
     rapport_texte = classification_report(
         etiquettes,
@@ -392,6 +395,24 @@ def main() -> int:
                     f"{erreur['confiance']:.4f}",
                 ]
             )
+
+    # --- CSV du rapport de classification -----------------------------
+    with (config.METRICS_DIR / "classification_report.csv").open(
+        "w", newline="", encoding="utf-8"
+    ) as fichier:
+        redacteur = csv.writer(fichier)
+        redacteur.writerow(["classe", "precision", "recall", "f1_score", "support"])
+        for i, classe in enumerate(classes):
+            redacteur.writerow(
+                [
+                    classe,
+                    f"{precision[i]:.4f}",
+                    f"{rappel[i]:.4f}",
+                    f"{f1[i]:.4f}",
+                    int(support[i]),
+                ]
+            )
+        redacteur.writerow(["accuracy", f"{exactitude:.4f}", "", "", ""])
 
     # --- Figures --------------------------------------------------------
     historique = charger_json(config.HISTORY_PATH, defaut={}) or {}

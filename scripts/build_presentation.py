@@ -166,7 +166,7 @@ class Diaporama:
 
 def construire() -> Path:
     configuration = charger_json(config.TRAINING_CONFIG_PATH, defaut={}) or {}
-    metriques = charger_json(config.METRICS_DIR / "evaluation.json", defaut={}) or {}
+    metriques = charger_json(config.METRICS_DIR / "metrics.json", defaut={}) or {}
     manifeste = charger_json(config.DATASET_MANIFEST_PATH, defaut={}) or {}
     global_ = metriques.get("global", {})
     par_classe = metriques.get("par_classe", {})

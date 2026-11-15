@@ -231,6 +231,6 @@ Le modèle MobileNetV2 adapté par Transfer Learning atteint **97,06 % d'accurac
 | Configuration complète | `models/training_config.json` |
 | Historique des époques | `results/metrics/training_history.json` |
 | Rapport de classification | `results/metrics/classification_report.txt` |
-| Métriques détaillées | `results/metrics/evaluation.json` |
+| Métriques détaillées | `results/metrics/metrics.json` |
 | Prédictions du test | `results/predictions/predictions_test.csv` |
 | Erreurs détaillées | `results/predictions/erreurs.csv` |

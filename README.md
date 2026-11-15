@@ -70,7 +70,7 @@ DeepLearning/
 │
 ├── results/
 │   ├── figures/                # courbes, matrice, performances, dataset
-│   ├── metrics/                # evaluation.json, classification_report.txt,
+│   ├── metrics/                # metrics.json, classification_report.csv,
 │   │                           #   qualite_donnees.json (doublons)
 │   └── predictions/            # prédictions du test, erreurs
 │
@@ -241,7 +241,7 @@ chargement. Ces couches ne font pas partie du modèle sauvegardé : l'inférence
 python training/evaluate.py
 ```
 
-Sorties : `results/metrics/evaluation.json`, `classification_report.txt`,
+Sorties : `results/metrics/metrics.json`, `classification_report.csv`,
 `evaluation_summary.md`, `results/figures/*.png`, `results/predictions/*`.
 
 Toutes les métriques sont calculées à partir des prédictions réelles du modèle sur

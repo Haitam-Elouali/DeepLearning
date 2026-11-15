@@ -32,7 +32,7 @@ def pourcent(valeur: float, decimales: int = 2) -> str:
 
 def main() -> int:
     configuration = charger_json(config.TRAINING_CONFIG_PATH, defaut={}) or {}
-    metriques = charger_json(config.METRICS_DIR / "evaluation.json", defaut={}) or {}
+    metriques = charger_json(config.METRICS_DIR / "metrics.json", defaut={}) or {}
     manifeste = charger_json(config.DATASET_MANIFEST_PATH, defaut={}) or {}
     historique = charger_json(config.HISTORY_PATH, defaut={}) or {}
 
@@ -265,7 +265,7 @@ def main() -> int:
         "| Configuration complète | `models/training_config.json` |",
         "| Historique des époques | `results/metrics/training_history.json` |",
         "| Rapport de classification | `results/metrics/classification_report.txt` |",
-        "| Métriques détaillées | `results/metrics/evaluation.json` |",
+        "| Métriques détaillées | `results/metrics/metrics.json` |",
         "| Prédictions du test | `results/predictions/predictions_test.csv` |",
         "| Erreurs détaillées | `results/predictions/erreurs.csv` |",
     ]

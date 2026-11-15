@@ -16,7 +16,7 @@ import pytest
 import config
 
 RACINE = Path(__file__).resolve().parent.parent
-EVALUATION = config.METRICS_DIR / "evaluation.json"
+EVALUATION = config.METRICS_DIR / "metrics.json"
 PREDICTIONS = config.PREDICTIONS_DIR / "predictions_test.csv"
 MANIFESTE = config.PROCESSED_DATA_DIR / "dataset_manifest.json"
 
@@ -33,7 +33,7 @@ def _pourcent(valeur: float, decimales: int = 2) -> str:
 @pytest.fixture(scope="module")
 def evaluation() -> dict:
     if not EVALUATION.exists():
-        pytest.skip("evaluation.json absent")
+        pytest.skip("metrics.json absent")
     return json.loads(EVALUATION.read_text(encoding="utf-8"))
 
 
@@ -97,7 +97,7 @@ def test_historique_couvre_les_45_epochs():
 
 
 def test_configuration_imbriquee_est_a_jour(evaluation):
-    """evaluation.json embarque la configuration complète de l'entraînement."""
+    """metrics.json embarque la configuration complète de l'entraînement."""
     if not config.TRAINING_CONFIG_PATH.exists():
         pytest.skip("training_config.json absent")
     configuration = json.loads(config.TRAINING_CONFIG_PATH.read_text(encoding="utf-8"))

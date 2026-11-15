@@ -478,7 +478,12 @@ def main() -> int:
         groupes=analyse.groupes_intra,
     )
 
-    arguments.output_dir.mkdir(parents=True, exist_ok=True)
+    if arguments.force:
+        for split in SPLITS:
+            dossier_split = arguments.output_dir / split
+            if dossier_split.exists():
+                shutil.rmtree(dossier_split)
+            dossier_split.mkdir(parents=True, exist_ok=True)
     ecrire_ensembles(decoupage, arguments.output_dir, arguments.copy)
 
     # --- Manifeste --------------------------------------------------------

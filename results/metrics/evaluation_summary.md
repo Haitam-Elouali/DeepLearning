@@ -1,7 +1,7 @@
 # Résultats de l'évaluation — ensemble de test
 
 - Modèle : `best_model.keras`
-- Date : 15/11/2026 00:39
+- Date : 15/11/2026 19:52
 - Images de test : 8156
 
 ## Métriques globales

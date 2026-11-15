@@ -791,7 +791,7 @@ l'honnêteté de l'interprétation.
 | Prédiction en ligne de commande | `training/predict.py` |
 | Modèle entraîné | `models/best_model.keras` |
 | Configuration et comptages | `models/training_config.json` |
-| Métriques détaillées | `results/metrics/evaluation.json` |
+| Métriques détaillées | `results/metrics/metrics.json` |
 | Rapport de classification | `results/metrics/classification_report.txt` |
 | Figures | `results/figures/` |
 | Prédictions et erreurs | `results/predictions/` |
