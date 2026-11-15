@@ -22,8 +22,8 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
 
-VERT = RGBColor(0x16, 0x65, 0x34)
-GRIS = RGBColor(0x4B, 0x55, 0x63)
+#: Le rapport est rendu en noir uniquement (aucune couleur d'accent).
+NOIR = RGBColor(0x00, 0x00, 0x00)
 
 MOTIF_IMAGE = re.compile(r"^!\[(?P<legende>[^\]]*)\]\((?P<chemin>[^)]+)\)\s*$")
 MOTIF_TABLEAU = re.compile(r"^\|.*\|\s*$")
@@ -48,10 +48,10 @@ def configurer_styles(document: Document) -> None:
     normal.paragraph_format.line_spacing = 1.15
 
     for nom, taille, couleur in (
-        ("Title", 26, VERT),
-        ("Heading 1", 18, VERT),
-        ("Heading 2", 14, GRIS),
-        ("Heading 3", 12, GRIS),
+        ("Title", 26, NOIR),
+        ("Heading 1", 18, NOIR),
+        ("Heading 2", 14, NOIR),
+        ("Heading 3", 12, NOIR),
     ):
         style = document.styles[nom]
         style.font.name = "Calibri"
@@ -68,9 +68,9 @@ def ajouter_pied_de_page(document: Document) -> None:
     for section in document.sections:
         pied = section.footer.paragraphs[0]
         pied.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        texte = pied.add_run("Détection des maladies de la feuille de tomate — CNN & Transfer Learning  ·  page ")
+        texte = pied.add_run("Rapport de projet de fin d'année — EMSI  ·  page ")
         texte.font.size = Pt(8)
-        texte.font.color.rgb = GRIS
+        texte.font.color.rgb = NOIR
 
         champ = OxmlElement("w:fldSimple")
         champ.set(qn("w:instr"), "PAGE")
@@ -102,7 +102,6 @@ def mettre_en_forme_texte(paragraphe, texte: str) -> None:
         elif morceau.startswith("`") and morceau.endswith("`"):
             run = paragraphe.add_run(morceau[1:-1])
             run.font.name = "Consolas"
-            run.font.color.rgb = VERT
             run.font.size = Pt(9.5)
         else:
             paragraphe.add_run(morceau)
@@ -122,7 +121,7 @@ def ajouter_tableau(document: Document, lignes: list[str], base: Path) -> None:
 
     nombre_colonnes = max(len(ligne) for ligne in cellules)
     tableau = document.add_table(rows=len(cellules), cols=nombre_colonnes)
-    tableau.style = "Light Grid Accent 1"
+    tableau.style = "Table Grid"
     tableau.alignment = WD_TABLE_ALIGNMENT.CENTER
 
     for index_ligne, ligne in enumerate(cellules):
@@ -145,7 +144,7 @@ def ajouter_image(document: Document, chemin: Path, legende: str) -> None:
         paragraphe = document.add_paragraph()
         run = paragraphe.add_run(f"[Figure manquante : {chemin.name}]")
         run.italic = True
-        run.font.color.rgb = GRIS
+        run.font.color.rgb = NOIR
         return
 
     paragraphe = document.add_paragraph()
@@ -169,7 +168,7 @@ def ajouter_image(document: Document, chemin: Path, legende: str) -> None:
         run_legende = paragraphe_legende.add_run(legende)
         run_legende.italic = True
         run_legende.font.size = Pt(9)
-        run_legende.font.color.rgb = GRIS
+        run_legende.font.color.rgb = NOIR
 
 
 def convertir(source: Path, destination: Path) -> Path:
@@ -215,6 +214,29 @@ def convertir(source: Path, destination: Path) -> Path:
         # Titres
         if ligne.startswith("# "):
             if premiere_section:
+                # Page de titre : bloc EMSI en grand, puis le titre du rapport.
+                entete = document.add_paragraph()
+                entete.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                embleme = entete.add_run("EMSI")
+                embleme.bold = True
+                embleme.font.size = Pt(40)
+                embleme.font.color.rgb = NOIR
+
+                ecole = document.add_paragraph()
+                ecole.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                texte_ecole = ecole.add_run("École Marocaine des Sciences de l'Ingénieur")
+                texte_ecole.font.size = Pt(14)
+                texte_ecole.font.color.rgb = NOIR
+
+                filiere = document.add_paragraph()
+                filiere.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                texte_filiere = filiere.add_run(
+                    "Filière Génie Informatique — Rapport de projet de fin d'année"
+                )
+                texte_filiere.bold = True
+                texte_filiere.font.size = Pt(11)
+                texte_filiere.font.color.rgb = NOIR
+
                 titre = document.add_paragraph(style="Title")
                 mettre_en_forme_texte(titre, ligne[2:])
                 titre.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -253,7 +275,6 @@ def convertir(source: Path, destination: Path) -> Path:
             mettre_en_forme_texte(paragraphe, " ".join(bloc_citation))
             for run in paragraphe.runs:
                 run.italic = True
-                run.font.color.rgb = GRIS
                 run.font.size = Pt(10)
             continue
 

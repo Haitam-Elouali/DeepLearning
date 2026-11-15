@@ -1,6 +1,9 @@
-## 11. Développement de l'application Web
+[[PAGEBREAK]]
 
-### 11.1 Objectif et principe
+## 5. Application web
+
+
+### 5.1. Objectif et principe
 
 L'application Web constitue la couche de restitution du projet : elle rend le modèle
 utilisable par une personne qui ne connaît rien à l'apprentissage automatique. Son
@@ -18,7 +21,7 @@ Le modèle Keras est chargé **une seule fois** au démarrage (singleton protég
 verrou) : chaque analyse évite ainsi plusieurs secondes de chargement. L'application ne
 maintient ni session, ni compte, ni base de données.
 
-### 11.2 Architecture
+### 5.2. Architecture
 
 Le code reste organisé par responsabilité, comme le reste du projet :
 
@@ -36,7 +39,7 @@ Cette séparation est ce qui garantit la cohérence scientifique du système : l
 prétraitement appliqué à la prédiction est **le même code** que celui utilisé pendant
 l'entraînement, ce qui élimine la principale source d'écart entre validation et usage réel.
 
-### 11.3 Parcours utilisateur
+### 5.3. Parcours utilisateur
 
 1. l'utilisateur ouvre <http://127.0.0.1:5000> ; la page affiche un formulaire et rappelle
    que 38 classes sont reconnues ;
@@ -58,7 +61,7 @@ Aucune image n'est écrite sur le disque : le fichier est traité en mémoire, p
 Il n'y a donc ni historique, ni fichier téléversé à nettoyer, ni donnée personnelle
 conservée.
 
-### 11.4 Choix de simplicité
+### 5.4. Choix de simplicité
 
 Trois simplifications ont été assumées par rapport à une application « complète » :
 
@@ -74,7 +77,7 @@ style : le comportement complet se lit d'un coup d'œil, ce qui facilite la rele
 tests et la démonstration. Pour un usage par lot, le script `training/predict.py` reste
 disponible en ligne de commande.
 
-### 11.5 Sécurité et robustesse
+### 5.5. Sécurité et robustesse
 
 Les contrôles appliqués au fichier téléversé sont les suivants :
 
@@ -96,7 +99,7 @@ affiche un message clair au lieu de planter. Si le fichier `data/class_names.jso
 correspond pas au nombre de sorties du modèle, une erreur explicite est levée plutôt
 qu'une prédiction silencieusement fausse.
 
-### 11.6 Tests
+### 5.6. Tests
 
 Trente-trois tests automatisés (pytest) couvrent le prétraitement, les utilitaires et
 l'application. Le parcours réel est testé de bout en bout : envoi d'une image, prédiction
@@ -105,9 +108,12 @@ probabilités. Les cas de rejet sont également vérifiés : absence de fichier,
 interdite, faux type MIME, contenu qui n'est pas une image, image trop petite ou trop
 grande, page inconnue (404).
 
-## 12. Résultats expérimentaux
+## 6. Résultats expérimentaux et discussion
 
-### 12.1 Protocole
+### 6.1. Résultats expérimentaux
+
+
+#### 6.1.1. Protocole
 
 L'évaluation est réalisée par `training/evaluate.py` sur les **8 156 images de l'ensemble
 de test**, jamais utilisées pendant l'entraînement ni pendant la sélection du modèle. Le
@@ -118,7 +124,7 @@ scikit-learn. Les figures et les fichiers CSV sont générés automatiquement.
 Rappel du protocole : 38 classes, 45 époques (30 + 15), meilleure accuracy de validation
 **97,01 %** à l'époque 45. Le jeu de test n'a été ouvert qu'à la fin, une seule fois.
 
-### 12.2 Courbes d'apprentissage
+#### 6.1.2. Courbes d'apprentissage
 
 ![Courbes d'accuracy et de perte](../../results/figures/training_curves.png)
 
@@ -132,7 +138,7 @@ modèle n'est pas en situation de sur-apprentissage, malgré 2,4 millions de par
 La Data Augmentation, les deux couches de Dropout et les poids de classes expliquent
 cette absence de mémorisation.
 
-### 12.3 Métriques globales sur le test
+#### 6.1.3. Métriques globales sur le test
 
 | Métrique | Valeur |
 | --- | --- |
@@ -157,7 +163,7 @@ La différence entre la moyenne macro (96,17 %) et la moyenne pondérée (97,05 
 faible mais réelle : elle signale que les classes peu représentées sont légèrement moins
 bien traitées, ce que confirme l'analyse par classe.
 
-### 12.4 Performances par classe
+#### 6.1.4. Performances par classe
 
 | Classe | Precision | Recall | F1-score | Support | Bien classées |
 | --- | --- | --- | --- | --- | --- |
@@ -220,7 +226,7 @@ Trois observations se dégagent :
    nordique (Northern Leaf Blight) l'inverse (98,32 % / 79,05 %). Les deux classes
    s'attirent mutuellement : 30 images de brûlure nordique sont prédites tache grise.
 
-### 12.5 Matrice de confusion
+#### 6.1.5. Matrice de confusion
 
 La matrice complète (38 × 38) est produite en deux panneaux : effectifs à gauche,
 proportions par classe réelle à droite.
@@ -247,7 +253,7 @@ paires :
 Les cinq premières paires représentent **30 % des erreurs**. Autrement dit, 70 % des
 240 erreurs sont des cas isolés, dispersés sur l'ensemble de la matrice.
 
-### 12.6 Analyse des erreurs
+#### 6.1.6. Analyse des erreurs
 
 | Indicateur | Valeur |
 | --- | --- |
@@ -278,7 +284,7 @@ images annotées « alternariose précoce » présentent des taches sombres éte
 évoquent visuellement la tache cible. Ces erreurs ne relèvent donc pas uniquement d'une
 faiblesse du modèle, mais aussi de la frontière floue entre deux pathologies.
 
-### 12.7 Temps d'inférence
+#### 6.1.7. Temps d'inférence
 
 | Contexte | Durée observée |
 | --- | --- |
@@ -293,9 +299,10 @@ image, ce qui rend l'expérience fluide dans le navigateur. Le passage de 4 à 3
 n'a pratiquement pas changé ce temps : le coût est dominé par les convolutions de
 MobileNetV2, pas par la couche de sortie.
 
-## 13. Évaluation et interprétation des métriques
+### 6.2. Évaluation et interprétation des métriques
 
-### 13.1 Lecture critique de l'accuracy
+
+#### 6.2.1. Lecture critique de l'accuracy
 
 Une accuracy de 97,06 % sur 38 classes et 8 156 images de test indépendantes est un
 résultat solide pour un projet réalisé sans GPU et avec un seul run d'entraînement. Il
@@ -312,7 +319,7 @@ faut néanmoins rappeler qu'un tel chiffre n'a de sens que replacé dans son con
 L'accuracy est donc un indicateur de faisabilité, pas une garantie de performance sur le
 terrain.
 
-### 13.2 Cohérence entre les métriques
+#### 6.2.2. Cohérence entre les métriques
 
 Les moyennes macro (precision 95,98 %, recall 96,66 %, F1 96,17 %) sont légèrement
 inférieures aux moyennes pondérées (97,05 % de F1) : l'écart d'environ 0,9 point mesure
@@ -325,7 +332,7 @@ commet un peu plus de faux positifs que de faux négatifs. Dans un contexte de d
 de maladie, ce compromis est plutôt **favorable** : il vaut mieux signaler à tort une
 feuille saine que manquer une maladie.
 
-### 13.3 Interprétation des confusions
+#### 6.2.3. Interprétation des confusions
 
 Les confusions observées sont **biologiquement cohérentes** :
 
@@ -344,7 +351,7 @@ Aucune confusion majeure n'implique une classe saine en entrée : les feuilles s
 reconnues avec un rappel de 99,58 % (239/240). C'est un point rassurant pour un usage
 d'alerte : le modèle ne « voit » pas de maladie là où il n'y en a pas.
 
-### 13.4 Calibration et sur-confiance
+#### 6.2.4. Calibration et sur-confiance
 
 La confiance médiane (99,99 %) est très élevée, et de nombreuses prédictions correctes
 sont annoncées à plus de 99,9 %. Les réseaux de neurones modernes sont connus pour être
@@ -357,7 +364,7 @@ la confiance reste informative. Une perspective d'amélioration serait d'appliqu
 **température scaling** ou une calibration de Platt sur l'ensemble de validation, afin de
 produire des probabilités plus réalistes.
 
-### 13.5 Positionnement par rapport à la littérature
+#### 6.2.5. Positionnement par rapport à la littérature
 
 Mohanty et al. (2016) rapportent des accuracies supérieures à 99 % sur PlantVillage avec
 des architectures comme AlexNet et GoogLeNet, sur les 38 classes et avec un protocole
@@ -371,9 +378,10 @@ plusieurs dizaines de millions), le budget d'époques et l'absence de réglage f
 hyperparamètres. Il confirme néanmoins la tendance de fond : sur PlantVillage, un CNN
 pré-entraîné léger atteint une précision élevée avec un effort d'entraînement modéré.
 
-## 14. Discussion des résultats
+### 6.3. Discussion des résultats
 
-### 14.1 Apport du Transfer Learning
+
+#### 6.3.1. Apport du Transfer Learning
 
 La progression observée valide l'intérêt du Transfer Learning :
 
@@ -391,7 +399,7 @@ caractéristiques ImageNet qui rend ce démarrage possible. Le gain du fine-tuni
 (+2,26 points) est plus marqué qu'avec le prototype à 4 classes (+1,46 point), ce qui
 s'explique par la finesse des frontières à établir entre 38 classes.
 
-### 14.2 Variabilité et sensibilité aux hyperparamètres
+#### 6.3.2. Variabilité et sensibilité aux hyperparamètres
 
 La courbe de validation reste irrégulière sur la phase 1 (oscillations de ±1 point entre
 époques voisines), puis devient beaucoup plus stable pendant le fine-tuning. Trois
@@ -405,7 +413,7 @@ Un usage plus stable serait obtenu avec une validation croisée à k plis, plus 
 temps de calcul (12 h 45 pour un seul pli) mais beaucoup plus robuste pour estimer la
 performance réelle.
 
-### 14.3 Coût de calcul et pertinence de MobileNetV2
+#### 6.3.3. Coût de calcul et pertinence de MobileNetV2
 
 Le modèle complet ne pèse que 2,43 millions de paramètres et environ 28 Mo sur disque.
 Une époque d'entraînement dure environ 17 minutes sur 4 threads, et une prédiction
@@ -415,7 +423,7 @@ modèle plus profond (ResNet-50, EfficientNet-B3) aurait probablement apporté l
 points qui manquent pour rejoindre les 99 % de la littérature, mais au prix d'un temps
 d'entraînement multiplié par 5 à 10 dans notre environnement.
 
-### 14.4 Qualité des données versus complexité du modèle
+#### 6.3.4. Qualité des données versus complexité du modèle
 
 Le principal facteur limitant n'est pas la capacité du modèle mais la **nature des
 données**. Les images PlantVillage sont prises en laboratoire, sur fond uniforme, avec une
@@ -424,7 +432,7 @@ dense, arrière-plan complexe, ombres, reflets, flou de bougé), les performance
 chuteraient très probablement. Améliorer le dataset (images de terrain, plusieurs feuilles
 par image, conditions variées) serait plus rentable que complexifier l'architecture.
 
-### 14.5 Enseignements méthodologiques
+#### 6.3.5. Enseignements méthodologiques
 
 Ce projet illustre plusieurs principes importants :
 
@@ -440,9 +448,14 @@ Ce projet illustre plusieurs principes importants :
   paramètres : c'est un bon argument pour traiter le problème à l'échelle réelle du
   dataset plutôt que sur un sous-ensemble commode.
 
-## 15. Limites et perspectives d'amélioration
+[[PAGEBREAK]]
 
-### 15.1 Limites du système actuel
+## 7. Limites, perspectives et éthique
+
+### 7.1. Limites et perspectives d'amélioration
+
+
+#### 7.1.1. Limites du système actuel
 
 **Limites liées aux données**
 
@@ -474,7 +487,7 @@ Ce projet illustre plusieurs principes importants :
   n'est conservée ;
 - interface en français uniquement.
 
-### 15.2 Perspectives techniques
+#### 7.1.2. Perspectives techniques
 
 1. **Explicabilité (Grad-CAM)** : produire une carte de chaleur des zones discriminantes,
    superposée à l'image, afin de renforcer la confiance de l'utilisateur et de détecter
@@ -492,7 +505,7 @@ Ce projet illustre plusieurs principes importants :
 8. **Suivi d'expériences** : intégration de MLflow ou de TensorBoard pour comparer
    systématiquement les runs.
 
-### 15.3 Perspectives applicatives
+#### 7.1.3. Perspectives applicatives
 
 - prise de photo directe depuis le smartphone (API `getUserMedia`) ;
 - export PDF d'une fiche de résultat ;
@@ -502,7 +515,7 @@ Ce projet illustre plusieurs principes importants :
   ce qui réduirait mécaniquement le risque de confusion entre espèces ;
 - interface multilingue.
 
-## 16. Éthique et impacts du système
+### 7.2. Éthique et impacts du système
 
 Un système de vision artificielle appliqué à l'agriculture ne soulève pas seulement des
 questions techniques. Parce qu'il produit une recommandation qu'un utilisateur pourrait
@@ -511,7 +524,7 @@ ce qu'il fait, ce qu'il ne fait pas, et avec quelles données il a été constru
 section explicite le cadre d'usage, les risques identifiés et les mesures prises ou
 recommandées pour les atténuer.
 
-### 16.1 Usage prévu et limites de responsabilité
+#### 7.2.1. Usage prévu et limites de responsabilité
 
 L'usage prévu est **pédagogique et expérimental** : illustrer une chaîne complète de Deep
 Learning, de la donnée brute à l'application. Le système n'est ni un dispositif médical ni
@@ -528,7 +541,7 @@ l'infection, deux informations déterminantes pour décider d'une intervention. 
 distingue pas non plus une feuille d'une autre espèce : il **force** toute image dans
 l'une des 38 classes.
 
-### 16.2 Données : licence, représentativité et biais
+#### 7.2.2. Données : licence, représentativité et biais
 
 **Licence et redistribution.** Le dépôt PlantVillage ne comporte pas de fichier de licence
 explicite. Les images sont donc utilisées dans un cadre strictement académique, ne sont
@@ -562,7 +575,7 @@ serait donc hors du domaine du modèle.
 personnelles identifiantes à notre connaissance, mais leurs métadonnées EXIF n'ont pas fait
 l'objet d'un audit exhaustif ; ce point est signalé par prudence.
 
-### 16.3 Vie privée des utilisateurs de l'application
+#### 7.2.3. Vie privée des utilisateurs de l'application
 
 Le principe appliqué est la **minimisation absolue** : l'image téléversée n'est **jamais
 écrite sur le disque**. Elle est décodée en mémoire, convertie en tenseur, passée au
@@ -588,7 +601,7 @@ réponse des requêtes. Pour un déploiement réel, il faudrait ajouter HTTPS, u
 de rétention des journaux et une information explicite des utilisateurs. Ces points sont
 documentés comme limites et non masqués.
 
-### 16.4 Risque d'un mauvais diagnostic
+#### 7.2.4. Risque d'un mauvais diagnostic
 
 Sur 8 156 images, 240 erreurs (2,94 %) subsistent. Leur concentration est le point
 sensible : les confusions entre **alternariose précoce** et **tache cible** (14 cas
@@ -609,7 +622,7 @@ correctes (98,53 %), mais elle reste élevée pour certaines erreurs : l'afficha
 confiance **ne suffit pas** à lui seul à alerter l'utilisateur. C'est pourquoi un seuil de
 rejet et une carte d'attention (Grad-CAM) figurent parmi les perspectives prioritaires.
 
-### 16.5 Équité et accessibilité
+#### 7.2.5. Équité et accessibilité
 
 Le choix de MobileNetV2 (2,43 millions de paramètres, inférence d'environ 110 ms sur CPU)
 relève aussi d'un souci d'équité d'accès : le système fonctionne sans GPU et sur un poste
@@ -622,7 +635,7 @@ performance par sous-groupe** (type d'appareil, conditions d'éclairage, variét
 la maladie) n'a été réalisée. Il n'est donc pas possible d'affirmer que le modèle est
 équitable entre ces situations : c'est un audit à conduire avant tout usage réel.
 
-### 16.6 Impact environnemental et coût de calcul
+#### 7.2.6. Impact environnemental et coût de calcul
 
 L'entraînement complet a duré **environ 765 minutes de CPU** (498 min pour la phase 1,
 267 min pour le fine-tuning) sur un processeur à quatre threads, sans GPU, soit près de
@@ -636,7 +649,7 @@ n'aurait de sens qu'avec la consommation réelle mesurée de la machine. Les rec
 associées sont de réutiliser le modèle existant plutôt que de réentraîner sans nécessité,
 et de privilégier la quantification pour l'inférence mobile.
 
-### 16.7 Conduite scientifique
+#### 7.2.7. Conduite scientifique
 
 Toutes les valeurs du rapport proviennent d'un entraînement et d'une évaluation réellement
 exécutés ; aucune métrique n'est simulée ni recopiée d'une publication. Les figures de
@@ -651,7 +664,7 @@ initialisations), et l'entraînement a été volontairement limité à 4 threads
 logiques, ce qui a allongé la durée sans changer le résultat. Les 97,06 % ne doivent donc
 pas être présentés comme une borne supérieure de performance.
 
-### 16.8 Synthèse des risques et des mesures
+#### 7.2.8. Synthèse des risques et des mesures
 
 | Risque | Gravité | Mesure en place | Mesure recommandée |
 | --- | --- | --- | --- |
@@ -669,7 +682,9 @@ biais, ses erreurs et son domaine de validité, et il refuse de transformer une 
 probabiliste en prescription agricole. Cette transparence est la condition minimale d'un
 usage responsable, et la première des améliorations à venir.
 
-## 17. Conclusion générale
+[[PAGEBREAK]]
+
+## 8. Conclusion générale
 
 Ce projet avait pour objectif de concevoir un système complet de détection et de
 classification des maladies des feuilles, depuis la donnée brute jusqu'à une application
@@ -709,7 +724,9 @@ documentation. Il illustre une idée essentielle : la performance d'un modèle d
 de sa complexité que de la qualité des données, de la rigueur du protocole et de
 l'honnêteté de l'interprétation.
 
-## 18. Références bibliographiques
+[[PAGEBREAK]]
+
+## Bibliographie
 
 1. Hughes, D. P., & Salathé, M. (2015). *An open access repository of images on plant
    health to enable the development of mobile disease diagnostics*. arXiv:1511.08060.

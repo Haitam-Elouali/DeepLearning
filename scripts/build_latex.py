@@ -267,19 +267,42 @@ def valeurs_existantes(chemin: Path) -> dict[str, str]:
     return valeurs
 
 
+def logos_page_de_titre() -> list[str]:
+    """Lignes LaTeX insérant les logos présents dans ``docs/rapport/assets``.
+
+    Si aucun fichier ``logo*`` n'est présent, la page de titre utilise
+    uniquement le bloc typographique EMSI : aucun logo n'est inventé.
+    """
+    dossier = DOSSIER_SORTIE.parent / "assets"
+    if not dossier.is_dir():
+        return []
+    fichiers = sorted(
+        chemin
+        for chemin in dossier.iterdir()
+        if chemin.suffix.lower() in {".png", ".jpg", ".jpeg", ".pdf"}
+        and chemin.stem.lower().startswith("logo")
+    )
+    if not fichiers:
+        return []
+    images = "\\hspace{1.2cm}".join(
+        r"\includegraphics[height=3.4cm]{" + str(chemin) + "}" for chemin in fichiers
+    )
+    return [images, r"\vspace{0.9cm}"]
+
+
 def preambule(infos: dict[str, str]) -> list[str]:
     """Construit le préambule LaTeX, la page de titre et le sommaire."""
     titre = en_ligne(infos["titre"])
     sous_titre = en_ligne(infos["sous_titre"])
+    logos = logos_page_de_titre()
     return [
         "% =====================================================================",
         "% Rapport généré par scripts/build_latex.py — ne pas éditer à la main.",
-        "% Les quatre macros ci-dessous contiennent les espaces réservés à",
-        "% compléter avant le rendu final.",
+        "% Les macros ci-dessous contiennent les espaces réservés à compléter",
+        "% avant le rendu final (auteur, établissement, année).",
         "% =====================================================================",
         r"\newcommand{\reportauthor}{" + infos["auteur"] + "}",
-        r"\newcommand{\reportsupervisor}{" + infos["encadrant"] + "}",
-        r"\newcommand{\reportinstitution}{" + infos["etablissement"] + "}",
+        r"\newcommand{\reportinstitution}{" + en_ligne(infos["etablissement"]) + "}",
         r"\newcommand{\reportyear}{" + infos["annee"] + "}",
         "",
         r"\documentclass[10pt,a4paper]{article}",
@@ -290,19 +313,17 @@ def preambule(infos: dict[str, str]) -> list[str]:
         r"\usepackage{longtable,booktabs,array}",
         r"\usepackage{float}",
         r"\usepackage{enumitem}",
-        r"\usepackage{xcolor}",
         r"\usepackage{titlesec}",
-        r"\usepackage{fancyhdr}",
         r"\usepackage{amsmath}",
         r"\usepackage[hidelinks]{hyperref}",
         "",
-        r"\definecolor{tomate}{HTML}{15803D}",
-        r"\definecolor{ardoise}{HTML}{475569}",
-        "",
-        r"\titleformat{\section}{\Large\bfseries\color{tomate}}{\thesection}{0.8em}{}",
-        r"\titleformat{\subsection}{\large\bfseries\color{ardoise}}{\thesubsection}{0.6em}{}",
+        "% Texte en noir uniquement : aucun jeu de couleurs n'est défini.",
+        r"\titleformat{\section}{\Large\bfseries}{\thesection}{0.8em}{}",
+        r"\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.6em}{}",
+        r"\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{0.5em}{}",
         r"\titlespacing*{\section}{0pt}{14pt}{6pt}",
         r"\titlespacing*{\subsection}{0pt}{10pt}{4pt}",
+        r"\titlespacing*{\subsubsection}{0pt}{8pt}{3pt}",
         r"\setlist{itemsep=1pt,topsep=3pt,parsep=0pt,leftmargin=1.3em}",
         r"\setlength{\parindent}{0pt}",
         r"\setlength{\parskip}{2pt}",
@@ -310,34 +331,34 @@ def preambule(infos: dict[str, str]) -> list[str]:
         r"\setlength{\tabcolsep}{3pt}",
         r"\renewcommand{\arraystretch}{1.05}",
         "",
-        r"\pagestyle{fancy}",
-        r"\fancyhf{}",
-        r"\fancyhead[L]{\small\itshape Détection des maladies des feuilles — PlantVillage}",
-        r"\fancyhead[R]{\small\thepage}",
-        r"\renewcommand{\headrulewidth}{0.4pt}",
+        "% Pagination simple : numéro en pied de page, aucun en-tête ni cadre.",
+        r"\pagestyle{plain}",
         "",
         r"\begin{document}",
         "",
         r"\begin{titlepage}",
         r"\centering",
-        r"{\small " + en_ligne(infos["label"]) + r"\par}",
-        r"\vspace{2.4cm}",
+        *logos,
+        r"{\fontsize{54}{60}\selectfont\bfseries EMSI\par}",
+        r"\vspace{0.25cm}",
+        r"{\Large École Marocaine des Sciences de l'Ingénieur\par}",
+        r"\vspace{0.35cm}",
+        r"{\normalsize\bfseries Filière Génie Informatique --- Rapport de projet de fin d'année\par}",
+        r"\vspace{2.1cm}",
         r"{\LARGE\bfseries " + titre + r"\par}",
-        r"\vspace{1.2cm}",
-        r"{\large\itshape " + sous_titre + r"\par}",
+        r"\vspace{0.9cm}",
+        r"{\large " + sous_titre + r"\par}",
         r"\vfill",
         r"\begin{tabular}{@{}r@{\hspace{1em}}l@{}}",
         r"Réalisé par : & \reportauthor \\[4pt]",
-        r"Encadré par : & \reportsupervisor \\[4pt]",
-        r"Établissement : & \reportinstitution \\[4pt]",
+        r"Établissement : & École Marocaine des Sciences de l'Ingénieur (EMSI) \\[4pt]",
         r"Année universitaire : & \reportyear \\",
         r"\end{tabular}",
-        r"\vfill",
-        r"{\small\itshape Projet universitaire de Deep Learning — document généré depuis le dépôt du projet.\par}",
+        r"\vspace{0.8cm}",
         r"\end{titlepage}",
         "",
         r"\pagenumbering{roman}",
-        r"\setcounter{tocdepth}{1}",
+        r"\setcounter{tocdepth}{2}",
         r"\tableofcontents",
         r"\clearpage",
         r"\pagenumbering{arabic}",
@@ -384,7 +405,7 @@ def convertir_corps(lignes: list[str], dossier: Path) -> list[str]:
                 continue
             ignorer_sommaire = False
             titre = re.sub(r"^\d+\.\s*", "", titre)
-            if titre.lower().startswith("annexe"):
+            if titre.lower().startswith(("annexe", "bibliographie")):
                 sortie.append(r"\section*{" + en_ligne(titre) + "}")
                 sortie.append(r"\addcontentsline{toc}{section}{" + en_ligne(titre) + "}")
             else:
@@ -394,6 +415,13 @@ def convertir_corps(lignes: list[str], dossier: Path) -> list[str]:
                     r"\label{sec:" + str(compteur_section) + "}"
                     + "% " + titre.replace("\n", " ")
                 )
+            sortie.append("")
+            index += 1
+            continue
+
+        if ligne.startswith("#### "):
+            titre = re.sub(r"^\d+(\.\d+)+\.?\s*", "", ligne[5:].strip())
+            sortie.append(r"\subsubsection{" + en_ligne(titre) + "}")
             sortie.append("")
             index += 1
             continue

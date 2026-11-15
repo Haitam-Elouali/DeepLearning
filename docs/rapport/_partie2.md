@@ -1,6 +1,11 @@
-## 7. Présentation et exploration du dataset
+[[PAGEBREAK]]
 
-### 7.1 Origine des données
+## 3. Données et préparation
+
+### 3.1. Présentation et exploration du dataset
+
+
+#### 3.1.1. Origine des données
 
 Le dataset utilisé est **PlantVillage**, un dépôt public d'images de feuilles de plantes
 saines et malades. Il a été introduit par Hughes et Salathé (2015) et constitue la
@@ -25,7 +30,7 @@ mesurer le comportement du modèle à l'échelle réelle du dataset, où les cla
 sous-ensemble de quatre classes de tomate, beaucoup plus facile, avait servi de
 prototype ; il a été abandonné au profit de la version complète.
 
-### 7.2 Classes et effectifs
+#### 3.1.2. Classes et effectifs
 
 Les 38 classes couvrent le pommier, la myrtille, la cerise, le maïs, la vigne,
 l'orange, la pêche, le poivron, la pomme de terre, la framboise, le soja, la courge,
@@ -86,7 +91,7 @@ sacrifierait mécaniquement les classes rares.
 
 *Figure 1 — Une image représentative par classe, sur les 38 classes du dataset.*
 
-### 7.3 Contrôle qualité
+#### 3.1.3. Contrôle qualité
 
 Avant toute utilisation, chaque fichier a été vérifié par `training/prepare_data.py` :
 
@@ -101,7 +106,7 @@ image tombent dans le même ensemble. Sans cette précaution, une image pourrait
 retrouver à la fois dans l'entraînement et dans le test, et gonfler artificiellement les
 performances mesurées.
 
-### 7.4 Découpage des données
+#### 3.1.4. Découpage des données
 
 Le découpage est réalisé par classe (stratifié), avec la graine aléatoire **42** pour
 garantir la reproductibilité, selon les proportions 70 % / 15 % / 15 % :
@@ -122,7 +127,7 @@ Avec 8 156 images de test, l'intervalle de confiance à 95 % sur l'accuracy est 
 l'ordre de ±0,4 point : le chiffre final est donc une estimation raisonnablement
 précise, ce qui n'était pas le cas du prototype à quatre classes (820 images de test).
 
-### 7.5 Garanties contre la fuite de données
+#### 3.1.5. Garanties contre la fuite de données
 
 La fuite de données (*data leakage*) est l'une des erreurs les plus fréquentes en
 apprentissage automatique : si des images très similaires se trouvent à la fois dans
@@ -139,7 +144,7 @@ statistique n'est estimée sur les données), et la Data Augmentation est géné
 volée, uniquement sur le jeu d'entraînement : aucun paramètre appris sur les données
 n'est ajusté avant le découpage.
 
-### 7.6 Limites du dataset
+#### 3.1.6. Limites du dataset
 
 - **Images de laboratoire** : les feuilles sont photographiées sur un fond uniforme,
   souvent gris, avec un éclairage contrôlé. Les performances mesurées ne peuvent pas être
@@ -158,9 +163,10 @@ n'est ajusté avant le découpage.
   visuelles globales, pas une notion de contexte (parcelle, stade, co-occurrence de
   maladies).
 
-## 8. Prétraitement et Data Augmentation
+### 3.2. Prétraitement et Data Augmentation
 
-### 8.1 Pipeline de prétraitement
+
+#### 3.2.1. Pipeline de prétraitement
 
 Le prétraitement est **strictement identique** pendant l'entraînement et pendant la
 prédiction. Il est centralisé dans `utils/preprocessing.py`, utilisé à la fois par les
@@ -182,7 +188,7 @@ La normalisation utilisée reproduit exactement
 l'absence de décalage de distribution entre l'entraînement et l'inférence : c'est un
 point où de nombreux projets échouent silencieusement.
 
-### 8.2 Data Augmentation
+#### 3.2.2. Data Augmentation
 
 La Data Augmentation génère des variantes des images d'entraînement afin d'augmenter la
 diversité apparente du dataset et de réduire le sur-apprentissage. Les transformations
@@ -207,7 +213,7 @@ prédiction reste donc simplement « redimensionnement + normalisation ».
 
 *Figure 3 — Une image d'origine et cinq variantes générées par la Data Augmentation.*
 
-### 8.3 Gestion du déséquilibre des classes
+#### 3.2.3. Gestion du déséquilibre des classes
 
 Deux mécanismes complémentaires ont été mis en place :
 
@@ -222,9 +228,12 @@ Sans ces poids, un modèle qui prédirait toujours la classe majoritaire obtiend
 47 % d'accuracy sur le test (orange + soja + virus YLCV représentent près de la moitié
 des images) : l'accuracy globale, seule, serait trompeuse.
 
-## 9. Architecture du modèle proposé
+## 4. Méthodologie et entraînement
 
-### 9.1 Vue d'ensemble
+### 4.1. Architecture du modèle proposé
+
+
+#### 4.1.1. Vue d'ensemble
 
 Le modèle est construit en Keras selon l'enchaînement suivant :
 
@@ -241,7 +250,7 @@ Le modèle est construit en Keras selon l'enchaînement suivant :
 
 *Figure 4 — Architecture du modèle : base MobileNetV2 et tête de classification à 38 sorties.*
 
-### 9.2 Détail des couches et des paramètres
+#### 4.1.2. Détail des couches et des paramètres
 
 | Bloc | Type | Sortie | Paramètres |
 | --- | --- | --- | --- |
@@ -261,7 +270,7 @@ paramètres sont alors entraînables, soit moins de 7 % du total. Le passage de 
 classes ne coûte que **4 386 paramètres supplémentaires** (38 × 129 au lieu de 4 × 129) :
 l'essentiel de la capacité du modèle se trouve dans la base convolutive partagée.
 
-### 9.3 Choix de la fonction de perte et de l'optimiseur
+#### 4.1.3. Choix de la fonction de perte et de l'optimiseur
 
 - **Perte** : `categorical_crossentropy`, adaptée à un encodage one-hot des étiquettes
   (les images sont chargées avec `label_mode="categorical"`).
@@ -273,9 +282,10 @@ Le choix d'Adam se justifie par sa robustesse et sa convergence rapide sans rég
 du pas, ce qui est adapté à un projet où le nombre d'expériences possibles est limité par
 le temps de calcul.
 
-## 10. Configuration et processus d'entraînement
+### 4.2. Configuration et processus d'entraînement
 
-### 10.1 Hyperparamètres
+
+#### 4.2.1. Hyperparamètres
 
 | Paramètre | Valeur |
 | --- | --- |
@@ -300,7 +310,7 @@ plusieurs minutes, et le budget complet 30 + 15 époques représente une douzain
 de calcul. L'Early Stopping n'a pas été déclenché, ce qui signifie que la validation
 progressait encore à la dernière époque : le budget maximal a été entièrement consommé.
 
-### 10.2 Environnement d'exécution
+#### 4.2.2. Environnement d'exécution
 
 | Élément | Valeur |
 | --- | --- |
@@ -320,7 +330,7 @@ laisser la machine utilisable pendant l'entraînement. C'est un choix assumé : 
 multiplie la durée par environ deux par rapport à une utilisation pleine de tous les
 cœurs.
 
-### 10.3 Déroulement de la phase 1
+#### 4.2.3. Déroulement de la phase 1
 
 La base MobileNetV2 est gelée et seules les couches de classification apprennent. Dès la
 première époque, l'accuracy de validation atteint **86,6 %**, ce qui illustre la qualité
@@ -343,7 +353,7 @@ Le learning rate est réduit automatiquement de 1e-3 à 5e-4, 2,5e-4, 1,25e-4 pu
 6,25e-5, et la validation se stabilise autour de **94,7 %**. Le meilleur modèle de la
 phase 1 est atteint à l'époque 27, avec **94,75 %** de validation.
 
-### 10.4 Déroulement de la phase 2 (fine-tuning)
+#### 4.2.4. Déroulement de la phase 2 (fine-tuning)
 
 Les 19 dernières couches de la base sont dégelées et ré-entraînées avec un learning rate
 de 1e-5. L'accuracy d'entraînement repart à la hausse et la validation suit, sans
@@ -370,7 +380,7 @@ Le fait que le gain soit plus marqué qu'avec 4 classes (+1,46 point) est cohér
 38 classes, les frontières de décision sont plus fines et les filtres profonds de la base
 bénéficient davantage d'un ajustement aux textures de feuilles.
 
-### 10.5 Suivi et reproductibilité
+#### 4.2.5. Suivi et reproductibilité
 
 Tous les paramètres, comptages, durées et versions de bibliothèques sont enregistrés dans
 `models/training_config.json`. L'historique complet des époques est conservé dans

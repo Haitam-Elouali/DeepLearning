@@ -1,50 +1,16 @@
-# Détection et classification des maladies des plantes à partir d'images de feuilles à l'aide des réseaux de neurones convolutifs (CNN) et du Transfer Learning
+# Détection et classification des maladies des feuilles par réseaux de neurones convolutifs et Transfer Learning
 
-**Application à 38 classes et 14 cultures — MobileNetV2, TensorFlow/Keras et Flask**
-
-Projet universitaire de fin d'études — Génie informatique
+**Application aux 38 classes de PlantVillage — MobileNetV2, TensorFlow/Keras, Flask**
 
 Réalisé par : **[Prénom NOM]**
 
-Encadré par : **[Nom de l'encadrant]**
-
-Établissement : **[Nom de l'université / de l'école]**
+Établissement : **École Marocaine des Sciences de l'Ingénieur (EMSI)**
 
 Année universitaire : **2025 – 2026**
 
 [[PAGEBREAK]]
 
-## Sommaire
-
-1. Introduction générale
-2. Contexte et problématique
-3. Objectifs du projet
-4. État de l'art : Deep Learning et réseaux de neurones convolutifs
-5. Présentation de MobileNetV2
-6. Présentation du Transfer Learning
-7. Présentation et exploration du dataset
-8. Prétraitement et Data Augmentation
-9. Architecture du modèle proposé
-10. Configuration et processus d'entraînement
-11. Développement de l'application Web
-12. Résultats expérimentaux
-13. Évaluation et interprétation des métriques
-14. Discussion des résultats
-15. Limites et perspectives d'amélioration
-16. Éthique et impacts du système
-17. Conclusion générale
-18. Références bibliographiques
-
-> **Note sur l'honnêteté scientifique.** Toutes les valeurs numériques de ce rapport
-> proviennent d'un entraînement et d'une évaluation réellement exécutés dans le cadre
-> de ce projet, sur le dataset PlantVillage téléchargé depuis sa source publique. Les
-> figures de résultats sont générées automatiquement par le script
-> `training/evaluate.py` à partir des prédictions du modèle sur l'ensemble de test.
-> Aucun résultat n'a été simulé, arrondi artificiellement ou recopié d'une publication.
-
-[[PAGEBREAK]]
-
-## 1. Introduction générale
+## 1. Contexte général du projet
 
 L'agriculture constitue un secteur économique majeur, particulièrement vulnérable aux
 maladies des cultures. Parmi les espèces les plus cultivées, la tomate occupe une place
@@ -89,9 +55,10 @@ résultats expérimentaux. La section 15 dresse les limites et les perspectives,
 16 traite de l'éthique et des impacts du système, la section 17 présente la conclusion.
 La section 18 rassemble les références.
 
-## 2. Contexte et problématique
+### 1.1. Contexte et problématique
 
-### 2.1 Contexte agricole et scientifique
+
+#### 1.1.1. Contexte agricole et scientifique
 
 La tomate (*Solanum lycopersicum*) est sensible à de nombreuses maladies foliaires
 d'origine fongique, oomycète, bactérienne ou virale. Trois d'entre elles dominent
@@ -123,7 +90,7 @@ feuilles peuvent atteindre des précisions supérieures à 99 % sur ce jeu de do
 en soulignant une limite essentielle : les performances chutent lorsque les images
 proviennent de conditions réelles, différentes de celles du laboratoire.
 
-### 2.2 Problématique
+#### 1.1.2. Problématique
 
 La problématique du projet peut être formulée ainsi :
 
@@ -145,7 +112,7 @@ Cette problématique soulève plusieurs sous-questions techniques :
    probabilités plutôt qu'une classe unique présentée comme une certitude ?
 5. Comment intégrer le modèle dans une application Web robuste, sécurisée et maintenable ?
 
-### 2.3 Enjeu et portée
+#### 1.1.3. Enjeu et portée
 
 L'enjeu n'est pas de remplacer l'expertise agronomique, mais de fournir un **outil d'aide
 à la reconnaissance visuelle**, utilisable sur le terrain comme en formation. Le système
@@ -153,15 +120,16 @@ doit donc être rapide, compréhensible et explicitement présenté comme expér
 posture est essentielle : un modèle entraîné sur des images de laboratoire ne peut pas
 prétendre à un diagnostic fiable sur des photographies de terrain.
 
-## 3. Objectifs du projet
+### 1.2. Objectifs du projet
 
-### 3.1 Objectif général
+
+#### 1.2.1. Objectif général
 
 Concevoir, entraîner, évaluer et déployer localement une application Web de détection et
 de classification des maladies de la feuille de tomate, fondée sur un CNN et le Transfer
 Learning.
 
-### 3.2 Objectifs spécifiques
+#### 1.2.2. Objectifs spécifiques
 
 **Sur le plan des données**
 
@@ -195,15 +163,20 @@ Learning.
 - valider les fichiers téléversés et éviter de recharger le modèle à chaque requête ;
 - fournir des tests automatisés et une documentation d'installation.
 
-### 3.3 Contraintes
+#### 1.2.3. Contraintes
 
 Le projet doit rester réalisable par un étudiant en génie informatique, avec des moyens
 limités : pas de GPU dédié, pas de service cloud payant, pas d'API externe. Toutes les
 étapes doivent pouvoir être rejouées localement à partir du code fourni.
 
-## 4. État de l'art : Deep Learning et réseaux de neurones convolutifs
+[[PAGEBREAK]]
 
-### 4.1 Du perceptron aux réseaux profonds
+## 2. État de l'art : CNN, MobileNetV2 et Transfer Learning
+
+### 2.1. État de l'art : Deep Learning et réseaux de neurones convolutifs
+
+
+#### 2.1.1. Du perceptron aux réseaux profonds
 
 Un réseau de neurones artificiel est composé de couches de neurones interconnectés.
 Chaque neurone calcule une combinaison linéaire de ses entrées, à laquelle il applique
@@ -219,7 +192,7 @@ et une première couche de 1 000 neurones nécessiterait plus de 150 millions de
 Les réseaux convolutifs résolvent ce problème en exploitant la structure spatiale des
 images.
 
-### 4.2 Principes des réseaux convolutifs
+#### 2.1.2. Principes des réseaux convolutifs
 
 **La convolution.** Une couche de convolution applique un ensemble de filtres (noyaux) de
 petite taille sur l'image d'entrée. Chaque filtre produit une carte d'activation qui
@@ -246,7 +219,7 @@ est l'**entropie croisée catégorielle**. L'optimiseur Adam (Kingma et Ba, 2015
 pas d'apprentissage de chaque paramètre à partir des moments du gradient, ce qui le rend
 robuste et rapide à converger, avec peu de réglage manuel.
 
-### 4.3 Architectures marquantes
+#### 2.1.3. Architectures marquantes
 
 | Architecture | Année | Apport principal |
 | --- | --- | --- |
@@ -263,7 +236,7 @@ Notre choix s'est porté sur MobileNetV2, pour des raisons de coût de calcul et
 pertinence pratique : l'application doit fonctionner sur un ordinateur portable sans GPU
 et produire une prédiction en moins d'une seconde.
 
-### 4.4 Régularisation et prévention du sur-apprentissage
+#### 2.1.4. Régularisation et prévention du sur-apprentissage
 
 Le sur-apprentissage (*overfitting*) désigne la situation où le modèle mémorise les
 exemples d'entraînement sans généraliser. Plusieurs techniques sont utilisées dans ce
@@ -277,7 +250,7 @@ projet :
 - **poids de classes** : compensation du déséquilibre entre classes ;
 - **gel des couches pré-entraînées** : limite le nombre de paramètres à apprendre.
 
-### 4.5 Métriques d'évaluation
+#### 2.1.5. Métriques d'évaluation
 
 Soit TP, FP, FN et TN les nombres de vrais positifs, faux positifs, faux négatifs et vrais
 négatifs pour une classe donnée :
@@ -291,9 +264,10 @@ L'accuracy seule est insuffisante en cas de déséquilibre : un modèle qui pré
 toujours la classe majoritaire obtiendrait une accuracy trompeuse. C'est pourquoi la
 matrice de confusion et les métriques par classe sont systématiquement analysées.
 
-## 5. Présentation de MobileNetV2
+### 2.2. Présentation de MobileNetV2
 
-### 5.1 Motivation : l'efficacité computationnelle
+
+#### 2.2.1. Motivation : l'efficacité computationnelle
 
 MobileNetV2, proposé par Sandler et al. (2018), est une évolution de MobileNet (Howard
 et al., 2017). Son objectif est de fournir un réseau convolutif performant avec un coût
@@ -302,7 +276,7 @@ permettre une exécution sur téléphone ou micro-ordinateur. Notre modèle comp
 compte ainsi que **2 426 854 paramètres**, dont seulement **168 870** sont entraînés lors
 de la première phase.
 
-### 5.2 Convolutions séparables en profondeur
+#### 2.2.2. Convolutions séparables en profondeur
 
 Une convolution standard de `Dk × Dk` noyaux appliquée à `M` canaux d'entrée pour
 produire `N` canaux coûte `Dk² × M × N` multiplications par position. MobileNet la
@@ -317,7 +291,7 @@ Le rapport de coût est approximativement `1/N + 1/Dk²`, soit une réduction d'
 9 fois pour des noyaux 3 × 3. C'est cette économie qui rend le modèle compatible avec une
 exécution sur processeur.
 
-### 5.3 Blocs résiduels inversés et goulot linéaire
+#### 2.2.3. Blocs résiduels inversés et goulot linéaire
 
 MobileNetV2 introduit deux idées structurelles :
 
@@ -331,7 +305,7 @@ MobileNetV2 introduit deux idées structurelles :
 Le réseau alterne ainsi des blocs d'expansion, de convolution en profondeur et de
 projection, pour un total de 53 couches convolutives dans la version 1.0 de largeur 224.
 
-### 5.4 Sortie et adaptation à notre problème
+#### 2.2.4. Sortie et adaptation à notre problème
 
 La version utilisée est `MobileNetV2(weights="imagenet", include_top=False)`, avec une
 entrée de 224 × 224 × 3. La couche de classification d'origine (1 000 classes ImageNet)
@@ -339,7 +313,7 @@ est supprimée. La sortie de la base est un tenseur de forme 7 × 7 × 1 280, qu
 agrégeons par un *Global Average Pooling* pour obtenir un vecteur de 1 280
 caractéristiques. Ce vecteur alimente ensuite notre propre tête de classification.
 
-### 5.5 Pourquoi ce choix pour notre projet
+#### 2.2.5. Pourquoi ce choix pour notre projet
 
 - **coût maîtrisé** : entraînement et inférence possibles sur CPU ;
 - **taille raisonnable** : un fichier modèle de quelques dizaines de mégaoctets ;
@@ -347,9 +321,10 @@ caractéristiques. Ce vecteur alimente ensuite notre propre tête de classificat
   apprises, très utiles pour analyser des feuilles ;
 - **latence faible** : environ 70 ms par image mesurés sur notre environnement de test.
 
-## 6. Présentation du Transfer Learning
+### 2.3. Présentation du Transfer Learning
 
-### 6.1 Principe
+
+#### 2.3.1. Principe
 
 Le Transfer Learning consiste à réutiliser un modèle entraîné sur une tâche source
 (généralement ImageNet, 1,2 million d'images et 1 000 classes) pour résoudre une tâche
@@ -362,7 +337,7 @@ Cette approche est particulièrement adaptée ici : notre dataset contient 54 30
 un volume encore modeste au regard des 1,2 million d'images ImageNet, et très inégalement
 réparti entre les 38 classes.
 
-### 6.2 Deux stratégies complémentaires
+#### 2.3.2. Deux stratégies complémentaires
 
 **Extraction de caractéristiques (feature extraction).** La base pré-entraînée est
 gelée (`trainable = False`). Seule la nouvelle tête de classification est entraînée. Le
@@ -380,7 +355,7 @@ fine-tuning. Leur mise à jour avec de petits lots (batch de 32) déstabilise
 l'apprentissage, car les statistiques de normalisation sont estimées sur trop peu
 d'exemples.
 
-### 6.3 Avantages et limites
+#### 2.3.3. Avantages et limites
 
 | Avantages | Limites |
 | --- | --- |

@@ -74,7 +74,8 @@ plant-disease-detection/
 │
 ├── scripts/                    # génération des livrables (rapport, fiche, slides)
 └── docs/
-    ├── rapport/                # rapport Markdown + Word + LaTeX/PDF
+    ├── rapport/                # rapport Markdown (3 parties = 8 chapitres), Word, LaTeX/PDF
+    │   └── assets/             # logos de la page de titre (facultatifs)
     ├── fiche/                  # fiche expérimentale
     └── presentation/           # diaporama PowerPoint
 ```
@@ -337,9 +338,18 @@ python scripts/build_fiche.py           # fiche expérimentale
 python scripts/build_presentation.py    # diaporama PowerPoint
 ```
 
-> Le rapport LaTeX conserve des **espaces réservés** (auteur, encadrant, établissement,
-> année) : ils se complètent dans les quatre macros `\report...` en tête de
-> `docs/rapport/latex/rapport_final.tex`. Les valeurs saisies sont conservées si le
+Le rapport suit la présentation d'un rapport de projet de fin d'année (EMSI) : page de
+titre avec le bloc EMSI en grand, sommaire, huit chapitres numérotés, bibliographie et
+annexe. Le texte est **noir uniquement**, sans en-tête ni cadre coloré ; seuls les
+numéros de page figurent en pied de page.
+
+> **Logos** : déposez `logo_emsi.png` (ou `.jpg`, `.pdf`) dans
+> `docs/rapport/assets/` — tous les fichiers `logo*` y sont insérés en grand sur la page
+> de titre. Sans fichier, seul le bloc typographique « EMSI — École Marocaine des
+> Sciences de l'Ingénieur » est affiché.
+>
+> L'auteur et l'année restent des espaces réservés dans les macros `\report...` en tête
+> de `docs/rapport/latex/rapport_final.tex`. Les valeurs saisies sont conservées si le
 > script est relancé ; sinon, compiler directement avec `xelatex rapport_final.tex`.
 > La compilation demande XeLaTeX (MiKTeX ou TeX Live).
 
