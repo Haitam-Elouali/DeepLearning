@@ -57,3 +57,6 @@ docs/rapport/rapport_final.md
 # diaporama). Les autres fichiers .pptx générés restent hors du dépôt.
 docs/presentation/*.pptx
 !docs/presentation/presentation_soutenance.pptx
+
+# Sauvegarde locale du modèle avant ré-entraînement
+.backup/
