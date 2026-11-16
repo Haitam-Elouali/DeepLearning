@@ -1,7 +1,7 @@
 """Génère la fiche expérimentale (Markdown + Word) à partir des résultats réels.
 
 Toutes les valeurs sont lues dans les artefacts produits par l'entraînement et
-l'évaluation : models/training_config.json, results/metrics/evaluation.json,
+l'évaluation : models/training_config.json, results/metrics.json,
 data/processed/dataset_manifest.json et results/metrics/training_history.json.
 
 Usage :
@@ -32,7 +32,7 @@ def pourcent(valeur: float, decimales: int = 2) -> str:
 
 def main() -> int:
     configuration = charger_json(config.TRAINING_CONFIG_PATH, defaut={}) or {}
-    metriques = charger_json(config.METRICS_DIR / "metrics.json", defaut={}) or {}
+    metriques = charger_json(config.METRICS_JSON_PATH, defaut={}) or {}
     manifeste = charger_json(config.DATASET_MANIFEST_PATH, defaut={}) or {}
     historique = charger_json(config.HISTORY_PATH, defaut={}) or {}
 
@@ -113,7 +113,7 @@ def main() -> int:
         "",
         "## 3. Courbes d'apprentissage",
         "",
-        "![Courbes accuracy et loss (entraînement / validation)](../../results/figures/training_curves.png)",
+        "![Courbes accuracy et loss (entraînement / validation)](../../results/training_curves.png)",
         "",
         f"Meilleure accuracy de validation : **{pourcent(configuration.get('meilleure_val_accuracy', 0))}** "
         f"(époque {configuration.get('meilleure_epoch')}, sur {configuration.get('epochs_total')} époques).",
@@ -153,7 +153,7 @@ def main() -> int:
 
     lignes += [
         "",
-        "![Matrice de confusion (effectifs et proportions)](../../results/figures/confusion_matrix.png)",
+        "![Matrice de confusion (effectifs et proportions)](../../results/confusion_matrix.png)",
         "",
         "## 6. Résultats par classe",
         "",
@@ -265,7 +265,7 @@ def main() -> int:
         "| Configuration complète | `models/training_config.json` |",
         "| Historique des époques | `results/metrics/training_history.json` |",
         "| Rapport de classification | `results/metrics/classification_report.txt` |",
-        "| Métriques détaillées | `results/metrics/metrics.json` |",
+        "| Métriques détaillées | `results/metrics.json` |",
         "| Prédictions du test | `results/predictions/predictions_test.csv` |",
         "| Erreurs détaillées | `results/predictions/erreurs.csv` |",
     ]

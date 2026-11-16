@@ -3,7 +3,7 @@
 **Modèle** : MobileNetV2 + Transfer Learning  
 **Expérience réalisée le** : 2026-11-15  
 **Environnement** : Python 3.12.10, TensorFlow 2.21.0, CPU (sans GPU)  
-**Fiche générée le** : 15/11/2026
+**Fiche générée le** : 16/11/2026
 
 ## 1. Paramètres d'entraînement
 
@@ -77,7 +77,7 @@ Découpage stratifié, graine 42, 21 groupes de doublons exacts (MD5 global) reg
 
 ## 3. Courbes d'apprentissage
 
-![Courbes accuracy et loss (entraînement / validation)](../../results/figures/training_curves.png)
+![Courbes accuracy et loss (entraînement / validation)](../../results/training_curves.png)
 
 Meilleure accuracy de validation : **97,01 %** (époque 45, sur 45 époques).
 
@@ -141,7 +141,7 @@ Meilleure accuracy de validation : **97,01 %** (époque 45, sur 45 époques).
 | Tomato — Tomato mosaic virus | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 55 | 0 |
 | Feuille saine | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 239 |
 
-![Matrice de confusion (effectifs et proportions)](../../results/figures/confusion_matrix.png)
+![Matrice de confusion (effectifs et proportions)](../../results/confusion_matrix.png)
 
 ## 6. Résultats par classe
 
@@ -231,6 +231,6 @@ Le modèle MobileNetV2 adapté par Transfer Learning atteint **97,06 % d'accurac
 | Configuration complète | `models/training_config.json` |
 | Historique des époques | `results/metrics/training_history.json` |
 | Rapport de classification | `results/metrics/classification_report.txt` |
-| Métriques détaillées | `results/metrics/metrics.json` |
+| Métriques détaillées | `results/metrics.json` |
 | Prédictions du test | `results/predictions/predictions_test.csv` |
 | Erreurs détaillées | `results/predictions/erreurs.csv` |

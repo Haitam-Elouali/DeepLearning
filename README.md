@@ -51,7 +51,7 @@ DeepLearning/
 │
 ├── notebooks/
 │   ├── 01_exploration.ipynb    # dataset, distribution, qualité, prétraitement
-│   └── 02_training.ipynb       # architecture, hyperparamètres, courbes, résultats
+│   └── training.ipynb          # architecture, hyperparamètres, courbes, résultats
 ├── training/
 │   ├── download_dataset.py     # récupère les 38 classes couleur (~955 Mo)
 │   ├── prepare_data.py         # contrôle qualité + split stratifié sans fuite
@@ -69,9 +69,12 @@ DeepLearning/
 ├── static/css/style.css        # feuille de style unique
 │
 ├── results/
-│   ├── figures/                # courbes, matrice, performances, dataset
-│   ├── metrics/                # metrics.json, classification_report.csv,
-│   │                           #   qualite_donnees.json (doublons)
+│   ├── metrics.json            # livrable : accuracy, precision, recall, F1 (38 classes)
+│   ├── classification_report.csv  # livrable : rapport détaillé par classe
+│   ├── training_curves.png     # livrable : loss entraînement / validation
+│   ├── confusion_matrix.png    # livrable : matrice de confusion (38 classes)
+│   ├── metrics/                # rapport texte, résumé, historique, qualité des données
+│   ├── figures/                # performances par classe, distribution de la confiance
 │   └── predictions/            # prédictions du test, erreurs
 │
 ├── tests/                      # pytest : prétraitement, doublons, cohérence,
@@ -241,8 +244,18 @@ chargement. Ces couches ne font pas partie du modèle sauvegardé : l'inférence
 python training/evaluate.py
 ```
 
-Sorties : `results/metrics/metrics.json`, `classification_report.csv`,
-`evaluation_summary.md`, `results/figures/*.png`, `results/predictions/*`.
+Livrables produits à la racine de `results/` :
+
+| Fichier | Contenu |
+| --- | --- |
+| `results/metrics.json` | accuracy, precision, recall et F1 (macro et pondérés), métriques par classe, matrice de confusion |
+| `results/classification_report.csv` | precision / recall / F1 / support pour chacune des 38 classes |
+| `results/training_curves.png` | loss et accuracy par époque (entraînement vs validation) |
+| `results/confusion_matrix.png` | matrice de confusion (effectifs et proportions) sur le test |
+
+Fichiers complémentaires : `results/metrics/classification_report.txt`,
+`results/metrics/evaluation_summary.md`, `results/figures/per_class_performance.png`,
+`results/figures/confidence_distribution.png`, `results/predictions/*`.
 
 Toutes les métriques sont calculées à partir des prédictions réelles du modèle sur
 l'ensemble de test (8 156 images). Aucune valeur n'est simulée ni recopiée d'une
@@ -380,7 +393,9 @@ doublons, hyperparamètres centralisés et journalisés, figures générées par
 | --- | --- |
 | Code source (scripts + notebook) | ce dépôt |
 | Modèle entraîné | `models/best_model.keras` + `models/training_config.json` |
-| Résultats et figures | `results/` |
+| Métriques (tableau) | `results/metrics.json` et `results/classification_report.csv` |
+| Courbes Training / Validation Loss | `results/training_curves.png` |
+| Matrice de confusion | `results/confusion_matrix.png` |
 | Rapport scientifique (Word) | `docs/rapport/rapport_final.docx` |
 | Rapport scientifique (LaTeX + PDF) | `docs/rapport/latex/rapport_final.tex` et `rapport_final.pdf` |
 | Fiche expérimentale | `docs/fiche/fiche_experimentale.docx` |

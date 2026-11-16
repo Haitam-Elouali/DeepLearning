@@ -126,7 +126,7 @@ Rappel du protocole : 38 classes, 45 époques (30 + 15), meilleure accuracy de v
 
 #### 6.1.2. Courbes d'apprentissage
 
-![Courbes d'accuracy et de perte](../../results/figures/training_curves.png)
+![Courbes d'accuracy et de perte](../../results/training_curves.png)
 
 *Figure 5 — Courbes d'apprentissage : accuracy et perte, entraînement et validation,
 avec la séparation entre phase 1 et fine-tuning (ligne pointillée).*
@@ -231,7 +231,7 @@ Trois observations se dégagent :
 La matrice complète (38 × 38) est produite en deux panneaux : effectifs à gauche,
 proportions par classe réelle à droite.
 
-![Matrice de confusion](../../results/figures/confusion_matrix.png)
+![Matrice de confusion](../../results/confusion_matrix.png)
 
 *Figure 7 — Matrice de confusion en effectifs (à gauche) et en proportions par classe
 réelle (à droite).*
@@ -791,7 +791,7 @@ l'honnêteté de l'interprétation.
 | Prédiction en ligne de commande | `training/predict.py` |
 | Modèle entraîné | `models/best_model.keras` |
 | Configuration et comptages | `models/training_config.json` |
-| Métriques détaillées | `results/metrics/metrics.json` |
+| Métriques détaillées | `results/metrics.json` |
 | Rapport de classification | `results/metrics/classification_report.txt` |
 | Figures | `results/figures/` |
 | Prédictions et erreurs | `results/predictions/` |

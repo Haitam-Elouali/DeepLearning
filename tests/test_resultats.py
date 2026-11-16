@@ -16,7 +16,7 @@ import pytest
 import config
 
 RACINE = Path(__file__).resolve().parent.parent
-EVALUATION = config.METRICS_DIR / "metrics.json"
+EVALUATION = config.METRICS_JSON_PATH
 PREDICTIONS = config.PREDICTIONS_DIR / "predictions_test.csv"
 MANIFESTE = config.PROCESSED_DATA_DIR / "dataset_manifest.json"
 

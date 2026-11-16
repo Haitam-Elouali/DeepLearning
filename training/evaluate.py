@@ -12,12 +12,12 @@ l'entraînement) et génère les figures du rapport :
 - analyse des erreurs (CSV + planche d'images mal classées).
 
 Sorties :
-    results/metrics/metrics.json
-    results/metrics/evaluation.json          # compatibilite (lecture existante)
-    results/metrics/classification_report.txt
-    results/metrics/classification_report.csv
-    results/metrics/evaluation_summary.md
-    results/figures/{training_curves,confusion_matrix,per_class_performance,confidence_distribution}.png
+    results/metrics.json                  # livrable : métriques globales + par classe
+    results/classification_report.csv     # livrable : précision/rappel/F1 par classe
+    results/training_curves.png           # livrable : loss entraînement / validation
+    results/confusion_matrix.png          # livrable : matrice de confusion (38 classes)
+    results/metrics/{classification_report.txt,evaluation_summary.md,training_history.json}
+    results/figures/{per_class_performance,confidence_distribution}.png
     results/predictions/{predictions_test.csv,erreurs.csv,error_grid.png}
 
 Usage :
@@ -344,11 +344,12 @@ def main() -> int:
     }
 
     # --- Écriture des artefacts ----------------------------------------
-    for dossier in (config.FIGURES_DIR, config.METRICS_DIR, config.PREDICTIONS_DIR):
+    for dossier in (config.FIGURES_DIR, config.METRICS_DIR, config.PREDICTIONS_DIR,
+                    config.RESULTS_DIR):
         dossier.mkdir(parents=True, exist_ok=True)
 
-    sauvegarder_json(resultat, config.METRICS_DIR / "metrics.json")
-    sauvegarder_json(resultat, config.METRICS_DIR / "evaluation.json")  # compatibilite
+    # Livrable principal : results/metrics.json
+    sauvegarder_json(resultat, config.METRICS_JSON_PATH)
 
     rapport_texte = classification_report(
         etiquettes,
@@ -397,7 +398,7 @@ def main() -> int:
             )
 
     # --- CSV du rapport de classification -----------------------------
-    with (config.METRICS_DIR / "classification_report.csv").open(
+    with config.CLASSIFICATION_REPORT_CSV.open(
         "w", newline="", encoding="utf-8"
     ) as fichier:
         redacteur = csv.writer(fichier)
@@ -417,8 +418,8 @@ def main() -> int:
     # --- Figures --------------------------------------------------------
     historique = charger_json(config.HISTORY_PATH, defaut={}) or {}
     if historique:
-        tracer_courbes(historique, configuration, config.FIGURES_DIR / "training_curves.png")
-    tracer_matrice(matrice, config.FIGURES_DIR / "confusion_matrix.png")
+        tracer_courbes(historique, configuration, config.TRAINING_CURVES_PATH)
+    tracer_matrice(matrice, config.CONFUSION_MATRIX_PATH)
     tracer_performances(rapport, config.FIGURES_DIR / "per_class_performance.png")
     tracer_confiance(
         confiances[correct],
@@ -492,8 +493,9 @@ def main() -> int:
     print(" Matrice de confusion :\n", matrice)
     print("-" * 70)
     print(f" Erreurs : {(~correct).sum()} / {len(etiquettes)}")
-    print(f" Figures : {config.FIGURES_DIR}")
-    print(f" Métriques : {config.METRICS_DIR}")
+    print(f" Métriques : {config.METRICS_JSON_PATH}")
+    print(f" Rapport   : {config.CLASSIFICATION_REPORT_CSV}")
+    print(f" Figures   : {config.TRAINING_CURVES_PATH} / {config.CONFUSION_MATRIX_PATH}")
     return 0
 
 

@@ -29,6 +29,12 @@ TRAINING_CONFIG_PATH = MODELS_DIR / "training_config.json"
 MODEL_PATH = MODELS_DIR / "best_model.keras"
 HISTORY_PATH = METRICS_DIR / "training_history.json"
 
+# Livrables demandés par le cahier des charges : à la racine de results/
+METRICS_JSON_PATH = RESULTS_DIR / "metrics.json"
+CLASSIFICATION_REPORT_CSV = RESULTS_DIR / "classification_report.csv"
+TRAINING_CURVES_PATH = RESULTS_DIR / "training_curves.png"
+CONFUSION_MATRIX_PATH = RESULTS_DIR / "confusion_matrix.png"
+
 for _dossier in (DATA_DIR, PROCESSED_DATA_DIR, MODELS_DIR, FIGURES_DIR, METRICS_DIR, PREDICTIONS_DIR):
     _dossier.mkdir(parents=True, exist_ok=True)
 
