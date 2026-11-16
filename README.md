@@ -456,7 +456,9 @@ numéros de page figurent en pied de page.
 > L'auteur et l'année restent des espaces réservés dans les macros `\report...` en tête
 > de `docs/rapport/latex/rapport_final.tex`. Les valeurs saisies sont conservées si le
 > script est relancé ; sinon, compiler directement avec `xelatex rapport_final.tex`.
-> La compilation demande XeLaTeX (MiKTeX ou TeX Live).
+> La compilation demande XeLaTeX (MiKTeX ou TeX Live). Si `xelatex` n'est pas dans le
+> `PATH`, l'ajouter avant de lancer le script, par exemple sous Windows :
+> `set PATH=%LOCALAPPDATA%\Programs\MiKTeX\miktex\bin\x64;%PATH%`.
 
 ---
 
