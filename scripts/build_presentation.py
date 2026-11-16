@@ -295,9 +295,9 @@ def construire() -> Path:
     d.image(slide, figures / "dataset_distribution.png", Inches(0.5), Inches(1.7), largeur=Inches(8.4))
     d.tableau(slide, [
         ["Ensemble", "Images"],
-        ["Entraînement", "37 992"],
-        ["Validation", "8 157"],
-        ["Test", "8 156"],
+        ["Entraînement", "37 999"],
+        ["Validation", "8 153"],
+        ["Test", "8 153"],
     ], Inches(9.3), Inches(1.9), Inches(3.4), Inches(1.8), taille=13)
     d.puces(slide, [
         "Graine fixée (42) et découpage par classe.",
@@ -415,14 +415,14 @@ def construire() -> Path:
     )
     d.image(slide, figures / "confusion_matrix.png", Inches(0.6), Inches(1.45), largeur=Inches(11.8))
     d._texte(slide, Inches(0.6), Inches(6.3), Inches(12.2), Inches(0.6),
-             "Diagonale dominante · 30 erreurs maïs (brûlure nordique → tache grise) sur 240 erreurs.",
+             "Diagonale dominante · 30 erreurs maïs (brûlure nordique → tache grise) sur 171 erreurs.",
              taille=14, couleur=VERT_FONCE, gras=True, alignement=PP_ALIGN.CENTER)
 
     # 13. Par classe ----------------------------------------------------
     slide = d.nouvelle_diapositive(
         "Performances par classe",
         notes=(
-            "Souligner les 14 classes au-dessus de 99 % de F1 et les classes fragiles "
+            "Souligner les 19 classes au-dessus de 99 % de F1 et les classes fragiles "
             "(alternariose, maïs). (≈ 1 min)"
         ),
     )
@@ -504,7 +504,7 @@ def construire() -> Path:
         ),
     )
     d.puces(slide, [
-        "Données : images de laboratoire, déséquilibre (152 à 5 507 images), test de 8 156 images.",
+        "Données : images de laboratoire, déséquilibre (152 à 5 507 images), test de 8 153 images.",
         "Modèle : une seule architecture, pas de validation croisée, probabilités mal calibrées.",
         "Application : pas d'authentification, serveur de développement Flask.",
         "Perspectives : Grad-CAM, détection d'inconnu, calibration (température scaling), "
@@ -524,7 +524,7 @@ def construire() -> Path:
         f"Résultats réels : {pourcent(global_.get('accuracy', 0))} d'accuracy, "
         f"F1 macro {pourcent(global_.get('f1_macro', 0))} sur {global_.get('nb_images', '—')} images de test.",
         "Transfer Learning efficace : 86 % de validation dès la première époque.",
-        "240 erreurs, concentrées sur quelques paires de maladies proches.",
+        "171 erreurs, concentrées sur quelques paires de maladies proches.",
         "Outil expérimental d'aide à la reconnaissance visuelle — pas un diagnostic agricole.",
         "Perspectives : explicabilité, calibration, données de terrain, déploiement mobile.",
     ], taille=17)

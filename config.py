@@ -34,6 +34,7 @@ METRICS_JSON_PATH = RESULTS_DIR / "metrics.json"
 CLASSIFICATION_REPORT_CSV = RESULTS_DIR / "classification_report.csv"
 TRAINING_CURVES_PATH = RESULTS_DIR / "training_curves.png"
 CONFUSION_MATRIX_PATH = RESULTS_DIR / "confusion_matrix.png"
+CONFUSION_MATRIX_NORMALIZED_PATH = RESULTS_DIR / "confusion_matrix_normalized.png"
 
 for _dossier in (DATA_DIR, PROCESSED_DATA_DIR, MODELS_DIR, FIGURES_DIR, METRICS_DIR, PREDICTIONS_DIR):
     _dossier.mkdir(parents=True, exist_ok=True)
@@ -127,4 +128,4 @@ ALLOWED_MIME_TYPES = {"image/jpeg", "image/png"}
 MAX_UPLOAD_SIZE = 8 * 1024 * 1024  # 8 Mo
 MAX_IMAGE_DIMENSION = 4000
 
-APP_NAME = "TomatoScan"
+APP_NAME = "PlantDiseaseClassifier"

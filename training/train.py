@@ -41,10 +41,10 @@ import tensorflow as tf  # noqa: E402
 from tensorflow import keras  # noqa: E402
 from tensorflow.keras import layers  # noqa: E402
 from tensorflow.keras.applications import MobileNetV2  # noqa: E402
-from tensorflow.keras.applications.mobilenet_v2 import preprocess_input  # noqa: E402
 
 import config  # noqa: E402
 from utils.helpers import sauvegarder_json  # noqa: E402
+from utils.preprocessing import preparer_pour_modele  # noqa: E402
 
 AUTOTUNE = tf.data.AUTOTUNE
 
@@ -66,58 +66,107 @@ def construire_augmentation() -> keras.Sequential:
 
     Les couches sont inactives à l'inférence et ne font pas partie du modèle
     sauvegardé : le prétraitement de prédiction reste donc simplement
-    « redimensionnement + normalisation ».
+    « redimensionnement Pillow + normalisation [-1, 1] », appliqué une fois.
+
+    Les tenseurs arrivent déjà normalisés dans [-1, 1] : la plage de valeurs de
+    la variation de luminosité est donc (-1, 1).
     """
     return keras.Sequential(
         [
             layers.RandomRotation(factor=0.05, fill_mode="nearest"),
             layers.RandomZoom(height_factor=(-0.1, 0.1), width_factor=(-0.1, 0.1), fill_mode="nearest"),
             layers.RandomFlip(mode="horizontal"),
-            layers.RandomBrightness(factor=0.15, value_range=(0, 255)),
+            layers.RandomBrightness(factor=0.15, value_range=(-1, 1)),
             layers.RandomTranslation(height_factor=0.05, width_factor=0.05, fill_mode="nearest"),
         ],
         name="augmentation",
     )
 
 
+def lister_images(dossier: Path) -> tuple[list[str], list[int]]:
+    """Liste les images d'un ensemble et leur indice de classe.
+
+    L'ordre est déterministe (classes de ``config.CLASS_NAMES``, puis fichiers
+    triés), ce qui rend la validation et le test parfaitement reproductibles.
+    """
+    chemins: list[str] = []
+    etiquettes: list[int] = []
+    for indice, classe in enumerate(config.CLASS_NAMES):
+        dossier_classe = dossier / classe
+        if not dossier_classe.is_dir():
+            raise SystemExit(f"Dossier manquant : {dossier_classe}")
+        for fichier in sorted(dossier_classe.iterdir()):
+            if fichier.is_file() and fichier.suffix.lower() in config.ALLOWED_EXTENSIONS:
+                chemins.append(str(fichier))
+                etiquettes.append(indice)
+    return chemins, etiquettes
+
+
+def charger_image(chemin, etiquette):
+    """Charge une image avec le prétraitement exact de l'inférence.
+
+    On n'utilise pas ``image_dataset_from_directory`` : il redimensionnerait
+    avec ``tf.image.resize`` (bilinéaire TensorFlow), alors que l'application
+    redimensionne avec Pillow. Deux algorithmes différents produiraient des
+    tenseurs légèrement différents. Ici, l'entraînement appelle directement
+    ``utils.preprocessing.preparer_pour_modele`` : un seul code de
+    prétraitement pour l'entraînement, la validation, le test et l'inférence.
+    """
+
+    def _charger(chemin_encode: bytes) -> np.ndarray:
+        return preparer_pour_modele(chemin_encode.decode("utf-8"))
+
+    tenseur = tf.numpy_function(_charger, [chemin], tf.float32)
+    tenseur.set_shape([*config.IMAGE_SIZE, 3])
+    return tenseur, etiquette
+
+
+def construire_dataset(
+    dossier: Path, batch_size: int, graine: int, entrainement: bool
+) -> tf.data.Dataset:
+    """Construit un pipeline tf.data pour un ensemble (train, validation, test)."""
+    chemins, etiquettes = lister_images(dossier)
+    dataset = tf.data.Dataset.from_tensor_slices((chemins, etiquettes))
+    if entrainement:
+        dataset = dataset.shuffle(len(chemins), seed=graine, reshuffle_each_iteration=True)
+    dataset = dataset.map(charger_image, num_parallel_calls=AUTOTUNE)
+    dataset = dataset.batch(batch_size)
+
+    if entrainement:
+        augmentation = construire_augmentation()
+
+        def augmenter(images, etiquettes_one_hot):
+            return augmentation(images, training=True), etiquettes_one_hot
+
+        dataset = dataset.map(augmenter, num_parallel_calls=AUTOTUNE)
+
+    # Étiquettes one-hot, comme avec label_mode="categorical".
+    dataset = dataset.map(
+        lambda images, etiquettes: (
+            images,
+            tf.one_hot(etiquettes, config.NUM_CLASSES),
+        ),
+        num_parallel_calls=AUTOTUNE,
+    )
+    return dataset.prefetch(AUTOTUNE)
+
+
 def charger_ensembles(
     dossier_donnees: Path, batch_size: int, graine: int
 ) -> tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
-    """Charge les trois ensembles et construit les pipelines tf.data."""
-    parametres_communs = dict(
-        labels="inferred",
-        label_mode="categorical",
-        class_names=config.CLASS_NAMES,
-        image_size=config.IMAGE_SIZE,
-        batch_size=batch_size,
-    )
+    """Charge les trois ensembles (prétraitement identique à l'inférence).
 
-    train_ds = keras.utils.image_dataset_from_directory(
-        dossier_donnees / "train", shuffle=True, seed=graine, **parametres_communs
+    La data augmentation n'est appliquée qu'à l'ensemble d'entraînement.
+    """
+    train_ds = construire_dataset(
+        dossier_donnees / "train", batch_size, graine, entrainement=True
     )
-    val_ds = keras.utils.image_dataset_from_directory(
-        dossier_donnees / "validation", shuffle=False, **parametres_communs
+    val_ds = construire_dataset(
+        dossier_donnees / "validation", batch_size, graine, entrainement=False
     )
-    test_ds = keras.utils.image_dataset_from_directory(
-        dossier_donnees / "test", shuffle=False, **parametres_communs
+    test_ds = construire_dataset(
+        dossier_donnees / "test", batch_size, graine, entrainement=False
     )
-
-    augmentation = construire_augmentation()
-
-    def augmenter(images, etiquettes):
-        return augmentation(images, training=True), etiquettes
-
-    def normaliser(images, etiquettes):
-        # preprocess_input de MobileNetV2 : [0, 255] -> [-1, 1]
-        return preprocess_input(images), etiquettes
-
-    train_ds = (
-        train_ds.map(augmenter, num_parallel_calls=AUTOTUNE)
-        .map(normaliser, num_parallel_calls=AUTOTUNE)
-        .prefetch(AUTOTUNE)
-    )
-    val_ds = val_ds.map(normaliser, num_parallel_calls=AUTOTUNE).prefetch(AUTOTUNE)
-    test_ds = test_ds.map(normaliser, num_parallel_calls=AUTOTUNE).prefetch(AUTOTUNE)
     return train_ds, val_ds, test_ds
 
 
@@ -162,7 +211,7 @@ def construire_modele(nombre_classes: int, learning_rate: float) -> tuple[keras.
     x = layers.Dropout(0.3, name="dropout_2")(x)
     sortie = layers.Dense(nombre_classes, activation="softmax", name="probabilites")(x)
 
-    modele = keras.Model(entree, sortie, name="mobilenetv2_tomate")
+    modele = keras.Model(entree, sortie, name="mobilenetv2_plantvillage")
     modele.compile(
         optimizer=keras.optimizers.Adam(learning_rate=learning_rate),
         loss="categorical_crossentropy",
@@ -301,7 +350,7 @@ def fusionner_historiques(historiques: list[dict[str, list[float]]]) -> dict[str
 # Programme principal
 # ---------------------------------------------------------------------------
 def main() -> int:
-    parseur = argparse.ArgumentParser(description="Entraînement MobileNetV2 (tomate).")
+    parseur = argparse.ArgumentParser(description="Entraînement MobileNetV2 sur PlantVillage (38 classes).")
     parseur.add_argument("--data-dir", type=Path, default=config.PROCESSED_DATA_DIR)
     parseur.add_argument("--epochs", type=int, default=config.EPOCHS)
     parseur.add_argument("--fine-tune-epochs", type=int, default=config.FINE_TUNE_EPOCHS)

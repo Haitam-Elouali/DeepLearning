@@ -1,5 +1,5 @@
 {
-  "genere_le": "2026-11-15T15:40:51",
+  "genere_le": "2026-11-16T22:39:11",
   "methode": {
     "doublons_exacts": "empreinte MD5 sur l'ensemble du dataset",
     "quasi_doublons": "empreinte perceptuelle dHash 64 bits, distance de Hamming <= 2 (informatif : aucune suppression)",

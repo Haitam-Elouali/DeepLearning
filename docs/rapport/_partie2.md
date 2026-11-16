@@ -77,7 +77,7 @@ après contrôle qualité.
 | Tomato — Tomato Yellow Leaf Curl Virus | 5 357 | 3 749 | 804 | 804 |
 | Tomato — Tomato mosaic virus | 373 | 261 | 56 | 56 |
 | Tomato — healthy (feuille saine) | 1 591 | 1 111 | 240 | 240 |
-| **Total** | **54 305** | **37 992** | **8 157** | **8 156** |
+| **Total** | **54 305** | **37 999** | **8 153** | **8 153** |
 
 *Tableau 3 — Classes retenues et effectifs réels, avant et après découpage.*
 
@@ -110,7 +110,7 @@ l'entraînement et dans le test et gonfler les performances. Une image identique
 sans choisir de classe arbitrairement. Les quasi-doublons sont seulement **signalés**,
 car deux feuilles malades différentes se ressemblent légitimement. Le rapport détaillé
 est écrit dans `results/metrics/qualite_donnees.json`, et relancer le découpage redonne
-exactement 37 992 / 8 157 / 8 156 images.
+exactement 37 999 / 8 153 / 8 153 images.
 
 #### 3.1.4. Découpage des données
 
@@ -119,9 +119,9 @@ garantir la reproductibilité, selon les proportions 70 % / 15 % / 15 % :
 
 | Ensemble | Rôle | Images |
 | --- | --- | --- |
-| Entraînement | Apprentissage des poids | 37 992 |
-| Validation | Suivi, Early Stopping, sélection du modèle | 8 157 |
-| Test | Évaluation finale, jamais utilisé pendant l'entraînement | 8 156 |
+| Entraînement | Apprentissage des poids | 37 999 |
+| Validation | Suivi, Early Stopping, sélection du modèle | 8 153 |
+| Test | Évaluation finale, jamais utilisé pendant l'entraînement | 8 153 |
 
 *Tableau 4 — Rôle et taille des trois ensembles.*
 
@@ -129,7 +129,7 @@ garantir la reproductibilité, selon les proportions 70 % / 15 % / 15 % :
 
 *Figure 2 — Effectifs par classe, empilés par ensemble (entraînement, validation, test).*
 
-Avec 8 156 images de test, l'intervalle de confiance à 95 % sur l'accuracy est de
+Avec 8 153 images de test, l'intervalle de confiance à 95 % sur l'accuracy est de
 l'ordre de ±0,4 point : le chiffre final est donc une estimation raisonnablement
 précise, ce qui n'était pas le cas du prototype à quatre classes (820 images de test).
 
@@ -311,7 +311,7 @@ le temps de calcul.
 
 *Tableau 8 — Hyperparamètres d'entraînement.*
 
-Le nombre d'images par époque (37 992) impose 1 188 lots de 32 : une époque dure donc
+Le nombre d'images par époque (37 999) impose 1 188 lots de 32 : une époque dure donc
 plusieurs minutes, et le budget complet 30 + 15 époques représente une douzaine d'heures
 de calcul. L'Early Stopping n'a pas été déclenché, ce qui signifie que la validation
 progressait encore à la dernière époque : le budget maximal a été entièrement consommé.

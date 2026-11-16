@@ -25,21 +25,48 @@ from training.train import (  # noqa: E402
 from utils.preprocessing import preparer_pour_modele  # noqa: E402
 
 
+def _image_motif(chemin: Path, indice: int, numero: int) -> Path:
+    """Écrit une image synthétique à dégradé et motifs (pas de couleur unie).
+
+    La taille (300 x 300) diffère volontairement de 224 x 224 : le
+    redimensionnement est ainsi réellement exercé, comme sur PlantVillage
+    (256 x 256 -> 224 x 224).
+    """
+    from PIL import Image, ImageDraw
+
+    taille = 300
+    yy, xx = np.mgrid[0:taille, 0:taille]
+    tableau = np.stack(
+        [
+            (xx * 2 + indice * 37) % 256,
+            (yy * 3 + numero * 53) % 256,
+            (xx + yy) % 256,
+        ],
+        axis=-1,
+    ).astype(np.uint8)
+
+    image = Image.fromarray(tableau, mode="RGB")
+    trace = ImageDraw.Draw(image)
+    trace.rectangle([20, 20, 90, 90], fill=(255, 255, 255))
+    trace.line([0, taille - 1, taille - 1, 0], fill=(0, 0, 0), width=3)
+    trace.ellipse([120, 120, 250, 250], outline=(200, 30, 30), width=3)
+
+    chemin.parent.mkdir(parents=True, exist_ok=True)
+    image.save(chemin, format="PNG")
+    return chemin
+
+
 def _jeu_reduit(dossier: Path, par_classe: int = 2) -> dict[str, list[Path]]:
     """Crée un mini-dataset (train/validation/test) avec les 38 classes."""
-    from PIL import Image
-
     images: dict[str, list[Path]] = {}
     for indice, classe in enumerate(config.CLASS_NAMES):
         fichiers = []
         for split in ("train", "validation", "test"):
             dossier_classe = dossier / split / classe
-            dossier_classe.mkdir(parents=True, exist_ok=True)
             for numero in range(par_classe):
-                chemin = dossier_classe / f"{numero}.png"
-                couleur = ((indice * 7) % 256, (numero * 90) % 256, (indice * 13) % 256)
-                Image.new("RGB", (256, 256), couleur).save(chemin, format="PNG")
-                fichiers.append(chemin)
+                fichiers.append(
+                    _image_motif(dossier_classe / f"{numero}.png", indice, numero)
+                )
         images[classe] = fichiers
     return images
 
@@ -51,25 +78,65 @@ def mini_dataset(tmp_path_factory):
     return dossier, images
 
 
-def test_validation_et_test_utilisent_le_preraitement_d_inference(mini_dataset):
-    """Les tenseurs de validation sont identiques à ceux de l'application."""
-    dossier, images = mini_dataset
+def test_validation_et_test_utilisent_exactement_le_preprocessing_d_inference(
+    mini_dataset,
+):
+    """Chaque image du pipeline doit être *le* tenseur de l'inférence.
+
+    La comparaison est faite image par image, dans l'ordre des dossiers
+    (``shuffle=False``), et non en cherchant la meilleure correspondance parmi
+    toutes les images : une erreur d'ordre ou de redimensionnement est donc
+    détectée.
+    """
+    dossier, _ = mini_dataset
     _, val_ds, test_ds = charger_ensembles(dossier, batch_size=8, graine=42)
 
-    attendus = {
-        classe: [preparer_pour_modele(chemin) for chemin in fichiers]
-        for classe, fichiers in images.items()
-    }
+    for dataset, split in ((val_ds, "validation"), (test_ds, "test")):
+        attendus = [
+            preparer_pour_modele(chemin)
+            for classe in config.CLASS_NAMES
+            for chemin in sorted((dossier / split / classe).iterdir())
+        ]
+        obtenus = [image for lot, _ in dataset for image in lot.numpy()]
 
-    for dataset in (val_ds, test_ds):
-        lot_images, _ = next(iter(dataset))
-        for image in lot_images.numpy():
-            distances = min(
-                float(np.max(np.abs(image - attendu)))
-                for tenseurs in attendus.values()
-                for attendu in tenseurs
-            )
-            assert distances < 1e-4, f"écart de prétraitement : {distances}"
+        assert len(obtenus) == len(attendus), split
+        for index, (obtenu, attendu) in enumerate(zip(obtenus, attendus)):
+            assert obtenu.shape == (*config.IMAGE_SIZE, 3)
+            ecart = float(np.max(np.abs(obtenu - attendu)))
+            assert ecart < 1e-5, f"{split}, image {index} : écart {ecart}"
+
+
+def test_un_seul_algorithme_de_redimensionnement(mini_dataset):
+    """Le fichier et l'image déjà ouverte passent par le même redimensionnement.
+
+    Le pipeline ``tf.data`` appelle ``preparer_pour_modele`` : il n'y a donc
+    qu'une seule implémentation du prétraitement dans tout le projet (Pillow),
+    partagée par l'entraînement, la validation, le test et l'inférence.
+    """
+    from PIL import Image
+
+    from utils.preprocessing import preparer_image
+
+    dossier, _ = mini_dataset
+    chemin = sorted((dossier / "validation" / config.CLASS_NAMES[0]).iterdir())[0]
+
+    depuis_fichier = preparer_pour_modele(chemin)
+    with Image.open(chemin) as image:
+        depuis_image = preparer_image(image.convert("RGB"))
+
+    assert depuis_fichier.shape == (*config.IMAGE_SIZE, 3)
+    assert np.array_equal(depuis_fichier, depuis_image)
+
+
+def test_normalisation_appliquee_une_seule_fois(mini_dataset):
+    """Aucune double normalisation : les bornes restent dans [-1, 1]."""
+    dossier, _ = mini_dataset
+    _, val_ds, _ = charger_ensembles(dossier, batch_size=8, graine=42)
+
+    lot, _ = next(iter(val_ds))
+    valeurs = lot.numpy()
+    assert valeurs.min() >= -1.0 - 1e-6
+    assert valeurs.max() <= 1.0 + 1e-6
 
 
 def test_entrainement_normalise_dans_le_meme_intervalle(mini_dataset):

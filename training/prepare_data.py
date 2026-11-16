@@ -318,6 +318,8 @@ def construire_decoupage(
     """
     generateur = random.Random(graine)
     decoupage: dict[str, dict[str, list[Path]]] = {split: defaultdict(list) for split in SPLITS}
+    proportions_par_classe: dict[str, dict[str, float]] = {}
+    classes_rares: list[dict[str, object]] = []
     groupes = groupes or {}
 
     # Empreinte de chaque fichier conservé, pour reconstituer les groupes.
@@ -337,30 +339,68 @@ def construire_decoupage(
         liste_blocs = list(blocs.values())
         generateur.shuffle(liste_blocs)
 
-        nombre = len(liste_blocs)
-        total_utilise += sum(len(bloc) for bloc in liste_blocs)
-        n_test = max(config.MIN_IMAGES_PER_SPLIT, round(nombre * ratio_test))
-        n_val = max(config.MIN_IMAGES_PER_SPLIT, round(nombre * ratio_val))
-        n_train = nombre - n_val - n_test
+        # Les objectifs sont exprimés en NOMBRE D'IMAGES : un bloc de doublons
+        # peut en contenir plusieurs ; compter les blocs fausserait les
+        # proportions. On additionne donc les images.
+        nombre_images = sum(len(bloc) for bloc in liste_blocs)
+        total_utilise += nombre_images
+
+        n_test = max(config.MIN_IMAGES_PER_SPLIT, round(nombre_images * ratio_test))
+        n_val = max(config.MIN_IMAGES_PER_SPLIT, round(nombre_images * ratio_val))
+        n_train = nombre_images - n_val - n_test
         if n_train < config.MIN_IMAGES_PER_SPLIT:
             raise SystemExit(
-                f"Pas assez d'images pour la classe {classe} avec les ratios demandés."
+                f"Pas assez d'images pour la classe {classe} avec les ratios demandés "
+                f"({nombre_images} images, minimum {config.MIN_IMAGES_PER_SPLIT} "
+                "par ensemble)."
             )
 
-        # 2) Chaque bloc est affecté à l'ensemble qui a le plus grand déficit :
-        #    le découpage reste stratifié (~70/15/15) sans séparer des doublons.
-        objectifs = {
-            "train": n_train,
-            "validation": n_val,
-            "test": nombre - n_train - n_val,
-        }
+        # 2) Chaque bloc est affecté à l'ensemble qui a le plus grand déficit
+        #    relatif : le découpage reste stratifié (~70/15/15) et les doublons
+        #    exacts ne sont jamais séparés.
+        objectifs = {"train": n_train, "validation": n_val, "test": n_test}
         remplies = {split: 0 for split in SPLITS}
         for bloc in liste_blocs:
-            cible = max(SPLITS, key=lambda split: objectifs[split] - remplies[split])
+            cible = max(
+                SPLITS,
+                key=lambda split: (objectifs[split] - remplies[split])
+                / max(objectifs[split], 1),
+            )
             decoupage[cible][classe].extend(bloc)
             remplies[cible] += len(bloc)
 
-    details: dict[str, object] = {"images_utilisees": total_utilise}
+        # 3) Proportions réellement obtenues : elles sont enregistrées dans le
+        #    manifeste, notamment pour les classes rares où le minimum de
+        #    30 images par ensemble domine.
+        obtenues = {split: len(decoupage[split][classe]) for split in SPLITS}
+        proportions = {
+            split: (obtenues[split] / nombre_images if nombre_images else 0.0)
+            for split in SPLITS
+        }
+        proportions_par_classe[classe] = proportions
+        if (
+            abs(proportions["validation"] - ratio_val) > 0.03
+            or abs(proportions["test"] - ratio_test) > 0.03
+        ):
+            classes_rares.append(
+                {
+                    "classe": classe,
+                    "images": nombre_images,
+                    "part_train": round(proportions["train"], 4),
+                    "part_validation": round(proportions["validation"], 4),
+                    "part_test": round(proportions["test"], 4),
+                    "raison": (
+                        f"minimum de {config.MIN_IMAGES_PER_SPLIT} images par ensemble "
+                        "appliqué à une classe peu représentée"
+                    ),
+                }
+            )
+
+    details: dict[str, object] = {
+        "images_utilisees": total_utilise,
+        "proportions_par_classe": proportions_par_classe,
+        "classes_rares_ecartees_des_ratios": classes_rares,
+    }
     return decoupage, details
 
 
@@ -531,6 +571,12 @@ def main() -> int:
             "rapport_detaille": str(chemin_rapport.relative_to(config.BASE_DIR)),
         },
         "images_utilisees": details["images_utilisees"],
+        "proportions_obtenues": {
+            split: round(totaux[split] / total_general, 4) for split in SPLITS
+        },
+        "classes_rares_ecartees_des_ratios": details[
+            "classes_rares_ecartees_des_ratios"
+        ],
         "images_invalides": invalides,
         "mise_en_lien": "copie" if arguments.copy else "lien physique (hardlink)",
     }
@@ -553,7 +599,25 @@ def main() -> int:
         f"{totaux['test']:>8}{total_general:>8}"
     )
 
-    print("\n4. Contrôles")
+    print("\n4. Proportions réellement obtenues")
+    for split in SPLITS:
+        print(
+            f"   {split:<11}{totaux[split]:>8} images"
+            f"{100 * totaux[split] / total_general:>8.2f} %"
+        )
+    rares = details["classes_rares_ecartees_des_ratios"]
+    print(
+        f"   Classes où le minimum de {config.MIN_IMAGES_PER_SPLIT} images "
+        f"par ensemble domine : {len(rares)}"
+    )
+    for rare in rares[:5]:
+        print(
+            f"     {rare['classe']:<45}{rare['images']:>6} images -> "
+            f"{100 * rare['part_train']:.0f}/{100 * rare['part_validation']:.0f}/"
+            f"{100 * rare['part_test']:.0f} %"
+        )
+
+    print("\n5. Contrôles")
     print(f"   Graine aléatoire          : {arguments.seed}")
     print(
         f"   Doublons exacts           : {analyse.statistiques['groupes_doublons_exacts']} groupes "

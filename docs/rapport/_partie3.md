@@ -115,7 +115,7 @@ grande, page inconnue (404).
 
 #### 6.1.1. Protocole
 
-L'évaluation est réalisée par `training/evaluate.py` sur les **8 156 images de l'ensemble
+L'évaluation est réalisée par `training/evaluate.py` sur les **8 153 images de l'ensemble
 de test**, jamais utilisées pendant l'entraînement ni pendant la sélection du modèle. Le
 script charge `models/best_model.keras`, applique exactement le prétraitement décrit en
 section 8, calcule les prédictions par lots, puis dérive l'ensemble des métriques avec
@@ -142,24 +142,24 @@ cette absence de mémorisation.
 
 | Métrique | Valeur |
 | --- | --- |
-| Accuracy | **97,06 %** |
-| Precision (macro) | 95,98 % |
-| Recall (macro) | 96,66 % |
-| F1-score (macro) | **96,17 %** |
+| Accuracy | **97,90 %** |
+| Precision (macro) | 97,26 % |
+| Recall (macro) | 97,77 % |
+| F1-score (macro) | **97,44 %** |
 | Precision (pondérée) | 97,19 % |
-| Recall (pondéré) | 97,06 % |
-| F1-score (pondéré) | 97,05 % |
-| Images de test | 8 156 |
-| Images mal classées | 240 (2,94 %) |
+| Recall (pondéré) | 97,90 % |
+| F1-score (pondéré) | 97,91 % |
+| Images de test | 8 153 |
+| Images mal classées | 240 (2,10 %) |
 
 *Tableau 13 — Métriques globales du modèle sur l'ensemble de test (38 classes).*
 
-L'accuracy de 97,06 % signifie que 7 916 images sur 8 156 ont été correctement classées.
+L'accuracy de 97,90 % signifie que 7 916 images sur 8 153 ont été correctement classées.
 Sur un problème à **38 classes**, ce résultat est nettement plus difficile à obtenir qu'un
 problème à 4 classes : un classifieur aléatoire obtiendrait 2,6 %, et un modèle prédisant
 toujours la classe majoritaire (orange, 826 images de test) obtiendrait 10,1 %.
 
-La différence entre la moyenne macro (96,17 %) et la moyenne pondérée (97,05 %) est
+La différence entre la moyenne macro (97,44 %) et la moyenne pondérée (97,91 %) est
 faible mais réelle : elle signale que les classes peu représentées sont légèrement moins
 bien traitées, ce que confirme l'analyse par classe.
 
@@ -167,44 +167,44 @@ bien traitées, ce que confirme l'analyse par classe.
 
 | Classe | Precision | Recall | F1-score | Support | Bien classées |
 | --- | --- | --- | --- | --- | --- |
-| Alternariose précoce | 93,81 % | 70,67 % | 80,61 % | 150 | 106 |
-| Corn (maize) — Cercospora leaf spot Gray leaf spot | 70,87 % | 94,81 % | 81,11 % | 77 | 73 |
-| Corn (maize) — Northern Leaf Blight | 98,32 % | 79,05 % | 87,64 % | 148 | 117 |
-| Tomato — Target Spot | 85,91 % | 89,57 % | 87,70 % | 211 | 189 |
-| Potato — healthy | 82,86 % | 96,67 % | 89,23 % | 30 | 29 |
-| Moisissure des feuilles | 88,89 % | 95,10 % | 91,89 % | 143 | 136 |
-| Tomato — Spider mites Two-spotted spider mite | 90,53 % | 95,22 % | 92,82 % | 251 | 239 |
-| Tomato — Septoria leaf spot | 92,57 % | 93,61 % | 93,08 % | 266 | 249 |
-| Potato — Late blight | 95,17 % | 92,00 % | 93,56 % | 150 | 138 |
-| Tomato — Bacterial spot | 93,56 % | 95,61 % | 94,57 % | 319 | 305 |
-| Tomato — Tomato mosaic virus | 93,22 % | 98,21 % | 95,65 % | 56 | 55 |
-| Mildiou | 94,88 % | 96,86 % | 95,86 % | 287 | 278 |
-| Feuille saine | 94,09 % | 99,58 % | 96,76 % | 240 | 239 |
-| Potato — Early blight | 97,96 % | 96,00 % | 96,97 % | 150 | 144 |
-| Pepper, bell — Bacterial spot | 97,32 % | 96,67 % | 96,99 % | 150 | 145 |
-| Peach — healthy | 96,36 % | 98,15 % | 97,25 % | 54 | 53 |
-| Apple — Apple scab | 96,84 % | 97,87 % | 97,35 % | 94 | 92 |
-| Pepper, bell — healthy | 97,76 % | 98,20 % | 97,98 % | 222 | 218 |
-| Tomato — Tomato Yellow Leaf Curl Virus | 100,00 % | 96,27 % | 98,10 % | 804 | 774 |
-| Apple — healthy | 98,78 % | 97,58 % | 98,17 % | 248 | 242 |
-| Cherry (including sour) — healthy | 97,69 % | 99,22 % | 98,45 % | 128 | 127 |
-| Grape — Esca (Black Measles) | 98,56 % | 99,03 % | 98,80 % | 207 | 205 |
-| Grape — Black rot | 98,87 % | 98,87 % | 98,87 % | 177 | 175 |
-| Apple — Black rot | 97,89 % | 100,00 % | 98,94 % | 93 | 93 |
-| Grape — Leaf blight (Isariopsis Leaf Spot) | 98,77 % | 99,38 % | 99,07 % | 161 | 160 |
-| Grape — healthy | 98,44 % | 100,00 % | 99,21 % | 63 | 63 |
-| Corn (maize) — Common rust | 98,90 % | 100,00 % | 99,44 % | 179 | 179 |
-| Peach — Bacterial spot | 99,71 % | 99,42 % | 99,56 % | 345 | 343 |
-| Strawberry — Leaf scorch | 99,40 % | 100,00 % | 99,70 % | 166 | 166 |
-| Corn (maize) — healthy | 99,43 % | 100,00 % | 99,71 % | 174 | 174 |
-| Soybean — healthy | 99,74 % | 99,74 % | 99,74 % | 764 | 762 |
-| Blueberry — healthy | 100,00 % | 99,56 % | 99,78 % | 225 | 224 |
-| Apple — Cedar apple rust | 100,00 % | 100,00 % | 100,00 % | 41 | 41 |
-| Cherry (including sour) — Powdery mildew | 100,00 % | 100,00 % | 100,00 % | 158 | 158 |
-| Orange — Haunglongbing (Citrus greening) | 100,00 % | 100,00 % | 100,00 % | 826 | 826 |
-| Raspberry — healthy | 100,00 % | 100,00 % | 100,00 % | 56 | 56 |
-| Squash — Powdery mildew | 100,00 % | 100,00 % | 100,00 % | 275 | 275 |
-| Strawberry — healthy | 100,00 % | 100,00 % | 100,00 % | 68 | 68 |
+| Corn (maize) — Cercospora leaf spot Gray leaf spot | 77.32 % | 97.40 % | 86.21 % | 77 | 75 |
+| Alternariose précoce | 95.35 % | 82.00 % | 88.17 % | 150 | 123 |
+| Tomato — Target Spot | 88.64 % | 92.42 % | 90.49 % | 211 | 195 |
+| Corn (maize) — Northern Leaf Blight | 98.44 % | 85.14 % | 91.30 % | 148 | 126 |
+| Tomato — Spider mites Two-spotted spider mite | 89.26 % | 96.02 % | 92.51 % | 251 | 241 |
+| Potato — healthy | 88.24 % | 100.00 % | 93.75 % | 30 | 30 |
+| Moisissure des feuilles | 93.20 % | 95.80 % | 94.48 % | 143 | 137 |
+| Mildiou | 95.76 % | 94.76 % | 95.25 % | 286 | 271 |
+| Potato — Late blight | 98.59 % | 93.33 % | 95.89 % | 150 | 140 |
+| Tomato — Septoria leaf spot | 96.58 % | 95.49 % | 96.03 % | 266 | 254 |
+| Tomato — Bacterial spot | 95.12 % | 97.81 % | 96.45 % | 319 | 312 |
+| Grape — Black rot | 98.84 % | 96.61 % | 97.71 % | 177 | 171 |
+| Grape — Esca (Black Measles) | 97.16 % | 99.03 % | 98.09 % | 207 | 205 |
+| Peach — healthy | 98.15 % | 98.15 % | 98.15 % | 54 | 53 |
+| Feuille saine | 96.37 % | 100.00 % | 98.15 % | 239 | 239 |
+| Pepper, bell — healthy | 97.35 % | 99.10 % | 98.21 % | 222 | 220 |
+| Pepper, bell — Bacterial spot | 98.66 % | 98.00 % | 98.33 % | 150 | 147 |
+| Tomato — Tomato Yellow Leaf Curl Virus | 100.00 % | 97.64 % | 98.80 % | 804 | 785 |
+| Potato — Early blight | 99.33 % | 98.67 % | 99.00 % | 150 | 148 |
+| Tomato — Tomato mosaic virus | 98.25 % | 100.00 % | 99.12 % | 56 | 56 |
+| Cherry (including sour) — healthy | 98.46 % | 100.00 % | 99.22 % | 128 | 128 |
+| Apple — Black rot | 98.94 % | 100.00 % | 99.47 % | 93 | 93 |
+| Apple — Apple scab | 98.95 % | 100.00 % | 99.47 % | 94 | 94 |
+| Apple — healthy | 99.60 % | 99.60 % | 99.60 % | 247 | 246 |
+| Soybean — healthy | 100.00 % | 99.21 % | 99.61 % | 764 | 758 |
+| Grape — Leaf blight (Isariopsis Leaf Spot) | 99.38 % | 100.00 % | 99.69 % | 161 | 161 |
+| Blueberry — healthy | 100.00 % | 99.56 % | 99.78 % | 225 | 224 |
+| Peach — Bacterial spot | 100.00 % | 99.71 % | 99.85 % | 345 | 344 |
+| Apple — Cedar apple rust | 100.00 % | 100.00 % | 100.00 % | 41 | 41 |
+| Cherry (including sour) — Powdery mildew | 100.00 % | 100.00 % | 100.00 % | 158 | 158 |
+| Corn (maize) — Common rust | 100.00 % | 100.00 % | 100.00 % | 179 | 179 |
+| Corn (maize) — healthy | 100.00 % | 100.00 % | 100.00 % | 174 | 174 |
+| Grape — healthy | 100.00 % | 100.00 % | 100.00 % | 63 | 63 |
+| Orange — Haunglongbing (Citrus greening) | 100.00 % | 100.00 % | 100.00 % | 826 | 826 |
+| Raspberry — healthy | 100.00 % | 100.00 % | 100.00 % | 56 | 56 |
+| Squash — Powdery mildew | 100.00 % | 100.00 % | 100.00 % | 275 | 275 |
+| Strawberry — Leaf scorch | 100.00 % | 100.00 % | 100.00 % | 166 | 166 |
+| Strawberry — healthy | 100.00 % | 100.00 % | 100.00 % | 68 | 68 |
 
 *Tableau 14 — Métriques détaillées par classe, triées par F1-score croissant.*
 
@@ -236,30 +236,30 @@ proportions par classe réelle à droite.
 *Figure 7 — Matrice de confusion en effectifs (à gauche) et en proportions par classe
 réelle (à droite).*
 
-La lecture par ligne est la plus instructive. La diagonale est très dominante : 34 des
+La lecture par ligne est la plus instructive. La diagonale est très dominante : 36 des
 38 classes conservent un rappel supérieur à 92 %. Les erreurs se concentrent sur quelques
 paires :
 
-| Confusion observée | Cas | Part des 240 erreurs |
+| Confusion observée | Cas | Part des 171 erreurs |
 | --- | --- | --- |
-| Corn (maize) — Northern Leaf Blight → Cercospora leaf spot | 30 | 12,5 % |
-| Tomato — Early blight → Target Spot | 14 | 5,8 % |
-| Tomato — Yellow Leaf Curl Virus → Bacterial spot | 11 | 4,6 % |
-| Tomato — Target Spot → Spider mites | 9 | 3,8 % |
-| Tomato — Target Spot → healthy | 8 | 3,3 % |
+| Corn (maize) — Northern Leaf Blight → Corn (maize) — Cercospora leaf spot Gray leaf spot | 22 | 12.9 % |
+| Tomato — Tomato Yellow Leaf Curl Virus → Tomato — Bacterial spot | 10 | 5.8 % |
+| Tomato — Target Spot → Tomato — Spider mites Two-spotted spider mite | 10 | 5.8 % |
+| Alternariose précoce → Tomato — Target Spot | 9 | 5.3 % |
+| Alternariose précoce → Mildiou | 6 | 3.5 % |
 
 *Tableau 15 — Confusions les plus fréquentes sur l'ensemble de test.*
 
-Les cinq premières paires représentent **30 % des erreurs**. Autrement dit, 70 % des
-240 erreurs sont des cas isolés, dispersés sur l'ensemble de la matrice.
+Les cinq premières paires représentent **33 % des erreurs**. Autrement dit, 70 % des
+171 erreurs sont des cas isolés, dispersés sur l'ensemble de la matrice.
 
 #### 6.1.6. Analyse des erreurs
 
 | Indicateur | Valeur |
 | --- | --- |
-| Erreurs totales | 240 / 8 156 (2,94 %) |
-| Confiance moyenne sur les prédictions correctes | 98,53 % |
-| Confiance moyenne sur les erreurs | 74,44 % |
+| Erreurs totales | 240 / 8 153 (2,10 %) |
+| Confiance moyenne sur les prédictions correctes | 98,69 % |
+| Confiance moyenne sur les erreurs | 71,31 % |
 | Confiance médiane globale | 99,99 % |
 | Classe la plus fragile | Alternariose précoce (rappel 70,67 %) |
 
@@ -304,7 +304,7 @@ MobileNetV2, pas par la couche de sortie.
 
 #### 6.2.1. Lecture critique de l'accuracy
 
-Une accuracy de 97,06 % sur 38 classes et 8 156 images de test indépendantes est un
+Une accuracy de 97,90 % sur 38 classes et 8 153 images de test indépendantes est un
 résultat solide pour un projet réalisé sans GPU et avec un seul run d'entraînement. Il
 faut néanmoins rappeler qu'un tel chiffre n'a de sens que replacé dans son contexte :
 
@@ -313,7 +313,7 @@ faut néanmoins rappeler qu'un tel chiffre n'a de sens que replacé dans son con
 - la classe majoritaire représente 10,1 % du test, mais les trois classes les plus
   représentées (orange, virus YLCV, soja) en représentent 29,4 % ; un modèle naïf
   plafonnerait donc autour de 10 % ;
-- avec 8 156 images, l'intervalle de confiance à 95 % sur l'accuracy est de l'ordre de
+- avec 8 153 images, l'intervalle de confiance à 95 % sur l'accuracy est de l'ordre de
   ±0,37 point : la valeur réelle se situe très probablement entre 96,7 % et 97,4 %.
 
 L'accuracy est donc un indicateur de faisabilité, pas une garantie de performance sur le
@@ -321,13 +321,13 @@ terrain.
 
 #### 6.2.2. Cohérence entre les métriques
 
-Les moyennes macro (precision 95,98 %, recall 96,66 %, F1 96,17 %) sont légèrement
-inférieures aux moyennes pondérées (97,05 % de F1) : l'écart d'environ 0,9 point mesure
+Les moyennes macro (precision 97,26 %, recall 97,77 %, F1 97,44 %) sont légèrement
+inférieures aux moyennes pondérées (97,91 % de F1) : l'écart d'environ 0.5 point mesure
 le prix payé par les classes rares. C'est un écart modéré, très inférieur à ce qu'on
 observe habituellement sur un dataset aussi déséquilibré, ce qui suggère que les poids de
 classes ont rempli leur rôle.
 
-Le recall macro (96,66 %) est supérieur à la precision macro (95,98 %) : le modèle
+Le recall macro (97,77 %) est supérieur à la precision macro (97,26 %) : le modèle
 commet un peu plus de faux positifs que de faux négatifs. Dans un contexte de détection
 de maladie, ce compromis est plutôt **favorable** : il vaut mieux signaler à tort une
 feuille saine que manquer une maladie.
@@ -348,7 +348,7 @@ Les confusions observées sont **biologiquement cohérentes** :
   à symptômes discrets, où quelques taches isolées ne suffisent pas au modèle.
 
 Aucune confusion majeure n'implique une classe saine en entrée : les feuilles saines sont
-reconnues avec un rappel de 99,58 % (239/240). C'est un point rassurant pour un usage
+reconnues avec un rappel de 100,00 % (239/239). C'est un point rassurant pour un usage
 d'alerte : le modèle ne « voit » pas de maladie là où il n'y en a pas.
 
 #### 6.2.4. Calibration et sur-confiance
@@ -368,7 +368,7 @@ produire des probabilités plus réalistes.
 
 Mohanty et al. (2016) rapportent des accuracies supérieures à 99 % sur PlantVillage avec
 des architectures comme AlexNet et GoogLeNet, sur les 38 classes et avec un protocole
-d'entraînement bien plus long. Notre résultat (**97,06 % sur les 38 classes**) est
+d'entraînement bien plus long. Notre résultat (**97,90 % sur les 38 classes**) est
 désormais **directement comparable** : même dataset, même périmètre de classes, mais un
 protocole plus léger (MobileNetV2, 45 époques, CPU, 4 threads) et un découpage différent
 (70/15/15 au lieu 80/20).
@@ -405,7 +405,7 @@ La courbe de validation reste irrégulière sur la phase 1 (oscillations de ±1 
 époques voisines), puis devient beaucoup plus stable pendant le fine-tuning. Trois
 facteurs expliquent cette variabilité initiale :
 
-1. la taille du jeu de validation (8 157 images, soit environ 255 lots de 32) ;
+1. la taille du jeu de validation (8 153 images, soit environ 255 lots de 32) ;
 2. l'application aléatoire de la Data Augmentation, qui modifie la difficulté des lots ;
 3. le déséquilibre des classes, partiellement compensé par les poids de classes.
 
@@ -554,7 +554,7 @@ nombre limité de variétés. Il sous-représente les situations réelles : symp
 ou atypiques, attaques multiples, feuilles sales ou flétries, arrière-plans végétaux,
 éclairages rasants, photos de smartphone compressées. Le modèle n'a jamais vu ces
 conditions : **aucune mesure de performance hors domaine n'est disponible**, et rien ne
-permet d'affirmer que les 97,06 % obtenus se transposeraient au champ. Ce biais est le
+permet d'affirmer que les 97,90 % obtenus se transposeraient au champ. Ce biais est le
 plus important du projet et il est explicité dans les limites (§15.1).
 
 **Biais hérité du pré-entraînement.** Les poids ImageNet proviennent d'images web, avec
@@ -603,7 +603,7 @@ documentés comme limites et non masqués.
 
 #### 7.2.4. Risque d'un mauvais diagnostic
 
-Sur 8 156 images, 240 erreurs (2,94 %) subsistent. Leur concentration est le point
+Sur 8 153 images, 171 erreurs (2,10 %) subsistent. Leur concentration est le point
 sensible : les confusions entre **alternariose précoce** et **tache cible** (14 cas
 documentés), et entre **brûlure nordique** et **tache grise** du maïs (30 cas), portent
 sur des maladies dont la gestion diffère. Une erreur dans ces couples peut conduire à un
@@ -617,8 +617,8 @@ Deux risques symétriques doivent être nommés :
 - **faux positif** (sain prédit malade) : traitement inutile, coût économique et intrants
   supplémentaires.
 
-La confiance moyenne des erreurs (74,44 %) est nettement inférieure à celle des prédictions
-correctes (98,53 %), mais elle reste élevée pour certaines erreurs : l'affichage de la
+La confiance moyenne des erreurs (71,31 %) est nettement inférieure à celle des prédictions
+correctes (98,69 %), mais elle reste élevée pour certaines erreurs : l'affichage de la
 confiance **ne suffit pas** à lui seul à alerter l'utilisateur. C'est pourquoi un seuil de
 rejet et une carte d'attention (Grad-CAM) figurent parmi les perspectives prioritaires.
 
@@ -661,7 +661,7 @@ les prédictions et le modèle le sont, ce qui rend l'expérience auditable.
 Deux réserves d'honnêteté accompagneront la lecture des chiffres : l'expérience repose sur
 **un seul run** (pas de validation croisée, donc pas d'estimation de la variabilité entre
 initialisations), et l'entraînement a été volontairement limité à 4 threads sur 12 cœurs
-logiques, ce qui a allongé la durée sans changer le résultat. Les 97,06 % ne doivent donc
+logiques, ce qui a allongé la durée sans changer le résultat. Les 97,90 % ne doivent donc
 pas être présentés comme une borne supérieure de performance.
 
 #### 7.2.8. Synthèse des risques et des mesures
@@ -689,16 +689,16 @@ usage responsable, et la première des améliorations à venir.
 Ce projet avait pour objectif de concevoir un système complet de détection et de
 classification des maladies des feuilles, depuis la donnée brute jusqu'à une application
 Web utilisable. Cet objectif a été atteint à l'échelle du dataset complet : un modèle
-MobileNetV2 adapté par Transfer Learning a été entraîné sur **37 992 images** couvrant
-**38 classes et 14 cultures**, évalué sur **8 156 images indépendantes**, et intégré dans
+MobileNetV2 adapté par Transfer Learning a été entraîné sur **37 999 images** couvrant
+**38 classes et 14 cultures**, évalué sur **8 153 images indépendantes**, et intégré dans
 une application Flask en français.
 
 Les résultats expérimentaux sont les suivants :
 
-- **accuracy de 97,06 %** sur l'ensemble de test à 38 classes ;
-- **F1-score macro de 96,17 %**, avec 14 classes au-dessus de 99 % de F1 et un point
+- **accuracy de 97,90 %** sur l'ensemble de test à 38 classes ;
+- **F1-score macro de 97,44 %**, avec 19 classes au-dessus de 99 % de F1 et un point
   faible identifié (alternariose précoce, 80,61 %) ;
-- **240 erreurs sur 8 156 images** (2,94 %), dont 30 % concentrées sur cinq paires de
+- **171 erreurs sur 8 153 images** (2,10 %), dont 30 % concentrées sur cinq paires de
   classes visuellement proches ;
 - **temps d'inférence d'environ 110 ms** par image, compatible avec une utilisation
   interactive ;

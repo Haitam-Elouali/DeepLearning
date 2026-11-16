@@ -36,6 +36,27 @@ def executer(commande: list[str], dossier: Path | None = None) -> None:
         raise SystemExit(f"Échec de la commande : {' '.join(commande)}")
 
 
+def verifier_dataset(destination: Path) -> dict[str, int]:
+    """Compte les images valides de chacune des 38 classes attendues.
+
+    Renvoie ``{classe: nombre d'images}`` ; une classe absente ou vide vaut 0.
+    """
+    return {classe: compter_images(destination / classe) for classe in config.CLASS_NAMES}
+
+
+def afficher_classes_manquantes(nombre_par_classe: dict[str, int]) -> list[str]:
+    """Affiche les classes absentes ou vides et renvoie leur liste."""
+    manquantes = [classe for classe, nombre in nombre_par_classe.items() if nombre == 0]
+    if manquantes:
+        print(
+            f"\n Classes manquantes ou vides "
+            f"({len(manquantes)}/{len(nombre_par_classe)}) :"
+        )
+        for classe in manquantes:
+            print(f"   - {classe}")
+    return manquantes
+
+
 def compter_images(dossier: Path) -> int:
     """Compte les images d'une classe."""
     if not dossier.is_dir():
@@ -56,10 +77,27 @@ def main() -> int:
     arguments = parseur.parse_args()
 
     destination: Path = arguments.destination
-    if destination.exists() and compter_images(destination / config.CLASS_NAMES[0]) > 0:
-        if not arguments.force:
-            print(f"Dataset déjà présent dans {destination}. Utilisez --force pour le remplacer.")
+
+    if destination.exists():
+        # Un dataset n'est complet que si les 38 dossiers existent et
+        # contiennent des images : chaque classe est vérifiée, pas seulement
+        # la première.
+        existantes = verifier_dataset(destination)
+        manquantes = afficher_classes_manquantes(existantes)
+        if not manquantes:
+            print(
+                f"Dataset complet : {sum(existantes.values())} images dans "
+                f"{len(existantes)} classes ({destination})."
+            )
+            print("Utilisez --force pour le retélécharger.")
             return 0
+        if not arguments.force:
+            raise SystemExit(
+                "Dataset incomplet : le téléchargement n'est pas considéré "
+                "comme terminé.\nRelancez avec --force pour récupérer "
+                "les 38 classes."
+            )
+        print("\n Dataset incomplet : remplacement complet avec --force.")
         shutil.rmtree(destination)
 
     if shutil.which("git") is None:
@@ -122,7 +160,16 @@ def main() -> int:
         print(f"   {classe:<50} {nombre:>5} images")
 
     shutil.rmtree(temporaire, ignore_errors=True)
-    print(f"\n Total : {total} images copiées dans {destination}")
+
+    # Contrôle final : les 38 classes doivent être présentes et non vides.
+    controle = verifier_dataset(destination)
+    manquantes = afficher_classes_manquantes(controle)
+    if manquantes:
+        raise SystemExit("Téléchargement incomplet : " + ", ".join(manquantes))
+    print(
+        f"\n Total : {sum(controle.values())} images dans {len(controle)} "
+        f"classes copiées dans {destination}"
+    )
 
     print(
         "\n Dataset prêt. Étape suivante : python training/prepare_data.py\n"

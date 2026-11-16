@@ -2,7 +2,7 @@
   "dataset": "PlantVillage (images couleur, 38 classes, 14 cultures)",
   "source": "https://github.com/spMohanty/PlantVillage-Dataset",
   "citation": "Mohanty, Hughes & Salathé (2016), Frontiers in Plant Science",
-  "genere_le": "2026-11-15T15:42:33",
+  "genere_le": "2026-11-16T22:39:54",
   "graine": 42,
   "ratios_demandes": {
     "train": 0.7,
@@ -66,7 +66,7 @@
       "Apple___Apple_scab": 442,
       "Apple___Black_rot": 435,
       "Apple___Cedar_apple_rust": 193,
-      "Apple___healthy": 1149,
+      "Apple___healthy": 1151,
       "Blueberry___healthy": 1052,
       "Cherry_(including_sour)___Powdery_mildew": 736,
       "Cherry_(including_sour)___healthy": 598,
@@ -93,20 +93,20 @@
       "Strawberry___healthy": 320,
       "Tomato___Bacterial_spot": 1489,
       "Tomato___Early_blight": 700,
-      "Tomato___Late_blight": 1334,
+      "Tomato___Late_blight": 1337,
       "Tomato___Leaf_Mold": 666,
       "Tomato___Septoria_leaf_spot": 1239,
       "Tomato___Spider_mites Two-spotted_spider_mite": 1174,
       "Tomato___Target_Spot": 982,
       "Tomato___Tomato_Yellow_Leaf_Curl_Virus": 3749,
       "Tomato___Tomato_mosaic_virus": 261,
-      "Tomato___healthy": 1111
+      "Tomato___healthy": 1113
     },
     "validation": {
       "Apple___Apple_scab": 94,
       "Apple___Black_rot": 93,
       "Apple___Cedar_apple_rust": 41,
-      "Apple___healthy": 248,
+      "Apple___healthy": 247,
       "Blueberry___healthy": 225,
       "Cherry_(including_sour)___Powdery_mildew": 158,
       "Cherry_(including_sour)___healthy": 128,
@@ -133,20 +133,20 @@
       "Strawberry___healthy": 68,
       "Tomato___Bacterial_spot": 319,
       "Tomato___Early_blight": 150,
-      "Tomato___Late_blight": 288,
+      "Tomato___Late_blight": 286,
       "Tomato___Leaf_Mold": 143,
       "Tomato___Septoria_leaf_spot": 266,
       "Tomato___Spider_mites Two-spotted_spider_mite": 251,
       "Tomato___Target_Spot": 211,
       "Tomato___Tomato_Yellow_Leaf_Curl_Virus": 804,
       "Tomato___Tomato_mosaic_virus": 56,
-      "Tomato___healthy": 240
+      "Tomato___healthy": 239
     },
     "test": {
       "Apple___Apple_scab": 94,
       "Apple___Black_rot": 93,
       "Apple___Cedar_apple_rust": 41,
-      "Apple___healthy": 248,
+      "Apple___healthy": 247,
       "Blueberry___healthy": 225,
       "Cherry_(including_sour)___Powdery_mildew": 158,
       "Cherry_(including_sour)___healthy": 128,
@@ -173,20 +173,20 @@
       "Strawberry___healthy": 68,
       "Tomato___Bacterial_spot": 319,
       "Tomato___Early_blight": 150,
-      "Tomato___Late_blight": 287,
+      "Tomato___Late_blight": 286,
       "Tomato___Leaf_Mold": 143,
       "Tomato___Septoria_leaf_spot": 266,
       "Tomato___Spider_mites Two-spotted_spider_mite": 251,
       "Tomato___Target_Spot": 211,
       "Tomato___Tomato_Yellow_Leaf_Curl_Virus": 804,
       "Tomato___Tomato_mosaic_virus": 56,
-      "Tomato___healthy": 240
+      "Tomato___healthy": 239
     }
   },
   "totaux": {
-    "train": 37992,
-    "validation": 8157,
-    "test": 8156
+    "train": 37999,
+    "validation": 8153,
+    "test": 8153
   },
   "total_general": 54305,
   "images_brutes": {
@@ -238,6 +238,21 @@
     "rapport_detaille": "results\\metrics\\qualite_donnees.json"
   },
   "images_utilisees": 54305,
+  "proportions_obtenues": {
+    "train": 0.6997,
+    "validation": 0.1501,
+    "test": 0.1501
+  },
+  "classes_rares_ecartees_des_ratios": [
+    {
+      "classe": "Potato___healthy",
+      "images": 152,
+      "part_train": 0.6053,
+      "part_validation": 0.1974,
+      "part_test": 0.1974,
+      "raison": "minimum de 30 images par ensemble appliqué à une classe peu représentée"
+    }
+  ],
   "images_invalides": [],
   "mise_en_lien": "lien physique (hardlink)"
 }

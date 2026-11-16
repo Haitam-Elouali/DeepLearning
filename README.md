@@ -16,7 +16,7 @@ Interface entièrement en français.
 | Étape | Détail |
 | --- | --- |
 | Téléversement | une image JPG ou PNG, 8 Mo maximum |
-| Prétraitement | RGB, redimensionnement 224 × 224, normalisation [-1, 1] |
+| Prétraitement | RGB, redimensionnement 224 × 224 (Pillow), normalisation [-1, 1] |
 | Prédiction | MobileNetV2 + Transfer Learning, **38 classes**, sortie softmax |
 | Résultat | classe prédite, confiance, durée, 5 probabilités les plus élevées |
 | Confidentialité | aucune image ni aucun résultat conservé (traitement en mémoire) |
@@ -130,12 +130,12 @@ python -m pytest -q                # doit se terminer sans échec
   Salathé (2016), *Frontiers in Plant Science*, 7, 1419.
 - **Images** : 54 305 photographies couleur, **38 classes**, 14 cultures, ≈ 955 Mo.
 
-| Ensemble | Images |
-| --- | --- |
-| Entraînement (70 %) | 37 992 |
-| Validation (15 %) | 8 157 |
-| Test (15 %) | 8 156 |
-| **Total** | **54 305** |
+| Ensemble | Images | Part réelle |
+| --- | --- | --- |
+| Entraînement (70 %) | 37 999 | 69,97 % |
+| Validation (15 %) | 8 153 | 15,01 % |
+| Test (15 %) | 8 153 | 15,01 % |
+| **Total** | **54 305** | 100 % |
 
 Le dépôt d'origine ne contient pas de fichier de licence explicite : les images sont
 utilisées dans un cadre strictement académique, ne sont pas redistribuées et ne sont pas
@@ -150,6 +150,20 @@ python training/explore_data.py       # figures d'exploration (optionnel)
 `prepare_data.py` vérifie chaque image, réalise un découpage **stratifié** avec la
 graine 42, puis écrit `data/processed/dataset_manifest.json` (effectifs par classe et
 par ensemble).
+
+Règles du découpage (`construire_decoupage`) :
+
+- les objectifs sont calculés sur le **nombre réel d'images** de chaque classe, et non
+  sur le nombre de groupes de doublons : 70 % train, 15 % validation, 15 % test ;
+- les images identiques d'une même classe forment un **bloc insécable**, affecté d'un
+  seul tenant à l'ensemble qui présente le plus grand déficit relatif — un doublon exact
+  ne peut donc jamais apparaître dans deux ensembles ;
+- si une classe est trop petite pour respecter 15 %, le **minimum de 30 images par
+  ensemble** (`config.MIN_IMAGES_PER_SPLIT`) s'applique en priorité ; les proportions de
+  cette classe s'écartent alors légèrement de 70/15/15 et sont **documentées dans le
+  manifeste** (`classes_rares_ecartees_des_ratios`) ;
+- la graine 42 rend le découpage reproductible : relancer `--force` redonne exactement
+  les mêmes fichiers.
 
 La détection des doublons est **globale** : les empreintes MD5 sont calculées sur
 l'ensemble du dataset, toutes classes confondues, *avant* le découpage (le dictionnaire
@@ -178,7 +192,7 @@ Apple___Apple_scab                             442      94      94    630
 ...
 Potato___healthy                                92      30      30    152
 Tomato___Tomato_Yellow_Leaf_Curl_Virus        3749     804     804   5357
-TOTAL                                        37992    8157    8156  54305
+TOTAL                                        37999    8153    8153  54305
 ```
 
 Constats du contrôle qualité : **0 image illisible**, **21 groupes de doublons exacts**
@@ -186,8 +200,13 @@ Constats du contrôle qualité : **0 image illisible**, **21 groupes de doublons
 classes, **196 groupes de quasi-doublons** signalés (dont 56 inter-classes) et un
 déséquilibre de **152 à 5 507 images** par classe (rapport 36).
 
-Vérification de reproductibilité : relancer `prepare_data.py --force` dans un dossier
-vide redonne exactement 37 992 / 8 157 / 8 156 images, classe par classe.
+Proportions réellement obtenues : **69,97 % / 15,01 % / 15,01 %**. Une seule classe est
+concernée par la règle des 30 images : `Potato___healthy` (152 images → 92 / 30 / 30,
+soit 61 / 20 / 20 %) ; le manifeste l'indique explicitement.
+
+Vérification de reproductibilité : relancer `prepare_data.py --force` redonne exactement
+37 999 / 8 153 / 8 153 images, classe par classe (test automatisé :
+`tests/test_dataset.py`).
 
 ---
 
@@ -258,8 +277,10 @@ Fichiers complémentaires : `results/metrics/classification_report.txt`,
 `results/figures/confidence_distribution.png`, `results/predictions/*`.
 
 Toutes les métriques sont calculées à partir des prédictions réelles du modèle sur
-l'ensemble de test (8 156 images). Aucune valeur n'est simulée ni recopiée d'une
-publication.
+l'ensemble de test (8 153 images, jamais utilisées pendant l'entraînement). Aucune
+valeur n'est simulée ni recopiée d'une publication. Les deux matrices de confusion
+(`confusion_matrix.png` en effectifs, `confusion_matrix_normalized.png` en pourcentage
+par classe réelle) sont produites à 300 dpi à partir de ces mêmes prédictions.
 
 ---
 
@@ -305,15 +326,19 @@ python training/predict.py --dossier mes_photos/ --json resultats.json
 pytest -q
 ```
 
-68 tests couvrent :
+77 tests couvrent :
 
 - **app** : page d'accueil, analyse réelle de bout en bout (image → prédiction →
   affichage), refus des fichiers invalides, erreurs 400/404/413 ;
 - **prétraitement** : conversion RGB, redimensionnement, normalisation, équivalence
   exacte avec `mobilenet_v2.preprocess_input` ;
-- **pipeline** : identité stricte entre les tenseurs du `tf.data` d'entraînement et ceux
-  de l'inférence (aucune double normalisation), encodage one-hot, métadonnées du
-  fine-tuning ;
+- **pipeline** : un seul redimensionnement dans tout le projet (Pillow, le même à
+  l'entraînement, en validation, en test et à l'inférence — TensorFlow et Pillow ne
+  donnant pas exactement le même résultat bilinéaire), comparaison image par image des
+  tenseurs `tf.data` avec le prétraitement d'inférence, absence de double normalisation,
+  encodage one-hot, métadonnées du fine-tuning ;
+- **découpage** : total conservé, effectifs par ensemble, proportions 70/15/15,
+  absence de doublon exact entre ensembles, reproductibilité, règle des 30 images ;
 - **doublons** : images identiques dans une classe, images identiques dans deux classes
   (conflit d'annotation), images différentes, homonymes de contenu différent, détection
   des quasi-doublons, non-séparation des doublons lors du découpage ;
@@ -330,42 +355,50 @@ pytest -q
 
 ## 10. Résultats expérimentaux
 
-Résultats mesurés sur l'ensemble de test indépendant (**8 156 images, 38 classes**) :
+Résultats mesurés sur l'ensemble de test indépendant (**8 153 images, 38 classes**),
+avec le modèle `models/best_model.keras` :
 
 | Métrique (test) | Valeur |
 | --- | --- |
-| Exactitude (accuracy) | **97,06 %** |
-| Précision macro | 95,98 % |
-| Rappel macro | 96,66 % |
-| F1-score macro | **96,17 %** |
-| F1-score pondéré | 97,05 % |
-| Images mal classées | 240 (2,94 %) |
+| Exactitude (accuracy) | **97,90 %** |
+| Précision macro | 97,26 % |
+| Rappel macro | 97,77 % |
+| F1-score macro | **97,44 %** |
+| F1-score pondéré | 97,91 % |
+| Images mal classées | 171 (2,10 %) |
 | Meilleure exactitude de validation | 97,01 % (époque 45) |
 | Temps d'inférence | ≈ 110 ms par image (CPU) |
 
+Ces valeurs sont **recalculées** par `python training/evaluate.py` à partir des
+prédictions réelles sur le jeu de test (`results/metrics.json`,
+`results/classification_report.csv`) ; le test `tests/test_resultats.py` vérifie
+qu'elles correspondent au README et à la fiche expérimentale.
+
 Comparaison avec la littérature : Mohanty et al. (2016) rapportent plus de 99 % sur les
 38 classes avec AlexNet ou GoogLeNet et un entraînement bien plus long. Notre modèle,
-2,4 millions de paramètres seulement, atteint 97,06 % : c'est un compromis
+2,4 millions de paramètres seulement, atteint 97,90 % : c'est un compromis
 précision / coût assumé.
 
-Classes les mieux reconnues (F1 = 100 %) : orange (HLB), courge (oïdium), framboise,
-fraise saine, cerise (oïdium), pommier (rouille). **Quatorze classes** dépassent 99 % de
-F1-score.
+Classes les mieux reconnues (F1 = 100 %) : pommier (rouille de cèdre), cerise (oïdium),
+maïs (rouille commune), maïs sain, raisin sain, orange (HLB), framboise saine, courge
+(oïdium), fraise (brûlure des feuilles) et fraise saine. **Dix-neuf classes** dépassent
+99 % de F1-score.
 
 Classes les plus difficiles :
 
 | Classe | Précision | Rappel | F1-score | Support |
 | --- | --- | --- | --- | --- |
-| Alternariose précoce | 93,81 % | 70,67 % | 80,61 % | 150 |
-| Maïs — tache grise (Cercospora) | 70,87 % | 94,81 % | 81,11 % | 77 |
-| Maïs — brûlure nordique | 98,32 % | 79,05 % | 87,64 % | 148 |
-| Tomate — tache cible | 85,91 % | 89,57 % | 87,70 % | 211 |
-| Pomme de terre saine | 82,86 % | 96,67 % | 89,23 % | 30 |
+| Maïs — tache grise (Cercospora) | 77,32 % | 97,40 % | 86,21 % | 77 |
+| Alternariose précoce (tomate) | 95,35 % | 82,00 % | 88,17 % | 150 |
+| Tomate — tache cible | 88,64 % | 92,42 % | 90,49 % | 211 |
+| Maïs — brûlure nordique | 98,44 % | 85,14 % | 91,30 % | 148 |
+| Tomate — tétranyque | 89,26 % | 96,02 % | 92,51 % | 251 |
 
-Les 240 erreurs se concentrent sur cinq paires de classes visuellement proches
-(brûlure nordique → tache grise : 30 cas ; alternariose → tache cible : 14 cas ;
-virus YLCV → brûlure bactérienne : 11 cas). La confiance moyenne est de 98,53 % pour les
-prédictions correctes contre 74,44 % pour les erreurs.
+Les 171 erreurs se concentrent sur quelques paires de classes visuellement proches
+(brûlure nordique → tache grise : 22 cas ; virus YLCV → brûlure bactérienne : 10 cas ;
+tache cible → tétranyque : 10 cas ; alternariose → tache cible : 9 cas ; alternariose →
+mildiou : 6 cas). La confiance moyenne est de 98,69 % pour les prédictions correctes
+contre 71,31 % pour les erreurs.
 
 ---
 

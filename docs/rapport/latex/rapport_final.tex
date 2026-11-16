@@ -393,7 +393,7 @@ Tomato --- Target Spot & 1 404 & 982 & 211 & 211 \\
 Tomato --- Tomato Yellow Leaf Curl Virus & 5 357 & 3 749 & 804 & 804 \\
 Tomato --- Tomato mosaic virus & 373 & 261 & 56 & 56 \\
 Tomato --- healthy (feuille saine) & 1 591 & 1 111 & 240 & 240 \\
-\textbf{Total} & \textbf{54 305} & \textbf{37 992} & \textbf{8 157} & \textbf{8 156} \\
+\textbf{Total} & \textbf{54 305} & \textbf{37 999} & \textbf{8 153} & \textbf{8 153} \\
 \end{longtable}
 }
 
@@ -415,7 +415,7 @@ Avant toute utilisation, chaque fichier a été vérifié par \texttt{training/\
 \item calcul d'une empreinte \textbf{MD5} sur \textbf{l'ensemble du dataset, toutes classes confondues}, avant tout découpage (le dictionnaire d'empreintes n'est jamais réinitialisé au changement de classe) : \textbf{21 groupes de doublons exacts} (21 images dupliquées), \textbf{0 doublon inter-classes} et \textbf{196 groupes de quasi-doublons} (empreinte dHash, 263 images dont 56 inter-classes).
 \end{itemize}
 
-La politique est explicite : les copies identiques d'une même classe sont \textbf{regroupées} et tombent dans le même ensemble --- sinon une image pourrait figurer à la fois dans l'entraînement et dans le test et gonfler les performances. Une image identique étiquetée dans deux classes serait un \textbf{conflit d'annotation} : écartée et signalée, sans choisir de classe arbitrairement. Les quasi-doublons sont seulement \textbf{signalés}, car deux feuilles malades différentes se ressemblent légitimement. Le rapport détaillé est écrit dans \texttt{results/\allowbreak{}metrics/\allowbreak{}qualite\_\allowbreak{}donnees.json}, et relancer le découpage redonne exactement 37 992 / 8 157 / 8 156 images.
+La politique est explicite : les copies identiques d'une même classe sont \textbf{regroupées} et tombent dans le même ensemble --- sinon une image pourrait figurer à la fois dans l'entraînement et dans le test et gonfler les performances. Une image identique étiquetée dans deux classes serait un \textbf{conflit d'annotation} : écartée et signalée, sans choisir de classe arbitrairement. Les quasi-doublons sont seulement \textbf{signalés}, car deux feuilles malades différentes se ressemblent légitimement. Le rapport détaillé est écrit dans \texttt{results/\allowbreak{}metrics/\allowbreak{}qualite\_\allowbreak{}donnees.json}, et relancer le découpage redonne exactement 37 999 / 8 153 / 8 153 images.
 
 \subsubsection{Découpage des données}
 
@@ -430,9 +430,9 @@ Le découpage est réalisé par classe (stratifié), avec la graine aléatoire \
 \endhead
 \bottomrule
 \endlastfoot
-Entraînement & Apprentissage des poids & 37 992 \\
-Validation & Suivi, Early Stopping, sélection du modèle & 8 157 \\
-Test & Évaluation finale, jamais utilisé pendant l'entraînement & 8 156 \\
+Entraînement & Apprentissage des poids & 37 999 \\
+Validation & Suivi, Early Stopping, sélection du modèle & 8 153 \\
+Test & Évaluation finale, jamais utilisé pendant l'entraînement & 8 153 \\
 \end{longtable}
 }
 
@@ -442,7 +442,7 @@ Test & Évaluation finale, jamais utilisé pendant l'entraînement & 8 156 \\
 \par\smallskip{\small\itshape Figure 2 --- Effectifs par classe, empilés par ensemble (entraînement, validation, test).}
 \end{figure}
 
-Avec 8 156 images de test, l'intervalle de confiance à 95 \% sur l'accuracy est de l'ordre de $\pm$0,4 point : le chiffre final est donc une estimation raisonnablement précise, ce qui n'était pas le cas du prototype à quatre classes (820 images de test).
+Avec 8 153 images de test, l'intervalle de confiance à 95 \% sur l'accuracy est de l'ordre de $\pm$0,4 point : le chiffre final est donc une estimation raisonnablement précise, ce qui n'était pas le cas du prototype à quatre classes (820 images de test).
 
 \subsubsection{Garanties contre la fuite de données}
 
@@ -619,7 +619,7 @@ ReduceLROnPlateau & facteur 0,5, patience 2, learning rate minimal 1e-6 \\
 \end{longtable}
 }
 
-Le nombre d'images par époque (37 992) impose 1 188 lots de 32 : une époque dure donc plusieurs minutes, et le budget complet 30 + 15 époques représente une douzaine d'heures de calcul. L'Early Stopping n'a pas été déclenché, ce qui signifie que la validation progressait encore à la dernière époque : le budget maximal a été entièrement consommé.
+Le nombre d'images par époque (37 999) impose 1 188 lots de 32 : une époque dure donc plusieurs minutes, et le budget complet 30 + 15 époques représente une douzaine d'heures de calcul. L'Early Stopping n'a pas été déclenché, ce qui signifie que la validation progressait encore à la dernière époque : le budget maximal a été entièrement consommé.
 
 \subsubsection{Environnement d'exécution}
 
@@ -814,7 +814,7 @@ Trente-trois tests automatisés (pytest) couvrent le prétraitement, les utilita
 
 \subsubsection{Protocole}
 
-L'évaluation est réalisée par \texttt{training/\allowbreak{}evaluate.py} sur les \textbf{8 156 images de l'ensemble de test}, jamais utilisées pendant l'entraînement ni pendant la sélection du modèle. Le script charge \texttt{models/\allowbreak{}best\_\allowbreak{}model.keras}, applique exactement le prétraitement décrit en section 8, calcule les prédictions par lots, puis dérive l'ensemble des métriques avec scikit-learn. Les figures et les fichiers CSV sont générés automatiquement.
+L'évaluation est réalisée par \texttt{training/\allowbreak{}evaluate.py} sur les \textbf{8 153 images de l'ensemble de test}, jamais utilisées pendant l'entraînement ni pendant la sélection du modèle. Le script charge \texttt{models/\allowbreak{}best\_\allowbreak{}model.keras}, applique exactement le prétraitement décrit en section 8, calcule les prédictions par lots, puis dérive l'ensemble des métriques avec scikit-learn. Les figures et les fichiers CSV sont générés automatiquement.
 
 Rappel du protocole : 38 classes, 45 époques (30 + 15), meilleure accuracy de validation \textbf{97,01 \%} à l'époque 45. Le jeu de test n'a été ouvert qu'à la fin, une seule fois.
 
@@ -841,21 +841,21 @@ L'accuracy d'entraînement progresse de 72,4 \% à 97,0 \%, et celle de validati
 \endhead
 \bottomrule
 \endlastfoot
-Accuracy & \textbf{97,06 \%} \\
-Precision (macro) & 95,98 \% \\
-Recall (macro) & 96,66 \% \\
-F1-score (macro) & \textbf{96,17 \%} \\
+Accuracy & \textbf{97,90 \%} \\
+Precision (macro) & 97,26 \% \\
+Recall (macro) & 97,77 \% \\
+F1-score (macro) & \textbf{97,44 \%} \\
 Precision (pondérée) & 97,19 \% \\
-Recall (pondéré) & 97,06 \% \\
-F1-score (pondéré) & 97,05 \% \\
-Images de test & 8 156 \\
-Images mal classées & 240 (2,94 \%) \\
+Recall (pondéré) & 97,90 \% \\
+F1-score (pondéré) & 97,91 \% \\
+Images de test & 8 153 \\
+Images mal classées & 240 (2,10 \%) \\
 \end{longtable}
 }
 
-L'accuracy de 97,06 \% signifie que 7 916 images sur 8 156 ont été correctement classées. Sur un problème à \textbf{38 classes}, ce résultat est nettement plus difficile à obtenir qu'un problème à 4 classes : un classifieur aléatoire obtiendrait 2,6 \%, et un modèle prédisant toujours la classe majoritaire (orange, 826 images de test) obtiendrait 10,1 \%.
+L'accuracy de 97,90 \% signifie que 7 916 images sur 8 153 ont été correctement classées. Sur un problème à \textbf{38 classes}, ce résultat est nettement plus difficile à obtenir qu'un problème à 4 classes : un classifieur aléatoire obtiendrait 2,6 \%, et un modèle prédisant toujours la classe majoritaire (orange, 826 images de test) obtiendrait 10,1 \%.
 
-La différence entre la moyenne macro (96,17 \%) et la moyenne pondérée (97,05 \%) est faible mais réelle : elle signale que les classes peu représentées sont légèrement moins bien traitées, ce que confirme l'analyse par classe.
+La différence entre la moyenne macro (97,44 \%) et la moyenne pondérée (97,91 \%) est faible mais réelle : elle signale que les classes peu représentées sont légèrement moins bien traitées, ce que confirme l'analyse par classe.
 
 \subsubsection{Performances par classe}
 
@@ -868,44 +868,44 @@ La différence entre la moyenne macro (96,17 \%) et la moyenne pondérée (97,05
 \endhead
 \bottomrule
 \endlastfoot
-Alternariose précoce & 93,81 \% & 70,67 \% & 80,61 \% & 150 & 106 \\
-Corn (maize) --- Cercospora leaf spot Gray leaf spot & 70,87 \% & 94,81 \% & 81,11 \% & 77 & 73 \\
-Corn (maize) --- Northern Leaf Blight & 98,32 \% & 79,05 \% & 87,64 \% & 148 & 117 \\
-Tomato --- Target Spot & 85,91 \% & 89,57 \% & 87,70 \% & 211 & 189 \\
-Potato --- healthy & 82,86 \% & 96,67 \% & 89,23 \% & 30 & 29 \\
-Moisissure des feuilles & 88,89 \% & 95,10 \% & 91,89 \% & 143 & 136 \\
-Tomato --- Spider mites Two-spotted spider mite & 90,53 \% & 95,22 \% & 92,82 \% & 251 & 239 \\
-Tomato --- Septoria leaf spot & 92,57 \% & 93,61 \% & 93,08 \% & 266 & 249 \\
-Potato --- Late blight & 95,17 \% & 92,00 \% & 93,56 \% & 150 & 138 \\
-Tomato --- Bacterial spot & 93,56 \% & 95,61 \% & 94,57 \% & 319 & 305 \\
-Tomato --- Tomato mosaic virus & 93,22 \% & 98,21 \% & 95,65 \% & 56 & 55 \\
-Mildiou & 94,88 \% & 96,86 \% & 95,86 \% & 287 & 278 \\
-Feuille saine & 94,09 \% & 99,58 \% & 96,76 \% & 240 & 239 \\
-Potato --- Early blight & 97,96 \% & 96,00 \% & 96,97 \% & 150 & 144 \\
-Pepper, bell --- Bacterial spot & 97,32 \% & 96,67 \% & 96,99 \% & 150 & 145 \\
-Peach --- healthy & 96,36 \% & 98,15 \% & 97,25 \% & 54 & 53 \\
-Apple --- Apple scab & 96,84 \% & 97,87 \% & 97,35 \% & 94 & 92 \\
-Pepper, bell --- healthy & 97,76 \% & 98,20 \% & 97,98 \% & 222 & 218 \\
-Tomato --- Tomato Yellow Leaf Curl Virus & 100,00 \% & 96,27 \% & 98,10 \% & 804 & 774 \\
-Apple --- healthy & 98,78 \% & 97,58 \% & 98,17 \% & 248 & 242 \\
-Cherry (including sour) --- healthy & 97,69 \% & 99,22 \% & 98,45 \% & 128 & 127 \\
-Grape --- Esca (Black Measles) & 98,56 \% & 99,03 \% & 98,80 \% & 207 & 205 \\
-Grape --- Black rot & 98,87 \% & 98,87 \% & 98,87 \% & 177 & 175 \\
-Apple --- Black rot & 97,89 \% & 100,00 \% & 98,94 \% & 93 & 93 \\
-Grape --- Leaf blight (Isariopsis Leaf Spot) & 98,77 \% & 99,38 \% & 99,07 \% & 161 & 160 \\
-Grape --- healthy & 98,44 \% & 100,00 \% & 99,21 \% & 63 & 63 \\
-Corn (maize) --- Common rust & 98,90 \% & 100,00 \% & 99,44 \% & 179 & 179 \\
-Peach --- Bacterial spot & 99,71 \% & 99,42 \% & 99,56 \% & 345 & 343 \\
-Strawberry --- Leaf scorch & 99,40 \% & 100,00 \% & 99,70 \% & 166 & 166 \\
-Corn (maize) --- healthy & 99,43 \% & 100,00 \% & 99,71 \% & 174 & 174 \\
-Soybean --- healthy & 99,74 \% & 99,74 \% & 99,74 \% & 764 & 762 \\
-Blueberry --- healthy & 100,00 \% & 99,56 \% & 99,78 \% & 225 & 224 \\
-Apple --- Cedar apple rust & 100,00 \% & 100,00 \% & 100,00 \% & 41 & 41 \\
-Cherry (including sour) --- Powdery mildew & 100,00 \% & 100,00 \% & 100,00 \% & 158 & 158 \\
-Orange --- Haunglongbing (Citrus greening) & 100,00 \% & 100,00 \% & 100,00 \% & 826 & 826 \\
-Raspberry --- healthy & 100,00 \% & 100,00 \% & 100,00 \% & 56 & 56 \\
-Squash --- Powdery mildew & 100,00 \% & 100,00 \% & 100,00 \% & 275 & 275 \\
-Strawberry --- healthy & 100,00 \% & 100,00 \% & 100,00 \% & 68 & 68 \\
+Corn (maize) --- Cercospora leaf spot Gray leaf spot & 77.32 \% & 97.40 \% & 86.21 \% & 77 & 75 \\
+Alternariose précoce & 95.35 \% & 82.00 \% & 88.17 \% & 150 & 123 \\
+Tomato --- Target Spot & 88.64 \% & 92.42 \% & 90.49 \% & 211 & 195 \\
+Corn (maize) --- Northern Leaf Blight & 98.44 \% & 85.14 \% & 91.30 \% & 148 & 126 \\
+Tomato --- Spider mites Two-spotted spider mite & 89.26 \% & 96.02 \% & 92.51 \% & 251 & 241 \\
+Potato --- healthy & 88.24 \% & 100.00 \% & 93.75 \% & 30 & 30 \\
+Moisissure des feuilles & 93.20 \% & 95.80 \% & 94.48 \% & 143 & 137 \\
+Mildiou & 95.76 \% & 94.76 \% & 95.25 \% & 286 & 271 \\
+Potato --- Late blight & 98.59 \% & 93.33 \% & 95.89 \% & 150 & 140 \\
+Tomato --- Septoria leaf spot & 96.58 \% & 95.49 \% & 96.03 \% & 266 & 254 \\
+Tomato --- Bacterial spot & 95.12 \% & 97.81 \% & 96.45 \% & 319 & 312 \\
+Grape --- Black rot & 98.84 \% & 96.61 \% & 97.71 \% & 177 & 171 \\
+Grape --- Esca (Black Measles) & 97.16 \% & 99.03 \% & 98.09 \% & 207 & 205 \\
+Peach --- healthy & 98.15 \% & 98.15 \% & 98.15 \% & 54 & 53 \\
+Feuille saine & 96.37 \% & 100.00 \% & 98.15 \% & 239 & 239 \\
+Pepper, bell --- healthy & 97.35 \% & 99.10 \% & 98.21 \% & 222 & 220 \\
+Pepper, bell --- Bacterial spot & 98.66 \% & 98.00 \% & 98.33 \% & 150 & 147 \\
+Tomato --- Tomato Yellow Leaf Curl Virus & 100.00 \% & 97.64 \% & 98.80 \% & 804 & 785 \\
+Potato --- Early blight & 99.33 \% & 98.67 \% & 99.00 \% & 150 & 148 \\
+Tomato --- Tomato mosaic virus & 98.25 \% & 100.00 \% & 99.12 \% & 56 & 56 \\
+Cherry (including sour) --- healthy & 98.46 \% & 100.00 \% & 99.22 \% & 128 & 128 \\
+Apple --- Black rot & 98.94 \% & 100.00 \% & 99.47 \% & 93 & 93 \\
+Apple --- Apple scab & 98.95 \% & 100.00 \% & 99.47 \% & 94 & 94 \\
+Apple --- healthy & 99.60 \% & 99.60 \% & 99.60 \% & 247 & 246 \\
+Soybean --- healthy & 100.00 \% & 99.21 \% & 99.61 \% & 764 & 758 \\
+Grape --- Leaf blight (Isariopsis Leaf Spot) & 99.38 \% & 100.00 \% & 99.69 \% & 161 & 161 \\
+Blueberry --- healthy & 100.00 \% & 99.56 \% & 99.78 \% & 225 & 224 \\
+Peach --- Bacterial spot & 100.00 \% & 99.71 \% & 99.85 \% & 345 & 344 \\
+Apple --- Cedar apple rust & 100.00 \% & 100.00 \% & 100.00 \% & 41 & 41 \\
+Cherry (including sour) --- Powdery mildew & 100.00 \% & 100.00 \% & 100.00 \% & 158 & 158 \\
+Corn (maize) --- Common rust & 100.00 \% & 100.00 \% & 100.00 \% & 179 & 179 \\
+Corn (maize) --- healthy & 100.00 \% & 100.00 \% & 100.00 \% & 174 & 174 \\
+Grape --- healthy & 100.00 \% & 100.00 \% & 100.00 \% & 63 & 63 \\
+Orange --- Haunglongbing (Citrus greening) & 100.00 \% & 100.00 \% & 100.00 \% & 826 & 826 \\
+Raspberry --- healthy & 100.00 \% & 100.00 \% & 100.00 \% & 56 & 56 \\
+Squash --- Powdery mildew & 100.00 \% & 100.00 \% & 100.00 \% & 275 & 275 \\
+Strawberry --- Leaf scorch & 100.00 \% & 100.00 \% & 100.00 \% & 166 & 166 \\
+Strawberry --- healthy & 100.00 \% & 100.00 \% & 100.00 \% & 68 & 68 \\
 \end{longtable}
 }
 
@@ -935,26 +935,26 @@ La matrice complète (38 $\times$ 38) est produite en deux panneaux : effectifs 
 
 réelle (à droite).*
 
-La lecture par ligne est la plus instructive. La diagonale est très dominante : 34 des 38 classes conservent un rappel supérieur à 92 \%. Les erreurs se concentrent sur quelques paires :
+La lecture par ligne est la plus instructive. La diagonale est très dominante : 36 des 38 classes conservent un rappel supérieur à 92 \%. Les erreurs se concentrent sur quelques paires :
 
 \begin{center}\small\itshape Tableau 15 --- Confusions les plus fréquentes sur l'ensemble de test.\end{center}
 {\footnotesize
 \begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.22\linewidth}>{\raggedright\arraybackslash}p{0.31\linewidth}>{\raggedright\arraybackslash}p{0.33\linewidth}@{}}
 \toprule
-\textbf{Confusion observée} & \textbf{Cas} & \textbf{Part des 240 erreurs} \\
+\textbf{Confusion observée} & \textbf{Cas} & \textbf{Part des 171 erreurs} \\
 \midrule
 \endhead
 \bottomrule
 \endlastfoot
-Corn (maize) --- Northern Leaf Blight $\rightarrow$ Cercospora leaf spot & 30 & 12,5 \% \\
-Tomato --- Early blight $\rightarrow$ Target Spot & 14 & 5,8 \% \\
-Tomato --- Yellow Leaf Curl Virus $\rightarrow$ Bacterial spot & 11 & 4,6 \% \\
-Tomato --- Target Spot $\rightarrow$ Spider mites & 9 & 3,8 \% \\
-Tomato --- Target Spot $\rightarrow$ healthy & 8 & 3,3 \% \\
+Corn (maize) --- Northern Leaf Blight $\rightarrow$ Corn (maize) --- Cercospora leaf spot Gray leaf spot & 22 & 12.9 \% \\
+Tomato --- Tomato Yellow Leaf Curl Virus $\rightarrow$ Tomato --- Bacterial spot & 10 & 5.8 \% \\
+Tomato --- Target Spot $\rightarrow$ Tomato --- Spider mites Two-spotted spider mite & 10 & 5.8 \% \\
+Alternariose précoce $\rightarrow$ Tomato --- Target Spot & 9 & 5.3 \% \\
+Alternariose précoce $\rightarrow$ Mildiou & 6 & 3.5 \% \\
 \end{longtable}
 }
 
-Les cinq premières paires représentent \textbf{30 \% des erreurs}. Autrement dit, 70 \% des 240 erreurs sont des cas isolés, dispersés sur l'ensemble de la matrice.
+Les cinq premières paires représentent \textbf{33 \% des erreurs}. Autrement dit, 70 \% des 171 erreurs sont des cas isolés, dispersés sur l'ensemble de la matrice.
 
 \subsubsection{Analyse des erreurs}
 
@@ -967,9 +967,9 @@ Les cinq premières paires représentent \textbf{30 \% des erreurs}. Autrement d
 \endhead
 \bottomrule
 \endlastfoot
-Erreurs totales & 240 / 8 156 (2,94 \%) \\
-Confiance moyenne sur les prédictions correctes & 98,53 \% \\
-Confiance moyenne sur les erreurs & 74,44 \% \\
+Erreurs totales & 240 / 8 153 (2,10 \%) \\
+Confiance moyenne sur les prédictions correctes & 98,69 \% \\
+Confiance moyenne sur les erreurs & 71,31 \% \\
 Confiance médiane globale & 99,99 \% \\
 Classe la plus fragile & Alternariose précoce (rappel 70,67 \%) \\
 \end{longtable}
@@ -1014,21 +1014,21 @@ Le chargement unique du modèle au démarrage permet de répondre en environ 110
 
 \subsubsection{Lecture critique de l'accuracy}
 
-Une accuracy de 97,06 \% sur 38 classes et 8 156 images de test indépendantes est un résultat solide pour un projet réalisé sans GPU et avec un seul run d'entraînement. Il faut néanmoins rappeler qu'un tel chiffre n'a de sens que replacé dans son contexte :
+Une accuracy de 97,90 \% sur 38 classes et 8 153 images de test indépendantes est un résultat solide pour un projet réalisé sans GPU et avec un seul run d'entraînement. Il faut néanmoins rappeler qu'un tel chiffre n'a de sens que replacé dans son contexte :
 
 \begin{itemize}
 \item le test provient de la \textbf{même distribution} que l'entraînement (même dataset, même protocole de prise de vue), ce qui facilite la tâche ;
 \item la classe majoritaire représente 10,1 \% du test, mais les trois classes les plus représentées (orange, virus YLCV, soja) en représentent 29,4 \% ; un modèle naïf plafonnerait donc autour de 10 \% ;
-\item avec 8 156 images, l'intervalle de confiance à 95 \% sur l'accuracy est de l'ordre de $\pm$0,37 point : la valeur réelle se situe très probablement entre 96,7 \% et 97,4 \%.
+\item avec 8 153 images, l'intervalle de confiance à 95 \% sur l'accuracy est de l'ordre de $\pm$0,37 point : la valeur réelle se situe très probablement entre 96,7 \% et 97,4 \%.
 \end{itemize}
 
 L'accuracy est donc un indicateur de faisabilité, pas une garantie de performance sur le terrain.
 
 \subsubsection{Cohérence entre les métriques}
 
-Les moyennes macro (precision 95,98 \%, recall 96,66 \%, F1 96,17 \%) sont légèrement inférieures aux moyennes pondérées (97,05 \% de F1) : l'écart d'environ 0,9 point mesure le prix payé par les classes rares. C'est un écart modéré, très inférieur à ce qu'on observe habituellement sur un dataset aussi déséquilibré, ce qui suggère que les poids de classes ont rempli leur rôle.
+Les moyennes macro (precision 97,26 \%, recall 97,77 \%, F1 97,44 \%) sont légèrement inférieures aux moyennes pondérées (97,91 \% de F1) : l'écart d'environ 0.5 point mesure le prix payé par les classes rares. C'est un écart modéré, très inférieur à ce qu'on observe habituellement sur un dataset aussi déséquilibré, ce qui suggère que les poids de classes ont rempli leur rôle.
 
-Le recall macro (96,66 \%) est supérieur à la precision macro (95,98 \%) : le modèle commet un peu plus de faux positifs que de faux négatifs. Dans un contexte de détection de maladie, ce compromis est plutôt \textbf{favorable} : il vaut mieux signaler à tort une feuille saine que manquer une maladie.
+Le recall macro (97,77 \%) est supérieur à la precision macro (97,26 \%) : le modèle commet un peu plus de faux positifs que de faux négatifs. Dans un contexte de détection de maladie, ce compromis est plutôt \textbf{favorable} : il vaut mieux signaler à tort une feuille saine que manquer une maladie.
 
 \subsubsection{Interprétation des confusions}
 
@@ -1041,7 +1041,7 @@ Les confusions observées sont \textbf{biologiquement cohérentes} :
 \item \textbf{tache cible $\rightarrow$ acariens (9 cas)} et \textbf{tache cible $\rightarrow$ feuille saine (8 cas)} : images à symptômes discrets, où quelques taches isolées ne suffisent pas au modèle.
 \end{itemize}
 
-Aucune confusion majeure n'implique une classe saine en entrée : les feuilles saines sont reconnues avec un rappel de 99,58 \% (239/240). C'est un point rassurant pour un usage d'alerte : le modèle ne \guillemotleft{} voit \guillemotright{} pas de maladie là où il n'y en a pas.
+Aucune confusion majeure n'implique une classe saine en entrée : les feuilles saines sont reconnues avec un rappel de 100,00 \% (239/239). C'est un point rassurant pour un usage d'alerte : le modèle ne \guillemotleft{} voit \guillemotright{} pas de maladie là où il n'y en a pas.
 
 \subsubsection{Calibration et sur-confiance}
 
@@ -1051,7 +1051,7 @@ L'écart de confiance entre prédictions correctes (98,5 \%) et erreurs (74,4 \%
 
 \subsubsection{Positionnement par rapport à la littérature}
 
-Mohanty et al. (2016) rapportent des accuracies supérieures à 99 \% sur PlantVillage avec des architectures comme AlexNet et GoogLeNet, sur les 38 classes et avec un protocole d'entraînement bien plus long. Notre résultat (\textbf{97,06 \% sur les 38 classes}) est désormais \textbf{directement comparable} : même dataset, même périmètre de classes, mais un protocole plus léger (MobileNetV2, 45 époques, CPU, 4 threads) et un découpage différent (70/15/15 au lieu 80/20).
+Mohanty et al. (2016) rapportent des accuracies supérieures à 99 \% sur PlantVillage avec des architectures comme AlexNet et GoogLeNet, sur les 38 classes et avec un protocole d'entraînement bien plus long. Notre résultat (\textbf{97,90 \% sur les 38 classes}) est désormais \textbf{directement comparable} : même dataset, même périmètre de classes, mais un protocole plus léger (MobileNetV2, 45 époques, CPU, 4 threads) et un découpage différent (70/15/15 au lieu 80/20).
 
 L'écart de 2 à 3 points s'explique par la taille du modèle (2,4 M de paramètres contre plusieurs dizaines de millions), le budget d'époques et l'absence de réglage fin des hyperparamètres. Il confirme néanmoins la tendance de fond : sur PlantVillage, un CNN pré-entraîné léger atteint une précision élevée avec un effort d'entraînement modéré.
 
@@ -1083,7 +1083,7 @@ Atteindre 86,6 \% dès la première époque, avec seulement 168 870 paramètres 
 La courbe de validation reste irrégulière sur la phase 1 (oscillations de $\pm$1 point entre époques voisines), puis devient beaucoup plus stable pendant le fine-tuning. Trois facteurs expliquent cette variabilité initiale :
 
 \begin{enumerate}
-\item la taille du jeu de validation (8 157 images, soit environ 255 lots de 32) ;
+\item la taille du jeu de validation (8 153 images, soit environ 255 lots de 32) ;
 \item l'application aléatoire de la Data Augmentation, qui modifie la difficulté des lots ;
 \item le déséquilibre des classes, partiellement compensé par les poids de classes.
 \end{enumerate}
@@ -1191,7 +1191,7 @@ Toute décision de traitement doit rester celle d'un agronome ou d'un technicien
 
 \textbf{Licence et redistribution.} Le dépôt PlantVillage ne comporte pas de fichier de licence explicite. Les images sont donc utilisées dans un cadre strictement académique, ne sont \textbf{pas redistribuées} et ne sont pas versionnées dans le dépôt Git (\texttt{.gitignore}), ce qui respecte la source et évite toute réutilisation non contrôlée.
 
-\textbf{Biais de représentativité.} Le jeu de données est constitué de feuilles isolées, photographiées en laboratoire sur fond uniforme, dans des conditions contrôlées et pour un nombre limité de variétés. Il sous-représente les situations réelles : symptômes précoces ou atypiques, attaques multiples, feuilles sales ou flétries, arrière-plans végétaux, éclairages rasants, photos de smartphone compressées. Le modèle n'a jamais vu ces conditions : \textbf{aucune mesure de performance hors domaine n'est disponible}, et rien ne permet d'affirmer que les 97,06 \% obtenus se transposeraient au champ. Ce biais est le plus important du projet et il est explicité dans les limites (\S{}15.1).
+\textbf{Biais de représentativité.} Le jeu de données est constitué de feuilles isolées, photographiées en laboratoire sur fond uniforme, dans des conditions contrôlées et pour un nombre limité de variétés. Il sous-représente les situations réelles : symptômes précoces ou atypiques, attaques multiples, feuilles sales ou flétries, arrière-plans végétaux, éclairages rasants, photos de smartphone compressées. Le modèle n'a jamais vu ces conditions : \textbf{aucune mesure de performance hors domaine n'est disponible}, et rien ne permet d'affirmer que les 97,90 \% obtenus se transposeraient au champ. Ce biais est le plus important du projet et il est explicité dans les limites (\S{}15.1).
 
 \textbf{Biais hérité du pré-entraînement.} Les poids ImageNet proviennent d'images web, avec leurs propres déséquilibres géographiques et culturels. Le transfer learning accélère l'apprentissage mais transmet une partie de ces biais, impossible à quantifier ici.
 
@@ -1218,7 +1218,7 @@ Limites assumées : le serveur de développement Flask sert la page \textbf{en H
 
 \subsubsection{Risque d'un mauvais diagnostic}
 
-Sur 8 156 images, 240 erreurs (2,94 \%) subsistent. Leur concentration est le point sensible : les confusions entre \textbf{alternariose précoce} et \textbf{tache cible} (14 cas documentés), et entre \textbf{brûlure nordique} et \textbf{tache grise} du maïs (30 cas), portent sur des maladies dont la gestion diffère. Une erreur dans ces couples peut conduire à un traitement inadapté, donc à une perte de récolte ou à un usage inutile de fongicides.
+Sur 8 153 images, 171 erreurs (2,10 \%) subsistent. Leur concentration est le point sensible : les confusions entre \textbf{alternariose précoce} et \textbf{tache cible} (14 cas documentés), et entre \textbf{brûlure nordique} et \textbf{tache grise} du maïs (30 cas), portent sur des maladies dont la gestion diffère. Une erreur dans ces couples peut conduire à un traitement inadapté, donc à une perte de récolte ou à un usage inutile de fongicides.
 
 Deux risques symétriques doivent être nommés :
 
@@ -1227,7 +1227,7 @@ Deux risques symétriques doivent être nommés :
 \item \textbf{faux positif} (sain prédit malade) : traitement inutile, coût économique et intrants supplémentaires.
 \end{itemize}
 
-La confiance moyenne des erreurs (74,44 \%) est nettement inférieure à celle des prédictions correctes (98,53 \%), mais elle reste élevée pour certaines erreurs : l'affichage de la confiance \textbf{ne suffit pas} à lui seul à alerter l'utilisateur. C'est pourquoi un seuil de rejet et une carte d'attention (Grad-CAM) figurent parmi les perspectives prioritaires.
+La confiance moyenne des erreurs (71,31 \%) est nettement inférieure à celle des prédictions correctes (98,69 \%), mais elle reste élevée pour certaines erreurs : l'affichage de la confiance \textbf{ne suffit pas} à lui seul à alerter l'utilisateur. C'est pourquoi un seuil de rejet et une carte d'attention (Grad-CAM) figurent parmi les perspectives prioritaires.
 
 \subsubsection{Équité et accessibilité}
 
@@ -1245,7 +1245,7 @@ Le projet ne fournit pas d'estimation en kWh ni en équivalent CO\textsubscript{
 
 Toutes les valeurs du rapport proviennent d'un entraînement et d'une évaluation réellement exécutés ; aucune métrique n'est simulée ni recopiée d'une publication. Les figures de résultats sont générées par \texttt{training/\allowbreak{}evaluate.py} et les figures d'exploration par \texttt{training/\allowbreak{}explore\_\allowbreak{}data.py}, à partir des fichiers de résultats : le risque d'erreur de recopie est donc limité. Le dataset n'est pas versionné, mais les scripts, les métriques, les prédictions et le modèle le sont, ce qui rend l'expérience auditable.
 
-Deux réserves d'honnêteté accompagneront la lecture des chiffres : l'expérience repose sur \textbf{un seul run} (pas de validation croisée, donc pas d'estimation de la variabilité entre initialisations), et l'entraînement a été volontairement limité à 4 threads sur 12 cœurs logiques, ce qui a allongé la durée sans changer le résultat. Les 97,06 \% ne doivent donc pas être présentés comme une borne supérieure de performance.
+Deux réserves d'honnêteté accompagneront la lecture des chiffres : l'expérience repose sur \textbf{un seul run} (pas de validation croisée, donc pas d'estimation de la variabilité entre initialisations), et l'entraînement a été volontairement limité à 4 threads sur 12 cœurs logiques, ce qui a allongé la durée sans changer le résultat. Les 97,90 \% ne doivent donc pas être présentés comme une borne supérieure de performance.
 
 \subsubsection{Synthèse des risques et des mesures}
 
@@ -1274,14 +1274,14 @@ En résumé, le projet ne revendique pas la neutralité : il rend explicites ses
 \section{Conclusion générale}
 \label{sec:8}% Conclusion générale
 
-Ce projet avait pour objectif de concevoir un système complet de détection et de classification des maladies des feuilles, depuis la donnée brute jusqu'à une application Web utilisable. Cet objectif a été atteint à l'échelle du dataset complet : un modèle MobileNetV2 adapté par Transfer Learning a été entraîné sur \textbf{37 992 images} couvrant \textbf{38 classes et 14 cultures}, évalué sur \textbf{8 156 images indépendantes}, et intégré dans une application Flask en français.
+Ce projet avait pour objectif de concevoir un système complet de détection et de classification des maladies des feuilles, depuis la donnée brute jusqu'à une application Web utilisable. Cet objectif a été atteint à l'échelle du dataset complet : un modèle MobileNetV2 adapté par Transfer Learning a été entraîné sur \textbf{37 999 images} couvrant \textbf{38 classes et 14 cultures}, évalué sur \textbf{8 153 images indépendantes}, et intégré dans une application Flask en français.
 
 Les résultats expérimentaux sont les suivants :
 
 \begin{itemize}
-\item \textbf{accuracy de 97,06 \%} sur l'ensemble de test à 38 classes ;
-\item \textbf{F1-score macro de 96,17 \%}, avec 14 classes au-dessus de 99 \% de F1 et un point faible identifié (alternariose précoce, 80,61 \%) ;
-\item \textbf{240 erreurs sur 8 156 images} (2,94 \%), dont 30 \% concentrées sur cinq paires de classes visuellement proches ;
+\item \textbf{accuracy de 97,90 \%} sur l'ensemble de test à 38 classes ;
+\item \textbf{F1-score macro de 97,44 \%}, avec 19 classes au-dessus de 99 \% de F1 et un point faible identifié (alternariose précoce, 80,61 \%) ;
+\item \textbf{171 erreurs sur 8 153 images} (2,10 \%), dont 30 \% concentrées sur cinq paires de classes visuellement proches ;
 \item \textbf{temps d'inférence d'environ 110 ms} par image, compatible avec une utilisation interactive ;
 \item un modèle compact de \textbf{2,43 millions de paramètres}, entraînable et exécutable sans GPU.
 \end{itemize}

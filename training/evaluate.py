@@ -15,7 +15,8 @@ Sorties :
     results/metrics.json                  # livrable : métriques globales + par classe
     results/classification_report.csv     # livrable : précision/rappel/F1 par classe
     results/training_curves.png           # livrable : loss entraînement / validation
-    results/confusion_matrix.png          # livrable : matrice de confusion (38 classes)
+    results/confusion_matrix.png          # livrable : matrice de confusion (effectifs)
+    results/confusion_matrix_normalized.png  # matrice normalisée en pourcentage
     results/metrics/{classification_report.txt,evaluation_summary.md,training_history.json}
     results/figures/{per_class_performance,confidence_distribution}.png
     results/predictions/{predictions_test.csv,erreurs.csv,error_grid.png}
@@ -129,35 +130,78 @@ def tracer_courbes(historique: dict, configuration: dict, chemin: Path) -> None:
     plt.close(figure)
 
 
-def tracer_matrice(matrice: np.ndarray, chemin: Path) -> None:
-    """Matrice de confusion en effectifs et en proportions."""
+def tracer_matrice_effectifs(matrice: np.ndarray, chemin: Path) -> None:
+    """Matrice de confusion en effectifs, lisible avec 38 classes."""
     noms = [nom_affichage(classe) for classe in config.CLASS_NAMES]
-    normalisee = matrice.astype(float) / np.maximum(matrice.sum(axis=1, keepdims=True), 1)
 
-    figure, axes = plt.subplots(1, 2, figsize=(13, 5.2))
+    figure, axe = plt.subplots(figsize=(19, 16))
     sns.heatmap(
-        matrice, annot=True, fmt="d", cmap="Greens", cbar=False, ax=axes[0],
-        xticklabels=noms, yticklabels=noms, linewidths=0.5, linecolor="white",
+        matrice,
+        annot=True,
+        fmt="d",
+        cmap="Greens",
+        cbar=True,
+        ax=axe,
+        xticklabels=noms,
+        yticklabels=noms,
+        linewidths=0.3,
+        linecolor="white",
+        annot_kws={"fontsize": 5.5},
+        cbar_kws={"shrink": 0.75},
     )
-    axes[0].set_title("Matrice de confusion (effectifs)")
-    axes[0].set_xlabel("Classe prédite")
-    axes[0].set_ylabel("Classe réelle")
-    axes[0].tick_params(axis="x", rotation=25)
-    axes[0].tick_params(axis="y", rotation=0)
-
-    sns.heatmap(
-        normalisee, annot=True, fmt=".2f", cmap="Blues", cbar=False, ax=axes[1],
-        xticklabels=noms, yticklabels=noms, linewidths=0.5, linecolor="white", vmin=0, vmax=1,
+    axe.set_title(
+        "Matrice de confusion — effectifs (ensemble de test)",
+        fontsize=13,
+        pad=14,
     )
-    axes[1].set_title("Matrice de confusion (proportions par classe réelle)")
-    axes[1].set_xlabel("Classe prédite")
-    axes[1].set_ylabel("Classe réelle")
-    axes[1].tick_params(axis="x", rotation=25)
-    axes[1].tick_params(axis="y", rotation=0)
+    axe.set_xlabel("Classe prédite", fontsize=11)
+    axe.set_ylabel("Classe réelle", fontsize=11)
+    axe.set_xticklabels(noms, rotation=90, fontsize=6.5)
+    axe.set_yticklabels(noms, rotation=0, fontsize=6.5)
 
-    figure.suptitle("Évaluation sur l'ensemble de test", fontsize=11)
     figure.tight_layout()
-    figure.savefig(chemin)
+    figure.savefig(chemin, dpi=300)
+    plt.close(figure)
+
+
+def tracer_matrice_normalisee(matrice: np.ndarray, chemin: Path) -> None:
+    """Matrice de confusion normalisée par classe réelle, en pourcentage."""
+    noms = [nom_affichage(classe) for classe in config.CLASS_NAMES]
+    pourcentages = (
+        100.0
+        * matrice.astype(float)
+        / np.maximum(matrice.sum(axis=1, keepdims=True), 1)
+    )
+
+    figure, axe = plt.subplots(figsize=(19, 16))
+    sns.heatmap(
+        pourcentages,
+        annot=True,
+        fmt=".0f",
+        cmap="Blues",
+        cbar=True,
+        ax=axe,
+        xticklabels=noms,
+        yticklabels=noms,
+        linewidths=0.3,
+        linecolor="white",
+        vmin=0,
+        vmax=100,
+        annot_kws={"fontsize": 5.5},
+        cbar_kws={"shrink": 0.75, "label": "% de la classe réelle"},
+    )
+    axe.set_title(
+        "Matrice de confusion — pourcentage par classe réelle",
+        fontsize=13,
+        pad=14,
+    )
+    axe.set_xlabel("Classe prédite", fontsize=11)
+    axe.set_ylabel("Classe réelle", fontsize=11)
+    axe.set_xticklabels(noms, rotation=90, fontsize=6.5)
+    axe.set_yticklabels(noms, rotation=0, fontsize=6.5)
+
+    figure.tight_layout()
+    figure.savefig(chemin, dpi=300)
     plt.close(figure)
 
 
@@ -419,7 +463,8 @@ def main() -> int:
     historique = charger_json(config.HISTORY_PATH, defaut={}) or {}
     if historique:
         tracer_courbes(historique, configuration, config.TRAINING_CURVES_PATH)
-    tracer_matrice(matrice, config.CONFUSION_MATRIX_PATH)
+    tracer_matrice_effectifs(matrice, config.CONFUSION_MATRIX_PATH)
+    tracer_matrice_normalisee(matrice, config.CONFUSION_MATRIX_NORMALIZED_PATH)
     tracer_performances(rapport, config.FIGURES_DIR / "per_class_performance.png")
     tracer_confiance(
         confiances[correct],
@@ -495,7 +540,11 @@ def main() -> int:
     print(f" Erreurs : {(~correct).sum()} / {len(etiquettes)}")
     print(f" Métriques : {config.METRICS_JSON_PATH}")
     print(f" Rapport   : {config.CLASSIFICATION_REPORT_CSV}")
-    print(f" Figures   : {config.TRAINING_CURVES_PATH} / {config.CONFUSION_MATRIX_PATH}")
+    print(f" Figures   : {config.TRAINING_CURVES_PATH}")
+    print(
+        " Matrices  : "
+        f"{config.CONFUSION_MATRIX_PATH} / {config.CONFUSION_MATRIX_NORMALIZED_PATH}"
+    )
     return 0
 
 
