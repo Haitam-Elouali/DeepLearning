@@ -226,19 +226,19 @@ Paramètres (valeurs réellement utilisées, centralisées dans `config.py`) :
 | Phase 2 (fine-tuning) | 15 époques, 30 dernières couches examinées, Adam 1e-5 |
 | Poids de classes | activés (compensent le déséquilibre, poids de 0,26 à 10,87) |
 | Graine | 42 |
-| Durée observée | 498 min (phase 1) + 267 min (phase 2) ≈ **12 h 45** sur 4 threads CPU |
+| Durée observée | 475 min (phase 1) + 258 min (phase 2) ≈ **12 h 12** sur 4 threads CPU |
 
 Déroulement :
 
 - **phase 1** : base gelée, Adam 1e-3, Early Stopping + Checkpoint sur la meilleure
-  validation ; meilleure accuracy de validation **94,75 %** (époque 27) ;
+  validation ; meilleure accuracy de validation **95,31 %** (époque 30) ;
 - **phase 2** : on recharge ce meilleur modèle, on examine les 30 dernières couches de
   MobileNetV2 et on dégèle toutes celles qui ne sont pas des BatchNormalization (elles
   restent gelées, ce qui stabilise l'apprentissage avec de petits lots) ; on recompile à
   1e-5 et on continue les époques. Bilan réel : **19 couches dégelées**, dont **10
   porteuses de poids** effectivement réentraînées (les autres sont des activations),
-  **134 couches à poids restées gelées**, **52 BatchNormalization sur 52 gelées** ;
-  meilleure accuracy de validation **97,01 %** (époque 45).
+  **94 couches à poids restées gelées**, **52 BatchNormalization sur 52 gelées** ;
+  meilleure accuracy de validation **97,02 %** (époque 39).
 
 Ces valeurs ne sont pas recopiées à la main : elles sont calculées par
 `resume_fine_tuning()` à partir du modèle réel et écrites dans
@@ -356,17 +356,17 @@ pytest -q
 ## 10. Résultats expérimentaux
 
 Résultats mesurés sur l'ensemble de test indépendant (**8 153 images, 38 classes**),
-avec le modèle `models/best_model.keras` :
+avec le modèle réentraîné `models/best_model.keras` :
 
 | Métrique (test) | Valeur |
 | --- | --- |
-| Exactitude (accuracy) | **97,90 %** |
-| Précision macro | 97,26 % |
-| Rappel macro | 97,77 % |
-| F1-score macro | **97,44 %** |
-| F1-score pondéré | 97,91 % |
-| Images mal classées | 171 (2,10 %) |
-| Meilleure exactitude de validation | 97,01 % (époque 45) |
+| Exactitude (accuracy) | **97,31 %** |
+| Précision macro | 96,72 % |
+| Rappel macro | 96,68 % |
+| F1-score macro | **96,65 %** |
+| F1-score pondéré | 97,30 % |
+| Images mal classées | 219 (2,69 %) |
+| Meilleure exactitude de validation | 97,02 % (époque 39) |
 | Temps d'inférence | ≈ 110 ms par image (CPU) |
 
 Ces valeurs sont **recalculées** par `python training/evaluate.py` à partir des
@@ -376,29 +376,27 @@ qu'elles correspondent au README et à la fiche expérimentale.
 
 Comparaison avec la littérature : Mohanty et al. (2016) rapportent plus de 99 % sur les
 38 classes avec AlexNet ou GoogLeNet et un entraînement bien plus long. Notre modèle,
-2,4 millions de paramètres seulement, atteint 97,90 % : c'est un compromis
+2,4 millions de paramètres seulement, atteint 97,31 % : c'est un compromis
 précision / coût assumé.
 
-Classes les mieux reconnues (F1 = 100 %) : pommier (rouille de cèdre), cerise (oïdium),
-maïs (rouille commune), maïs sain, raisin sain, orange (HLB), framboise saine, courge
-(oïdium), fraise (brûlure des feuilles) et fraise saine. **Dix-neuf classes** dépassent
-99 % de F1-score.
+Classes parfaitement reconnues (F1 = 100 %) :
+Blueberry — healthy, Corn (maize) — Common rust, Grape — Leaf blight (Isariopsis Leaf Spot), Grape — healthy, Peach — healthy, Raspberry — healthy, Strawberry — Leaf scorch, Strawberry — healthy.
+**15 classes** dépassent 99 % de F1-score.
 
 Classes les plus difficiles :
 
 | Classe | Précision | Rappel | F1-score | Support |
 | --- | --- | --- | --- | --- |
-| Maïs — tache grise (Cercospora) | 77,32 % | 97,40 % | 86,21 % | 77 |
-| Alternariose précoce (tomate) | 95,35 % | 82,00 % | 88,17 % | 150 |
-| Tomate — tache cible | 88,64 % | 92,42 % | 90,49 % | 211 |
-| Maïs — brûlure nordique | 98,44 % | 85,14 % | 91,30 % | 148 |
-| Tomate — tétranyque | 89,26 % | 96,02 % | 92,51 % | 251 |
+| Alternariose précoce | 91,94 % | 76,00 % | 83,21 % | 150 |
+| Tomato — Target Spot | 88,18 % | 84,83 % | 86,47 % | 211 |
+| Potato — healthy | 89,66 % | 86,67 % | 88,14 % | 30 |
+| Moisissure des feuilles | 87,01 % | 93,71 % | 90,24 % | 143 |
+| Corn (maize) — Cercospora leaf spot Gray leaf spot | 90,91 % | 90,91 % | 90,91 % | 77 |
 
-Les 171 erreurs se concentrent sur quelques paires de classes visuellement proches
-(brûlure nordique → tache grise : 22 cas ; virus YLCV → brûlure bactérienne : 10 cas ;
-tache cible → tétranyque : 10 cas ; alternariose → tache cible : 9 cas ; alternariose →
-mildiou : 6 cas). La confiance moyenne est de 98,69 % pour les prédictions correctes
-contre 71,31 % pour les erreurs.
+Les 219 erreurs se concentrent sur quelques paires de classes visuellement proches
+(Tomato — Target Spot → Tomato — Spider mites Two-spotted spider mite : 14 cas ; Tomato — Target Spot → Feuille saine : 11 cas ; Alternariose précoce → Mildiou : 9 cas ; Alternariose précoce → Tomato — Septoria leaf spot : 8 cas ; Tomato — Tomato Yellow Leaf Curl Virus → Tomato — Bacterial spot : 7 cas). La confiance moyenne est de
+98,14 % pour les prédictions correctes contre
+72,34 % pour les erreurs.
 
 ---
 

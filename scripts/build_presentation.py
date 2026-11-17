@@ -356,7 +356,7 @@ def construire() -> Path:
         ["Graine", "42"],
     ], Inches(0.6), Inches(1.8), Inches(7.2), Inches(3.4), taille=13)
     d.encadre(slide, Inches(8.3), Inches(1.9), Inches(4.4), Inches(1.25),
-              "Durée totale (CPU 4 threads)", "≈ 12 h 45", VERT)
+              "Durée totale (CPU ≈ 8 threads)", "≈ 12 h 12", VERT)
     d.encadre(slide, Inches(8.3), Inches(3.35), Inches(4.4), Inches(1.25),
               "Meilleure accuracy de validation", pourcent(configuration.get("meilleure_val_accuracy", 0)), VERT)
     d.encadre(slide, Inches(8.3), Inches(4.8), Inches(4.4), Inches(1.25),
@@ -415,14 +415,14 @@ def construire() -> Path:
     )
     d.image(slide, figures / "confusion_matrix.png", Inches(0.6), Inches(1.45), largeur=Inches(11.8))
     d._texte(slide, Inches(0.6), Inches(6.3), Inches(12.2), Inches(0.6),
-             "Diagonale dominante · 30 erreurs maïs (brûlure nordique → tache grise) sur 171 erreurs.",
+             "Diagonale dominante · 30 erreurs maïs (brûlure nordique → tache grise) sur 219 erreurs.",
              taille=14, couleur=VERT_FONCE, gras=True, alignement=PP_ALIGN.CENTER)
 
     # 13. Par classe ----------------------------------------------------
     slide = d.nouvelle_diapositive(
         "Performances par classe",
         notes=(
-            "Souligner les 19 classes au-dessus de 99 % de F1 et les classes fragiles "
+            "Souligner les 15 classes au-dessus de 99 % de F1 et les classes fragiles "
             "(alternariose, maïs). (≈ 1 min)"
         ),
     )
@@ -524,7 +524,7 @@ def construire() -> Path:
         f"Résultats réels : {pourcent(global_.get('accuracy', 0))} d'accuracy, "
         f"F1 macro {pourcent(global_.get('f1_macro', 0))} sur {global_.get('nb_images', '—')} images de test.",
         "Transfer Learning efficace : 86 % de validation dès la première époque.",
-        "171 erreurs, concentrées sur quelques paires de maladies proches.",
+        "219 erreurs, concentrées sur quelques paires de maladies proches.",
         "Outil expérimental d'aide à la reconnaissance visuelle — pas un diagnostic agricole.",
         "Perspectives : explicabilité, calibration, données de terrain, déploiement mobile.",
     ], taille=17)

@@ -320,44 +320,42 @@ progressait encore à la dernière époque : le budget maximal a été entièrem
 
 | Élément | Valeur |
 | --- | --- |
-| Processeur | 12 cœurs logiques (x86-64, AVX2), 4 threads alloués à TensorFlow |
+| Processeur | 14 cœurs logiques (x86-64, AVX2), threads TensorFlow par défaut (≈ 8 sollicités) |
 | GPU | aucun |
 | Système | Windows 11 |
 | Python | 3.12.10 |
 | TensorFlow | 2.21 (version CPU) |
 | Durée phase 1 | 498 minutes (30 époques, ≈ 16,6 min/époque) |
 | Durée phase 2 | 267 minutes (15 époques, ≈ 17,8 min/époque) |
-| Durée totale | ≈ 765 minutes, soit environ 12 h 45 |
+| Durée totale | ≈ 732 minutes, soit environ 12 h 12 |
 
 *Tableau 9 — Environnement d'exécution de l'expérience.*
 
-Le nombre de threads a été volontairement limité à 4 sur 12 cœurs logiques afin de
-laisser la machine utilisable pendant l'entraînement. C'est un choix assumé : il
-multiplie la durée par environ deux par rapport à une utilisation pleine de tous les
-cœurs.
+Les threads TensorFlow par défaut ont été conservés (environ 8 cœurs logiques
+sollicités sur 14), ce qui laisse la machine utilisable pendant l'entraînement tout
+en évitant de doubler la durée.
 
 #### 4.2.3. Déroulement de la phase 1
 
 La base MobileNetV2 est gelée et seules les couches de classification apprennent. Dès la
-première époque, l'accuracy de validation atteint **86,6 %**, ce qui illustre la qualité
+première époque, l'accuracy de validation atteint **88,9 %**, ce qui illustre la qualité
 des caractéristiques ImageNet. La progression est ensuite régulière :
 
 | Époque | Accuracy entraînement | Accuracy validation | Perte validation |
 | --- | --- | --- | --- |
-| 1 | 72,42 % | 86,59 % | 0,426 |
-| 2 | 84,43 % | 90,46 % | 0,291 |
-| 5 | 87,72 % | 91,86 % | 0,253 |
-| 10 | 90,90 % | 92,64 % | 0,215 |
-| 15 | 92,04 % | 93,94 % | 0,177 |
-| 20 | 92,78 % | 94,72 % | 0,161 |
-| 25 | 92,78 % | 94,64 % | 0,160 |
-| 30 | 92,86 % | 94,70 % | 0,159 |
+| 1 | 73,35 % | 88,94 % | 0,361 |
+| 2 | 85,16 % | 91,86 % | 0,260 |
+| 5 | 88,40 % | 92,73 % | 0,230 |
+| 10 | 91,42 % | 94,51 % | 0,161 |
+| 15 | 92,57 % | 94,74 % | 0,161 |
+| 20 | 93,18 % | 95,02 % | 0,154 |
+| 25 | 93,25 % | 95,12 % | 0,150 |
+| 30 | 93,36 % | 95,30 % | 0,146 |
 
 *Tableau 10 — Phase 1 : suivi de l'apprentissage (extrait du journal réel).*
 
 Le learning rate est réduit automatiquement de 1e-3 à 5e-4, 2,5e-4, 1,25e-4 puis
-6,25e-5, et la validation se stabilise autour de **94,7 %**. Le meilleur modèle de la
-phase 1 est atteint à l'époque 27, avec **94,75 %** de validation.
+6,25e-5, et la validation se stabilise autour de **95,3 %**, Le meilleur modèle de la phase 1 est atteint à l'époque 30, avec **95,31 %** de validation,
 
 #### 4.2.4. Déroulement de la phase 2 (fine-tuning)
 
@@ -367,17 +365,17 @@ dégradation initiale marquée :
 
 | Époque | Accuracy entraînement | Accuracy validation | Perte validation |
 | --- | --- | --- | --- |
-| 31 | 92,74 % | 93,98 % | 0,188 |
-| 35 | 94,96 % | 95,16 % | 0,150 |
-| 40 | 96,53 % | 96,44 % | 0,105 |
-| 43 | 96,89 % | 96,60 % | 0,098 |
-| 44 | 96,97 % | 96,98 % | 0,092 |
-| **45** | **96,98 %** | **97,01 %** | **0,090** |
+| 31 | 93,06 % | 95,34 % | 0,138 |
+| 35 | 95,37 % | 96,32 % | 0,107 |
+| **39** | **96,39 % | 97,02 % | 0,092** |
+| 40 | 96,56 % | 96,61 % | 0,098 |
+| 43 | 96,94 % | 96,86 % | 0,092 |
+| 45 | 97,02 % | 96,82 % | 0,095 |
 
 *Tableau 11 — Phase 2 : suivi du fine-tuning (extrait du journal réel).*
 
-Le fine-tuning apporte donc un gain réel de **+2,26 points** d'accuracy de validation
-par rapport au meilleur modèle de la phase 1 (94,75 % → 97,01 %). Le meilleur modèle est
+Le fine-tuning apporte donc un gain réel de **+1,70 point** d'accuracy de validation
+par rapport au meilleur modèle de la phase 1 (95,31 % → 97,02 %), Le meilleur modèle est
 sauvegardé automatiquement dans `models/best_model.keras`, avec la contrainte de ne
 jamais remplacer un modèle de phase 1 par un modèle de phase 2 moins bon
 (`initial_value_threshold`).
