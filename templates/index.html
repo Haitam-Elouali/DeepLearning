@@ -7,57 +7,80 @@
 {% endif %}
 
 {% if not resultat %}
-  <section class="ouverture">
-    <p class="numero">Identification</p>
-    <h1>La feuille, le symptôme,<br><em>le nom.</em></h1>
-    <p class="chapeau">
-      Une photographie suffit&nbsp;: le modèle nomme la culture et la maladie,
-      avec le degré de certitude de sa réponse.
-    </p>
-  </section>
-{% endif %}
+  <div class="accueil">
 
-{% if modele_pret %}
-  {% if not resultat %}
-    <form method="post" action="{{ url_for('analyser') }}" enctype="multipart/form-data" id="formulaire">
-      <label class="planche" for="image" id="depot">
-        <span class="coin coin-hg" aria-hidden="true"></span>
-        <span class="coin coin-hd" aria-hidden="true"></span>
-        <span class="coin coin-bg" aria-hidden="true"></span>
-        <span class="coin coin-bd" aria-hidden="true"></span>
-        <svg class="planche-icone" viewBox="0 0 32 32" aria-hidden="true">
-          <path d="M16 22V6m0 0-5 5m5-5 5 5M7 20v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4"
-                fill="none" stroke="currentColor" stroke-width="1.4"
-                stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span class="planche-titre">Déposer une photo de feuille</span>
-        <span class="planche-aide">JPG ou PNG &middot; 8 Mo au maximum &middot; une feuille par image</span>
-        <input type="file" id="image" name="image"
-               accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
-      </label>
+    <section class="presentation">
+      <p class="surtitre">Diagnostic foliaire</p>
+      <h1>Identifiez la maladie d'une feuille à partir d'une photo.</h1>
+      <p class="chapeau">
+        Déposez une image de feuille&nbsp;: le modèle reconnaît la culture et la
+        maladie, puis indique le niveau de confiance de sa réponse.
+      </p>
 
-      <div class="apercu-local" id="apercu-local" hidden>
-        <img id="vignette" alt="Aperçu de l'image sélectionnée">
-        <span class="apercu-texte">
-          <strong id="nom-fichier"></strong>
-          <span id="taille-fichier"></span>
-        </span>
-      </div>
+      <ol class="etapes">
+        <li>
+          <span class="etape-num">01</span>
+          <span class="etape-texte">Cadrez une seule feuille, sur fond neutre et bien éclairée.</span>
+        </li>
+        <li>
+          <span class="etape-num">02</span>
+          <span class="etape-texte">Le modèle compare l'image aux maladies qu'il a apprises.</span>
+        </li>
+        <li>
+          <span class="etape-num">03</span>
+          <span class="etape-texte">Lisez la fiche d'identification et les cinq hypothèses les plus probables.</span>
+        </li>
+      </ol>
+    </section>
 
-      <button type="submit" id="bouton-analysis">Analyser l'image</button>
-    </form>
-  {% endif %}
-{% else %}
-  <p class="alerte">
-    Le modèle n'est pas disponible sur ce serveur&nbsp;: {{ erreur_modele }}
-  </p>
+    <section class="panneau">
+      {% if modele_pret %}
+        <form method="post" action="{{ url_for('analyser') }}" enctype="multipart/form-data" id="formulaire">
+          <label class="planche" for="image" id="depot">
+            <span class="planche-icone" aria-hidden="true">
+              <svg viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+                <rect x="5.5" y="9.5" width="29" height="24" rx="3" fill="none"
+                      stroke="currentColor" stroke-width="1.5"/>
+                <path d="M20 27V15m0 0-4.5 4.5M20 15l4.5 4.5" fill="none" stroke="currentColor"
+                      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="26.5" cy="14" r="1.4" fill="currentColor"/>
+              </svg>
+            </span>
+            <span class="planche-titre">Déposer une photo de feuille</span>
+            <span class="planche-aide">Glissez le fichier ici ou cliquez pour parcourir</span>
+            <span class="planche-formats">JPG ou PNG &middot; 8 Mo au maximum</span>
+            <input type="file" id="image" name="image"
+                   accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
+          </label>
+
+          <div class="apercu-local" id="apercu-local" hidden>
+            <img id="vignette" alt="Aperçu de l'image sélectionnée">
+            <span class="apercu-texte">
+              <strong id="nom-fichier"></strong>
+              <span id="taille-fichier"></span>
+            </span>
+            <button type="button" class="apercu-retirer" id="retirer">Retirer</button>
+          </div>
+
+          <button type="submit" class="bouton-principal" id="bouton-analysis">Analyser l'image</button>
+        </form>
+      {% else %}
+        <p class="alerte">
+          Le modèle n'est pas disponible sur ce serveur&nbsp;: {{ erreur_modele }}
+        </p>
+      {% endif %}
+    </section>
+
+  </div>
 {% endif %}
 
 {% if resultat %}
   <article class="fiche">
     <div class="fiche-tete">
       <span class="fiche-rubrique">Fiche d'identification</span>
-      <span class="fiche-duree">{{ resultat.duree_ms }} ms</span>
+      <span class="tampon {{ 'tampon-saine' if resultat.saine else 'tampon-malade' }}">
+        {{ 'Feuille saine' if resultat.saine else 'Maladie détectée' }}
+      </span>
     </div>
 
     <div class="fiche-corps">
@@ -67,21 +90,20 @@
       </figure>
 
       <div class="fiche-texte">
-        <span class="tampon {{ 'tampon-saine' if resultat.saine else 'tampon-malade' }}">
-          {{ 'Feuille saine' if resultat.saine else 'Maladie détectée' }}
-        </span>
-
         <p class="fiche-culture">{{ resultat.culture }}</p>
         <h2>{{ resultat.maladie }}</h2>
         <p class="fiche-origine">({{ resultat.anglais }})</p>
 
-        <div class="regle" role="img"
-             aria-label="Confiance du modèle : {{ resultat.confiance|pourcentage }}">
-          <span class="regle-valeur" style="width: {{ resultat.confiance_pct }}%"></span>
+        <div class="confiance">
+          <div class="confiance-ligne">
+            <span class="confiance-mot">Confiance</span>
+            <strong class="confiance-valeur">{{ resultat.confiance|pourcentage }}</strong>
+          </div>
+          <div class="regle" role="img"
+               aria-label="Confiance du modèle : {{ resultat.confiance|pourcentage }}">
+            <span class="regle-valeur" style="width: {{ resultat.confiance_pct }}%"></span>
+          </div>
         </div>
-        <p class="fiche-confiance">
-          Confiance&nbsp;: <strong>{{ resultat.confiance|pourcentage }}</strong>
-        </p>
 
         {% if not resultat.saine %}
           <p class="fiche-note">Résultat à faire confirmer avant tout traitement.</p>
@@ -115,6 +137,7 @@
     var vignette = document.getElementById("vignette");
     var nomFichier = document.getElementById("nom-fichier");
     var tailleFichier = document.getElementById("taille-fichier");
+    var retirer = document.getElementById("retirer");
     var bouton = document.getElementById("bouton-analysis");
 
     function afficher(fichier) {
@@ -125,6 +148,13 @@
       bloc.hidden = false;
       depot.classList.add("planche-remplie");
       bouton.disabled = false;
+    }
+
+    function vider() {
+      champ.value = "";
+      bloc.hidden = true;
+      vignette.removeAttribute("src");
+      depot.classList.remove("planche-remplie");
     }
 
     champ.addEventListener("change", function () {
@@ -152,8 +182,9 @@
       afficher(fichiers[0]);
     });
 
-    var formulaire = document.getElementById("formulaire");
-    formulaire.addEventListener("submit", function () {
+    retirer.addEventListener("click", vider);
+
+    document.getElementById("formulaire").addEventListener("submit", function () {
       bouton.disabled = true;
       bouton.textContent = "Analyse en cours…";
     });
