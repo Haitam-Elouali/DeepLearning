@@ -19,7 +19,14 @@ from flask import Flask, render_template, request
 from werkzeug.exceptions import RequestEntityTooLarge
 
 import config
-from utils.helpers import apercu_base64, classe_est_saine, formater_pourcentage, nom_affichage, valider_image
+from utils.helpers import (
+    apercu_base64,
+    charger_json,
+    classe_est_saine,
+    formater_pourcentage,
+    nom_affichage,
+    valider_image,
+)
 from utils.predictor import PredictionError, obtenir_predictor
 
 logging.basicConfig(
@@ -43,6 +50,11 @@ def creer_application() -> Flask:
         erreur_modele = str(exc)
         logger.warning("Modèle indisponible : %s", erreur_modele)
 
+    # Exactitude de test affichée en en-tête ; absente si l'évaluation n'a pas
+    # encore été lancée, l'interface fonctionne alors sans cette étiquette.
+    metriques = charger_json(config.METRICS_JSON_PATH, {}) or {}
+    exactitude = (metriques.get("global") or {}).get("accuracy")
+
     def rendre(**contexte):
         """Rend la page unique avec le contexte commun."""
         return render_template(
@@ -51,6 +63,7 @@ def creer_application() -> Flask:
             nombre_classes=config.NUM_CLASSES,
             modele_pret=erreur_modele is None,
             erreur_modele=erreur_modele,
+            exactitude=exactitude,
             **contexte,
         )
 
@@ -83,6 +96,7 @@ def creer_application() -> Flask:
             {
                 "nom_fr": nom_affichage(element["classe"]),
                 "pourcentage": formater_pourcentage(element["probabilite"], 1),
+                "valeur": round(element["probabilite"] * 100, 1),
             }
             # Seules les cinq meilleures classes sont affichées : avec 38 classes,
             # lister toutes les probabilités rendrait la page illisible.
@@ -93,6 +107,7 @@ def creer_application() -> Flask:
                 "classe": nom_affichage(classe),
                 "saine": classe_est_saine(classe),
                 "confiance": resultat["confiance"],
+                "confiance_pct": round(resultat["confiance"] * 100, 1),
                 "duree_ms": resultat["duree_ms"],
             },
             probabilites=probabilites,

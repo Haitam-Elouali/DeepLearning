@@ -3,59 +3,171 @@
 {% block contenu %}
 
 {% if erreur %}
-  <p class="message erreur">{{ erreur }}</p>
+  <div class="alerte" role="alert">
+    <svg class="icone-alerte" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 8v5m0 3.5v.5M12 3.5 21 20H3L12 3.5z" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span>{{ erreur }}</span>
+  </div>
+{% endif %}
+
+{% if not resultat %}
+  <section class="presentation">
+    <h1>Identifiez une maladie en une photo</h1>
+    <p>
+      Déposez l'image d'une feuille&nbsp;: le réseau estime la culture, la maladie
+      éventuelle et la confiance de sa réponse parmi {{ nombre_classes }} classes.
+    </p>
+  </section>
 {% endif %}
 
 {% if modele_pret %}
-  <form method="post" action="{{ url_for('analyser') }}" enctype="multipart/form-data">
-    <label for="image">Choisir une image de feuille (JPG ou PNG, 8 Mo maximum)</label>
-    <input type="file" id="image" name="image"
-           accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
-    <button type="submit">Analyser l'image</button>
-  </form>
+  {% if not resultat %}
+    <section class="carte">
+      <form method="post" action="{{ url_for('analyser') }}" enctype="multipart/form-data" id="formulaire">
+        <label class="depot" for="image" id="depot">
+          <svg class="icone-depot" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"
+                  fill="none" stroke="currentColor" stroke-width="1.7"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="depot-titre">Glissez une image ici ou cliquez pour parcourir</span>
+          <span class="depot-detail">JPG ou PNG &middot; 8 Mo maximum &middot; une seule feuille, cadrage net</span>
+          <input type="file" id="image" name="image"
+                 accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
+        </label>
+
+        <div class="apercu-local" id="apercu-local" hidden>
+          <img id="vignette" alt="Aperçu de l'image sélectionnée">
+          <div class="apercu-texte">
+            <strong id="nom-fichier"></strong>
+            <span id="taille-fichier"></span>
+          </div>
+        </div>
+
+        <button type="submit" id="bouton-analysis">Analyser l'image</button>
+      </form>
+    </section>
+  {% endif %}
 {% else %}
-  <p class="message erreur">
-    Le modèle n'est pas disponible sur ce serveur : {{ erreur_modele }}
-  </p>
+  <section class="alerte" role="alert">
+    <span>Le modèle n'est pas disponible sur ce serveur&nbsp;: {{ erreur_modele }}</span>
+  </section>
 {% endif %}
 
 {% if resultat %}
-    <section class="resultat">
-    <figure class="apercu">
-      <img src="{{ apercu }}" alt="Image analysée">
-      <figcaption>Image analysée</figcaption>
-    </figure>
+  <section class="carte carte-resultat">
+    <div class="resultat-grille">
+      <figure class="apercu">
+        <img src="{{ apercu }}" alt="Image analysée">
+        <figcaption>Image analysée</figcaption>
+      </figure>
 
-    <h2>{{ resultat.classe }}</h2>
-    <p class="details">
-      Confiance : <strong>{{ resultat.confiance|pourcentage }}</strong>
-      &middot; durée de l'analyse : {{ resultat.duree_ms }} ms
-    </p>
+      <div class="verdict">
+        {% if resultat.saine %}
+          <span class="pastille pastille-saine">Feuille saine</span>
+        {% else %}
+          <span class="pastille pastille-malade">Maladie détectée</span>
+        {% endif %}
 
-    {% if resultat.saine %}
-      <p class="message sain">La feuille semble saine.</p>
-    {% else %}
-      <p class="message malade">
-        Maladie détectée. Faites confirmer ce résultat par un agronome avant
-        toute intervention.
-      </p>
-    {% endif %}
+        <h2>{{ resultat.classe }}</h2>
+
+        <div class="jauge" role="img"
+             aria-label="Confiance du modèle : {{ resultat.confiance|pourcentage }}">
+          <span class="jauge-remplissage" style="width: {{ resultat.confiance_pct }}%"></span>
+        </div>
+
+        <p class="details">
+          Confiance&nbsp;: <strong>{{ resultat.confiance|pourcentage }}</strong>
+          &middot; durée de l'analyse&nbsp;: {{ resultat.duree_ms }} ms
+        </p>
+
+        {% if resultat.saine %}
+          <p class="message sain">Aucune maladie n'est détectée sur cette feuille.</p>
+        {% else %}
+          <p class="message malade">
+            Faites confirmer ce résultat par un agronome avant toute intervention.
+          </p>
+        {% endif %}
+      </div>
+    </div>
 
     <h3>Probabilités les plus élevées</h3>
     <ul class="probabilites">
       {% for probabilite in probabilites %}
         <li>
-          <span>{{ probabilite.nom_fr }}</span>
-          <strong>{{ probabilite.pourcentage }}</strong>
+          <div class="probabilite-ligne">
+            <span>{{ probabilite.nom_fr }}</span>
+            <strong>{{ probabilite.pourcentage }}</strong>
+          </div>
+          <div class="barre"><span style="width: {{ probabilite.valeur }}%"></span></div>
         </li>
       {% endfor %}
     </ul>
+
+    <a class="lien-retour" href="{{ url_for('accueil') }}">&larr; Analyser une autre image</a>
   </section>
 {% endif %}
 
 <p class="note">
-  Classes reconnues : {{ nombre_classes }} classes (tomate, pomme de terre, maïs,
-  pommier, vigne, pêcher, poivron, fraise…).
+  Cultures reconnues&nbsp;: tomate, pomme de terre, maïs, pommier, vigne, pêcher,
+  poivron, fraise, cerise, agrumes, soja, courge, framboisier, myrtillier.
 </p>
+
+<script>
+  (function () {
+    var champ = document.getElementById("image");
+    if (!champ) { return; }
+
+    var depot = document.getElementById("depot");
+    var bloc = document.getElementById("apercu-local");
+    var vignette = document.getElementById("vignette");
+    var nomFichier = document.getElementById("nom-fichier");
+    var tailleFichier = document.getElementById("taille-fichier");
+    var bouton = document.getElementById("bouton-analysis");
+
+    function afficher(fichier) {
+      if (!fichier) { return; }
+      nomFichier.textContent = fichier.name;
+      tailleFichier.textContent = (fichier.size / 1024).toFixed(0) + " Ko";
+      vignette.src = URL.createObjectURL(fichier);
+      bloc.hidden = false;
+      depot.classList.add("depot-rempli");
+      bouton.disabled = false;
+    }
+
+    champ.addEventListener("change", function () {
+      afficher(champ.files && champ.files[0]);
+    });
+
+    ["dragenter", "dragover"].forEach(function (type) {
+      depot.addEventListener(type, function (evenement) {
+        evenement.preventDefault();
+        depot.classList.add("depot-actif");
+      });
+    });
+
+    ["dragleave", "drop"].forEach(function (type) {
+      depot.addEventListener(type, function () {
+        depot.classList.remove("depot-actif");
+      });
+    });
+
+    depot.addEventListener("drop", function (evenement) {
+      evenement.preventDefault();
+      var fichiers = evenement.dataTransfer && evenement.dataTransfer.files;
+      if (!fichiers || !fichiers.length) { return; }
+      champ.files = fichiers;
+      afficher(fichiers[0]);
+    });
+
+    var formulaire = document.getElementById("formulaire");
+    formulaire.addEventListener("submit", function () {
+      bouton.disabled = true;
+      bouton.textContent = "Analyse en cours…";
+    });
+  })();
+</script>
 
 {% endblock %}

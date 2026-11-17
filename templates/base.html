@@ -3,24 +3,57 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b3d24">
   <title>{% block titre %}{{ app_nom }}{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
-<header>
-  <h1>{{ app_nom }}</h1>
-  <p>Détection des maladies des feuilles de plantes — PlantVillage, 38 classes</p>
+<div class="lisere"></div>
+
+<header class="entete">
+  <div class="marque">
+    <svg class="logo" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="degrade-feuille" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#6ee7b7"/>
+          <stop offset="1" stop-color="#15803d"/>
+        </linearGradient>
+      </defs>
+      <rect width="48" height="48" rx="13" fill="#0b3d24"/>
+      <path d="M36.5 11.5c1 12.9-7.2 21.4-19.2 21.4h-4.8c-.9-13.1 7.3-21.4 19.5-21.4h4.5z"
+            fill="url(#degrade-feuille)"/>
+      <path d="M12.8 36.6c3.6-8.2 8.9-13.6 16.9-18.2" fill="none"
+            stroke="#0b3d24" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+    <div class="marque-texte">
+      <p class="nom-produit">{{ app_nom }}</p>
+      <p class="signature">Détection des maladies des feuilles &middot; PlantVillage</p>
+    </div>
+  </div>
+
+  <div class="etiquettes">
+    <span class="etiquette">{{ nombre_classes }} classes</span>
+    <span class="etiquette">14 cultures</span>
+    <span class="etiquette">MobileNetV2</span>
+    {% if exactitude %}
+      <span class="etiquette etiquette-forte">{{ exactitude|pourcentage }} d'exactitude</span>
+    {% endif %}
+  </div>
 </header>
 
-<main>
+<main class="contenu">
   {% block contenu %}{% endblock %}
 </main>
 
-<footer>
-  <p>
+<footer class="pied">
+  <p class="pied-avertissement">
     Outil expérimental d'aide à la reconnaissance visuelle. Il ne remplace pas
     l'avis d'un agronome ni un diagnostic de laboratoire.
+  </p>
+  <p class="pied-meta">
+    Projet universitaire &middot; TensorFlow / Keras &middot; transfert depuis ImageNet
+    &middot; aucune image n'est conservée par le serveur.
   </p>
 </footer>
 
