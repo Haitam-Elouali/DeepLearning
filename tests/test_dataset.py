@@ -179,3 +179,49 @@ def test_manifeste_reel_coherent():
         assert par_split == manifeste["images_brutes"][classe] or par_split <= manifeste[
             "images_brutes"
         ][classe]
+
+
+# ---------------------------------------------------------------------------
+# Téléchargement : comportement de --force
+# ---------------------------------------------------------------------------
+def _dataset_complet(racine: Path) -> Path:
+    """Crée un dataset factice complet (38 dossiers avec images)."""
+    destination = racine / "PlantVillage"
+    for indice, classe in enumerate(config.CLASS_NAMES):
+        _ecrire_images(destination / classe, 2, indice)
+    return destination
+
+
+def test_dataset_complet_sans_force_ne_telecharge_pas(tmp_path):
+    """Dataset complet sans --force : rien n'est téléchargé ni supprimé."""
+    from training.download_dataset import etat_dataset
+
+    destination = _dataset_complet(tmp_path)
+
+    assert etat_dataset(destination, force=False) == "conserver"
+    assert destination.is_dir()
+    assert len(list(destination.iterdir())) == config.NUM_CLASSES
+
+
+def test_dataset_complet_avec_force_est_remplace(tmp_path):
+    """Dataset complet avec --force : l'ancien dataset est réellement supprimé."""
+    from training.download_dataset import etat_dataset, preparer_remplacement
+
+    destination = _dataset_complet(tmp_path)
+
+    assert etat_dataset(destination, force=True) == "telecharger"
+    preparer_remplacement(destination)
+    assert not destination.exists()
+
+
+def test_dataset_incomplet_sans_force_echoue(tmp_path):
+    """Dataset incomplet sans --force : erreur explicite, pas de faux succès."""
+    from training.download_dataset import etat_dataset
+
+    destination = tmp_path / "PlantVillage"
+    _ecrire_images(destination / config.CLASS_NAMES[0], 2, 0)
+
+    with pytest.raises(SystemExit):
+        etat_dataset(destination, force=False)
+    # Avec --force, le remplacement est autorisé.
+    assert etat_dataset(destination, force=True) == "telecharger"

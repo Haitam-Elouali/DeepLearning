@@ -124,3 +124,14 @@ def test_fiche_experimentale_utilise_les_memes_chiffres(evaluation):
         pytest.skip("fiche absente")
     texte = fiche.read_text(encoding="utf-8")
     assert _pourcent(evaluation["global"]["accuracy"]) in texte
+
+
+def test_empreinte_sha256_du_modele(evaluation):
+    """Les métriques identifient exactement le fichier de modèle évalué."""
+    import hashlib
+
+    if not config.MODEL_PATH.exists():
+        pytest.skip("modèle absent")
+    digest = hashlib.sha256(config.MODEL_PATH.read_bytes()).hexdigest()
+    assert evaluation["modele_sha256"] == digest
+    assert evaluation["modele_fichier"] == "models/best_model.keras"

@@ -1,7 +1,7 @@
 # Résultats de l'évaluation — ensemble de test
 
-- Modèle : `best_model.keras`
-- Date : 17/11/2026 11:56
+- Modèle : `best_model.keras` (SHA-256 : `2293b814f5c5705c…`)
+- Date : 17/11/2026 12:18
 - Images de test : 8153
 
 ## Métriques globales

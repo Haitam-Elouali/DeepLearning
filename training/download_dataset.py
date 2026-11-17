@@ -33,7 +33,12 @@ def executer(commande: list[str], dossier: Path | None = None) -> None:
     """Exécute une commande git et affiche sa progression."""
     resultat = subprocess.run(commande, cwd=dossier, text=True)
     if resultat.returncode != 0:
-        raise SystemExit(f"Échec de la commande : {' '.join(commande)}")
+        raise SystemExit(
+            "Échec du téléchargement : la commande suivante a échoué :\n"
+            f"  {' '.join(commande)}\n"
+            "Vérifiez la connexion réseau, l'espace disque disponible et que git "
+            "est installé, puis relancez : python training/download_dataset.py --force"
+        )
 
 
 def verifier_dataset(destination: Path) -> dict[str, int]:
@@ -57,6 +62,46 @@ def afficher_classes_manquantes(nombre_par_classe: dict[str, int]) -> list[str]:
     return manquantes
 
 
+def etat_dataset(destination: Path, force: bool) -> str:
+    """Décide s'il faut télécharger le dataset.
+
+    Renvoie ``"conserver"`` si les 38 classes sont présentes et que ``--force``
+    n'est pas demandé ; renvoie ``"telecharger"`` dans tous les autres cas
+    (dataset absent, incomplet, ou remplacement explicitement demandé).
+    """
+    if not destination.exists():
+        return "telecharger"
+
+    existantes = verifier_dataset(destination)
+    manquantes = afficher_classes_manquantes(existantes)
+
+    if not manquantes:
+        if not force:
+            print(
+                f"Dataset complet : {sum(existantes.values())} images dans "
+                f"{len(existantes)} classes ({destination})."
+            )
+            print("Rien à télécharger. Utilisez --force pour le remplacer.")
+            return "conserver"
+        print("\n Dataset complet mais --force demandé : remplacement complet.")
+        return "telecharger"
+
+    if not force:
+        raise SystemExit(
+            "Dataset incomplet : le téléchargement n'est pas considéré comme "
+            "terminé.\nRelancez avec --force pour récupérer les 38 classes."
+        )
+    print("\n Dataset incomplet : remplacement complet avec --force.")
+    return "telecharger"
+
+
+def preparer_remplacement(destination: Path) -> None:
+    """Supprime l'ancien dataset avant d'en télécharger un nouveau."""
+    if destination.exists():
+        print(f"Suppression de l'ancien dataset : {destination}")
+        shutil.rmtree(destination)
+
+
 def compter_images(dossier: Path) -> int:
     """Compte les images d'une classe."""
     if not dossier.is_dir():
@@ -78,27 +123,11 @@ def main() -> int:
 
     destination: Path = arguments.destination
 
-    if destination.exists():
-        # Un dataset n'est complet que si les 38 dossiers existent et
-        # contiennent des images : chaque classe est vérifiée, pas seulement
-        # la première.
-        existantes = verifier_dataset(destination)
-        manquantes = afficher_classes_manquantes(existantes)
-        if not manquantes:
-            print(
-                f"Dataset complet : {sum(existantes.values())} images dans "
-                f"{len(existantes)} classes ({destination})."
-            )
-            print("Utilisez --force pour le retélécharger.")
-            return 0
-        if not arguments.force:
-            raise SystemExit(
-                "Dataset incomplet : le téléchargement n'est pas considéré "
-                "comme terminé.\nRelancez avec --force pour récupérer "
-                "les 38 classes."
-            )
-        print("\n Dataset incomplet : remplacement complet avec --force.")
-        shutil.rmtree(destination)
+    # Sans --force un dataset complet est conservé ; avec --force il est
+    # réellement supprimé puis retéléchargé.
+    if etat_dataset(destination, arguments.force) == "conserver":
+        return 0
+    preparer_remplacement(destination)
 
     if shutil.which("git") is None:
         raise SystemExit(

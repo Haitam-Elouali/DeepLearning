@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import os
 import sys
 from collections import Counter
@@ -60,6 +61,20 @@ from utils.predictor import obtenir_predictor  # noqa: E402
 
 sns.set_theme(style="whitegrid", context="notebook")
 plt.rcParams.update({"font.size": 10, "figure.dpi": 130, "savefig.bbox": "tight"})
+
+
+def empreinte_sha256(chemin: Path) -> str:
+    """Empreinte SHA-256 d'un fichier.
+
+    Elle identifie de façon certaine le modèle qui a produit les métriques
+    enregistrées : deux fichiers de modèle différents ont deux empreintes
+    différentes, même s'ils portent le même nom.
+    """
+    digest = hashlib.sha256()
+    with chemin.open("rb") as fichier:
+        for bloc in iter(lambda: fichier.read(1024 * 1024), b""):
+            digest.update(bloc)
+    return digest.hexdigest()
 
 
 def collecter_test(dossier: Path) -> tuple[list[Path], list[int], list[str]]:
@@ -355,6 +370,8 @@ def main() -> int:
     resultat = {
         "date": datetime.now().isoformat(timespec="seconds"),
         "modele": predictor.version,
+        "modele_fichier": str(config.MODEL_PATH.relative_to(config.BASE_DIR)).replace("\\", "/"),
+        "modele_sha256": empreinte_sha256(config.MODEL_PATH),
         "classes": classes,
         "global": {
             "accuracy": exactitude,
@@ -477,7 +494,7 @@ def main() -> int:
     lignes = [
         "# Résultats de l'évaluation — ensemble de test",
         "",
-        f"- Modèle : `{predictor.version}`",
+        f"- Modèle : `{predictor.version}` (SHA-256 : `{resultat['modele_sha256'][:16]}…`)",
         f"- Date : {datetime.now().strftime('%d/%m/%Y %H:%M')}",
         f"- Images de test : {len(etiquettes)}",
         "",

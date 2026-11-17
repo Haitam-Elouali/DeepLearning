@@ -1,6 +1,8 @@
 {
-  "date": "2026-11-17T11:55:49",
+  "date": "2026-11-17T12:18:15",
   "modele": "best_model.keras",
+  "modele_fichier": "models/best_model.keras",
+  "modele_sha256": "2293b814f5c5705ce360ca02f7acb56a79267fb53c25ee8067907a0393d61744",
   "classes": [
     "Apple___Apple_scab",
     "Apple___Black_rot",

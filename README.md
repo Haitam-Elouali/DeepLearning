@@ -489,6 +489,11 @@ numéros de page figurent en pied de page.
 
 ## 15. Licence
 
-Code distribué sous licence MIT pour un usage académique. Les images du dataset
-PlantVillage restent soumises aux conditions de leur source d'origine et ne sont pas
-incluses dans ce dépôt.
+Le code de ce dépôt n'est accompagné d'aucun fichier de licence : les conditions de
+réutilisation et de redistribution du code **restent à préciser** par l'auteur du projet.
+Une licence (MIT ou autre) pourra être ajoutée dans un fichier `LICENSE` à la racine
+lorsqu'elle aura été choisie explicitement.
+
+Les images du dataset PlantVillage ne sont **pas** incluses dans ce dépôt : elles restent
+soumises aux conditions de leur source d'origine
+(<https://github.com/spMohanty/PlantVillage-Dataset>), rappelées au chapitre 4.
