@@ -87,14 +87,50 @@ CLASS_NAMES = [
 
 NUM_CLASSES = len(CLASS_NAMES)
 
-#: Libellés français des classes de tomate (les autres sont mis en forme
-#: automatiquement par ``utils.helpers.nom_affichage``).
+#: Libellés français des 38 classes, au format « Culture — Maladie ». Ils sont
+#: utilisés dans l'interface, les fiches, les figures et les rapports ; le nom
+#: d'origine du jeu de données reste disponible via ``nom_anglais``.
 CLASSES_FR = {
-    "Tomato___Early_blight": "Alternariose précoce",
-    "Tomato___Late_blight": "Mildiou",
-    "Tomato___Leaf_Mold": "Moisissure des feuilles",
-    "Tomato___healthy": "Feuille saine",
+    "Apple___Apple_scab": "Pommier — Tavelure",
+    "Apple___Black_rot": "Pommier — Pourriture noire",
+    "Apple___Cedar_apple_rust": "Pommier — Rouille du cèdre",
+    "Apple___healthy": "Pommier — Feuille saine",
+    "Blueberry___healthy": "Myrtillier — Feuille saine",
+    "Cherry_(including_sour)___Powdery_mildew": "Cerisier — Oïdium",
+    "Cherry_(including_sour)___healthy": "Cerisier — Feuille saine",
+    "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot": "Maïs — Cercosporiose (tache grise)",
+    "Corn_(maize)___Common_rust_": "Maïs — Rouille commune",
+    "Corn_(maize)___Northern_Leaf_Blight": "Maïs — Helminthosporiose",
+    "Corn_(maize)___healthy": "Maïs — Feuille saine",
+    "Grape___Black_rot": "Vigne — Pourriture noire",
+    "Grape___Esca_(Black_Measles)": "Vigne — Esca",
+    "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)": "Vigne — Brûlure des feuilles",
+    "Grape___healthy": "Vigne — Feuille saine",
+    "Orange___Haunglongbing_(Citrus_greening)": "Oranger — Huanglongbing",
+    "Peach___Bacterial_spot": "Pêcher — Tache bactérienne",
+    "Peach___healthy": "Pêcher — Feuille saine",
+    "Pepper,_bell___Bacterial_spot": "Poivron — Tache bactérienne",
+    "Pepper,_bell___healthy": "Poivron — Feuille saine",
+    "Potato___Early_blight": "Pomme de terre — Alternariose",
+    "Potato___Late_blight": "Pomme de terre — Mildiou",
+    "Potato___healthy": "Pomme de terre — Feuille saine",
+    "Raspberry___healthy": "Framboisier — Feuille saine",
+    "Soybean___healthy": "Soja — Feuille saine",
+    "Squash___Powdery_mildew": "Courge — Oïdium",
+    "Strawberry___Leaf_scorch": "Fraisier — Brûlure des feuilles",
+    "Strawberry___healthy": "Fraisier — Feuille saine",
+    "Tomato___Bacterial_spot": "Tomate — Tache bactérienne",
+    "Tomato___Early_blight": "Tomate — Alternariose précoce",
+    "Tomato___Late_blight": "Tomate — Mildiou",
+    "Tomato___Leaf_Mold": "Tomate — Moisissure des feuilles",
+    "Tomato___Septoria_leaf_spot": "Tomate — Septoriose",
+    "Tomato___Spider_mites Two-spotted_spider_mite": "Tomate — Tétranyque à deux points",
+    "Tomato___Target_Spot": "Tomate — Tache cible",
+    "Tomato___Tomato_Yellow_Leaf_Curl_Virus": "Tomate — Virus des feuilles jaunes",
+    "Tomato___Tomato_mosaic_virus": "Tomate — Virus de la mosaïque",
+    "Tomato___healthy": "Tomate — Feuille saine",
 }
+
 
 # ---------------------------------------------------------------------------
 # Prétraitement et entraînement

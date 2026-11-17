@@ -3,117 +3,107 @@
 {% block contenu %}
 
 {% if erreur %}
-  <div class="alerte" role="alert">
-    <svg class="icone-alerte" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 8v5m0 3.5v.5M12 3.5 21 20H3L12 3.5z" fill="none" stroke="currentColor"
-            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    <span>{{ erreur }}</span>
-  </div>
+  <p class="alerte">{{ erreur }}</p>
 {% endif %}
 
 {% if not resultat %}
-  <section class="presentation">
-    <h1>Identifiez une maladie en une photo</h1>
-    <p>
-      Déposez l'image d'une feuille&nbsp;: le réseau estime la culture, la maladie
-      éventuelle et la confiance de sa réponse parmi {{ nombre_classes }} classes.
+  <section class="ouverture">
+    <p class="numero">Identification</p>
+    <h1>La feuille, le symptôme,<br><em>le nom.</em></h1>
+    <p class="chapeau">
+      Une photographie suffit&nbsp;: le modèle nomme la culture et la maladie,
+      avec le degré de certitude de sa réponse.
     </p>
   </section>
 {% endif %}
 
 {% if modele_pret %}
   {% if not resultat %}
-    <section class="carte">
-      <form method="post" action="{{ url_for('analyser') }}" enctype="multipart/form-data" id="formulaire">
-        <label class="depot" for="image" id="depot">
-          <svg class="icone-depot" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"
-                  fill="none" stroke="currentColor" stroke-width="1.7"
-                  stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span class="depot-titre">Glissez une image ici ou cliquez pour parcourir</span>
-          <span class="depot-detail">JPG ou PNG &middot; 8 Mo maximum &middot; une seule feuille, cadrage net</span>
-          <input type="file" id="image" name="image"
-                 accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
-        </label>
+    <form method="post" action="{{ url_for('analyser') }}" enctype="multipart/form-data" id="formulaire">
+      <label class="planche" for="image" id="depot">
+        <span class="coin coin-hg" aria-hidden="true"></span>
+        <span class="coin coin-hd" aria-hidden="true"></span>
+        <span class="coin coin-bg" aria-hidden="true"></span>
+        <span class="coin coin-bd" aria-hidden="true"></span>
+        <svg class="planche-icone" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 22V6m0 0-5 5m5-5 5 5M7 20v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4"
+                fill="none" stroke="currentColor" stroke-width="1.4"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="planche-titre">Déposer une photo de feuille</span>
+        <span class="planche-aide">JPG ou PNG &middot; 8 Mo au maximum &middot; une feuille par image</span>
+        <input type="file" id="image" name="image"
+               accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
+      </label>
 
-        <div class="apercu-local" id="apercu-local" hidden>
-          <img id="vignette" alt="Aperçu de l'image sélectionnée">
-          <div class="apercu-texte">
-            <strong id="nom-fichier"></strong>
-            <span id="taille-fichier"></span>
-          </div>
-        </div>
+      <div class="apercu-local" id="apercu-local" hidden>
+        <img id="vignette" alt="Aperçu de l'image sélectionnée">
+        <span class="apercu-texte">
+          <strong id="nom-fichier"></strong>
+          <span id="taille-fichier"></span>
+        </span>
+      </div>
 
-        <button type="submit" id="bouton-analysis">Analyser l'image</button>
-      </form>
-    </section>
+      <button type="submit" id="bouton-analysis">Analyser l'image</button>
+    </form>
   {% endif %}
 {% else %}
-  <section class="alerte" role="alert">
-    <span>Le modèle n'est pas disponible sur ce serveur&nbsp;: {{ erreur_modele }}</span>
-  </section>
+  <p class="alerte">
+    Le modèle n'est pas disponible sur ce serveur&nbsp;: {{ erreur_modele }}
+  </p>
 {% endif %}
 
 {% if resultat %}
-  <section class="carte carte-resultat">
-    <div class="resultat-grille">
-      <figure class="apercu">
+  <article class="fiche">
+    <div class="fiche-tete">
+      <span class="fiche-rubrique">Fiche d'identification</span>
+      <span class="fiche-duree">{{ resultat.duree_ms }} ms</span>
+    </div>
+
+    <div class="fiche-corps">
+      <figure class="specimen">
         <img src="{{ apercu }}" alt="Image analysée">
-        <figcaption>Image analysée</figcaption>
+        <figcaption>Spécimen analysé</figcaption>
       </figure>
 
-      <div class="verdict">
-        {% if resultat.saine %}
-          <span class="pastille pastille-saine">Feuille saine</span>
-        {% else %}
-          <span class="pastille pastille-malade">Maladie détectée</span>
-        {% endif %}
+      <div class="fiche-texte">
+        <span class="tampon {{ 'tampon-saine' if resultat.saine else 'tampon-malade' }}">
+          {{ 'Feuille saine' if resultat.saine else 'Maladie détectée' }}
+        </span>
 
-        <h2>{{ resultat.classe }}</h2>
+        <p class="fiche-culture">{{ resultat.culture }}</p>
+        <h2>{{ resultat.maladie }}</h2>
+        <p class="fiche-origine">({{ resultat.anglais }})</p>
 
-        <div class="jauge" role="img"
+        <div class="regle" role="img"
              aria-label="Confiance du modèle : {{ resultat.confiance|pourcentage }}">
-          <span class="jauge-remplissage" style="width: {{ resultat.confiance_pct }}%"></span>
+          <span class="regle-valeur" style="width: {{ resultat.confiance_pct }}%"></span>
         </div>
-
-        <p class="details">
+        <p class="fiche-confiance">
           Confiance&nbsp;: <strong>{{ resultat.confiance|pourcentage }}</strong>
-          &middot; durée de l'analyse&nbsp;: {{ resultat.duree_ms }} ms
         </p>
 
-        {% if resultat.saine %}
-          <p class="message sain">Aucune maladie n'est détectée sur cette feuille.</p>
-        {% else %}
-          <p class="message malade">
-            Faites confirmer ce résultat par un agronome avant toute intervention.
-          </p>
+        {% if not resultat.saine %}
+          <p class="fiche-note">Résultat à faire confirmer avant tout traitement.</p>
         {% endif %}
       </div>
     </div>
 
     <h3>Probabilités les plus élevées</h3>
-    <ul class="probabilites">
+    <ol class="palmares">
       {% for probabilite in probabilites %}
         <li>
-          <div class="probabilite-ligne">
-            <span>{{ probabilite.nom_fr }}</span>
-            <strong>{{ probabilite.pourcentage }}</strong>
-          </div>
-          <div class="barre"><span style="width: {{ probabilite.valeur }}%"></span></div>
+          <span class="palmares-rang">{{ '%02d'|format(loop.index) }}</span>
+          <span class="palmares-nom">{{ probabilite.nom_fr }}</span>
+          <span class="palmares-valeur">{{ probabilite.pourcentage }}</span>
+          <span class="palmares-barre"><span style="width: {{ probabilite.valeur }}%"></span></span>
         </li>
       {% endfor %}
-    </ul>
+    </ol>
 
-    <a class="lien-retour" href="{{ url_for('accueil') }}">&larr; Analyser une autre image</a>
-  </section>
+    <a class="relance" href="{{ url_for('accueil') }}">Analyser une autre image</a>
+  </article>
 {% endif %}
-
-<p class="note">
-  Cultures reconnues&nbsp;: tomate, pomme de terre, maïs, pommier, vigne, pêcher,
-  poivron, fraise, cerise, agrumes, soja, courge, framboisier, myrtillier.
-</p>
 
 <script>
   (function () {
@@ -133,7 +123,7 @@
       tailleFichier.textContent = (fichier.size / 1024).toFixed(0) + " Ko";
       vignette.src = URL.createObjectURL(fichier);
       bloc.hidden = false;
-      depot.classList.add("depot-rempli");
+      depot.classList.add("planche-remplie");
       bouton.disabled = false;
     }
 
@@ -144,13 +134,13 @@
     ["dragenter", "dragover"].forEach(function (type) {
       depot.addEventListener(type, function (evenement) {
         evenement.preventDefault();
-        depot.classList.add("depot-actif");
+        depot.classList.add("planche-actif");
       });
     });
 
     ["dragleave", "drop"].forEach(function (type) {
       depot.addEventListener(type, function () {
-        depot.classList.remove("depot-actif");
+        depot.classList.remove("planche-actif");
       });
     });
 

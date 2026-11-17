@@ -8,12 +8,15 @@ import pytest
 from PIL import Image
 from werkzeug.datastructures import FileStorage
 
+import config
 from utils.helpers import (
     charger_json,
     classe_est_saine,
     extension_autorisee,
     formater_pourcentage,
     nom_affichage,
+    nom_affichage_bilingue,
+    nom_anglais,
     sauvegarder_json,
     valider_image,
 )
@@ -79,11 +82,21 @@ def test_valider_image_refuse_une_image_trop_grande():
 
 # --- affichage ---------------------------------------------------------------
 def test_nom_affichage_utilise_les_libelles_francais():
-    assert nom_affichage("Tomato___Late_blight") == "Mildiou"
+    assert nom_affichage("Tomato___Late_blight") == "Tomate — Mildiou"
+    # Les 38 classes du jeu de données ont un libellé français.
+    assert set(config.CLASS_NAMES) <= set(config.CLASSES_FR)
 
 
 def test_nom_affichage_repli_sur_un_libelle_mis_en_forme():
-    assert nom_affichage("Apple___Apple_scab") == "Apple — Apple scab"
+    assert nom_affichage("Cucumber___Downy_mildew") == "Cucumber — Downy mildew"
+
+
+def test_nom_affichage_bilingue_ajoute_le_nom_d_origine():
+    assert (
+        nom_affichage_bilingue("Tomato___Late_blight")
+        == "Tomate — Mildiou (Tomato — Late blight)"
+    )
+    assert nom_anglais("Apple___Apple_scab") == "Apple — Apple scab"
 
 
 def test_classe_est_saine():

@@ -19,7 +19,7 @@ sys.path.insert(0, str(RACINE))
 
 import config  # noqa: E402
 from scripts.build_docx import convertir  # noqa: E402
-from utils.helpers import charger_json, nom_affichage  # noqa: E402
+from utils.helpers import charger_json, nom_affichage, nom_affichage_bilingue  # noqa: E402
 
 SORTIE_MD = RACINE / "docs" / "fiche" / "fiche_experimentale.md"
 SORTIE_DOCX = RACINE / "docs" / "fiche" / "fiche_experimentale.docx"
@@ -93,7 +93,7 @@ def main() -> int:
 
     for classe in config.CLASS_NAMES:
         lignes.append(
-            f"| {nom_affichage(classe)} ({classe}) | "
+            f"| {nom_affichage_bilingue(classe)} | "
             f"{manifeste.get('images_brutes', {}).get(classe, '—')} | "
             f"{comptages.get('train', {}).get(classe, '—')} | "
             f"{comptages.get('validation', {}).get(classe, '—')} | "

@@ -25,6 +25,8 @@ from utils.helpers import (
     classe_est_saine,
     formater_pourcentage,
     nom_affichage,
+    nom_affichage_bilingue,
+    nom_anglais,
     valider_image,
 )
 from utils.predictor import PredictionError, obtenir_predictor
@@ -94,7 +96,7 @@ def creer_application() -> Flask:
         classe = resultat["classe"]
         probabilites = [
             {
-                "nom_fr": nom_affichage(element["classe"]),
+                "nom_fr": nom_affichage_bilingue(element["classe"]),
                 "pourcentage": formater_pourcentage(element["probabilite"], 1),
                 "valeur": round(element["probabilite"] * 100, 1),
             }
@@ -102,9 +104,18 @@ def creer_application() -> Flask:
             # lister toutes les probabilités rendrait la page illisible.
             for element in resultat["classement"][:5]
         ]
+        # Libellé français complet, puis culture et maladie séparées pour la
+        # fiche d'identification ; le nom d'origine du jeu de données reste
+        # affiché entre parenthèses.
+        culture, separateur, maladie = nom_affichage(classe).partition(" — ")
+        if not separateur:
+            culture, maladie = "", culture
         return rendre(
             resultat={
-                "classe": nom_affichage(classe),
+                "classe": nom_affichage_bilingue(classe),
+                "culture": culture,
+                "maladie": maladie,
+                "anglais": nom_anglais(classe),
                 "saine": classe_est_saine(classe),
                 "confiance": resultat["confiance"],
                 "confiance_pct": round(resultat["confiance"] * 100, 1),
