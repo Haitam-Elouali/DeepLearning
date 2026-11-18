@@ -261,12 +261,12 @@ Les cinq premières paires représentent **22 % des erreurs**. Autrement dit, 70
 | Confiance moyenne sur les prédictions correctes | 98,14 % |
 | Confiance moyenne sur les erreurs | 72,34 % |
 | Confiance médiane globale | 99,99 % |
-| Classe la plus fragile | Alternariose précoce (rappel 70,67 %) |
+| Classe la plus fragile | Alternariose précoce (rappel 76,00 %) |
 
 *Tableau 16 — Statistiques de confiance et principales confusions.*
 
 La confiance moyenne des erreurs (72,34 %) est très inférieure à celle des prédictions
-correctes (98,5 %) : le modèle « sait » en partie qu'il hésite. C'est un signal utile pour
+correctes (98,14 %) : le modèle « sait » en partie qu'il hésite. C'est un signal utile pour
 l'utilisateur et un argument en faveur de l'affichage des probabilités plutôt que d'une
 classe unique.
 
@@ -471,7 +471,7 @@ Ce projet illustre plusieurs principes importants :
   motivé la décision ;
 - pas de détection d'image hors domaine (une photo de fleur serait classée dans une des
   38 catégories) ;
-- performance hétérogène : 80,6 % de F1 pour l'alternariose contre 100 % pour six classes.
+- performance hétérogène : 83,21 % de F1 pour l'alternariose précoce ; huit classes atteignent 100 % de F1.
 
 **Limites liées à l'application**
 
@@ -599,7 +599,7 @@ documentés comme limites et non masqués.
 
 Sur 8 153 images, 219 erreurs (2,69 %) subsistent. Leur concentration est le point
 sensible : les confusions entre **alternariose précoce** et **tache cible** (14 cas
-documentés), et entre **brûlure nordique** et **tache grise** du maïs (30 cas), portent
+documentés), et entre **tache grise** et **brûlure nordique** du maïs (7 cas dans chaque sens), portent
 sur des maladies dont la gestion diffère. Une erreur dans ces couples peut conduire à un
 traitement inadapté, donc à une perte de récolte ou à un usage inutile de fongicides.
 
@@ -691,7 +691,7 @@ Les résultats expérimentaux sont les suivants :
 
 - **accuracy de 97,31 %** sur l'ensemble de test à 38 classes ;
 - **F1-score macro de 96,65 %**, avec 15 classes au-dessus de 99 % de F1 et un point
-  faible identifié (alternariose précoce, 80,61 %) ;
+  faible identifié (alternariose précoce, 83,21 %) ;
 - **219 erreurs sur 8 153 images** (2,69 %), dont environ 22 % appartiennent aux cinq paires de
   confusions les plus fréquentes ;
 - **temps d'inférence d'environ 110 ms** par image, compatible avec une utilisation
