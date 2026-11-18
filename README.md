@@ -54,7 +54,7 @@ DeepLearning/
 │   └── training.ipynb          # architecture, hyperparamètres, courbes, résultats
 ├── training/
 │   ├── download_dataset.py     # récupère les 38 classes couleur (~955 Mo)
-│   ├── prepare_data.py         # contrôle qualité + split stratifié sans fuite
+│   ├── prepare_data.py         # contrôle qualité + split stratifié, doublons exacts regroupés
 │   ├── explore_data.py         # figures d'exploration (dataset, augmentation, modèle)
 │   ├── train.py                # MobileNetV2 : phase 1 + fine-tuning
 │   ├── evaluate.py             # métriques, figures, analyse d'erreurs
@@ -208,6 +208,16 @@ Vérification de reproductibilité : relancer `prepare_data.py --force` redonne 
 37 999 / 8 153 / 8 153 images, classe par classe (test automatisé :
 `tests/test_dataset.py`).
 
+### Préparation des données, prétraitement et augmentation : trois rôles différents
+
+Il ne s'agit pas de trois noms pour la même opération :
+
+- **Préparation du dataset — `training/prepare_data.py`** : contrôle que les fichiers sont lisibles, détecte les doublons exacts et les quasi-doublons, regroupe les copies exactes d'une classe, puis répartit les images entre train, validation et test. Ce script organise les données ; il ne construit pas les tenseurs numériques donnés au réseau.
+- **Prétraitement de chaque image — `utils/preprocessing.py`** : à chaque chargement, corrige l'orientation EXIF, convertit en RGB, redimensionne en 224 × 224, convertit en `float32` et normalise les pixels dans [-1, 1]. Le même pipeline est appelé pendant l'entraînement, la validation, le test et l'inférence Flask.
+- **Data Augmentation — `training/train.py`** : crée des variantes aléatoires (rotation, zoom, retournement, luminosité, translation) uniquement pour les lots d'entraînement. Elle augmente la diversité visuelle présentée au modèle ; elle ne remplace ni la préparation ni le prétraitement.
+
+En résumé, `prepare_data.py` répond à « quelles images vont dans chaque ensemble ? », tandis que `preprocessing.py` répond à « sous quelle forme numérique le réseau reçoit-il chaque image ? ».
+
 ---
 
 ## 5. Entraînement
@@ -270,7 +280,8 @@ Livrables produits à la racine de `results/` :
 | `results/metrics.json` | accuracy, precision, recall et F1 (macro et pondérés), métriques par classe, matrice de confusion |
 | `results/classification_report.csv` | precision / recall / F1 / support pour chacune des 38 classes |
 | `results/training_curves.png` | loss et accuracy par époque (entraînement vs validation) |
-| `results/confusion_matrix.png` | matrice de confusion (effectifs et proportions) sur le test |
+| `results/confusion_matrix.png` | matrice de confusion en effectifs sur le test |
+| `results/confusion_matrix_normalized.png` | matrice normalisée en pourcentage par classe réelle |
 
 Fichiers complémentaires : `results/metrics/classification_report.txt`,
 `results/metrics/evaluation_summary.md`, `results/figures/per_class_performance.png`,
@@ -304,7 +315,7 @@ L'application tient en **deux routes** :
 Le résultat affiche l'image analysée, la classe prédite, la confiance, la durée de
 l'inférence et les **cinq probabilités les plus élevées** (sur 38 classes, tout afficher
 rendrait la page illisible). Aucune image n'est enregistrée : le fichier est traité en
-mémoire. Il n'y a ni base de données, ni historique, ni API JSON, ni JavaScript.
+mémoire. Il n'y a ni base de données, ni historique, ni API JSON. Un petit script JavaScript intégré à `templates/index.html` gère uniquement l'aperçu local, le glisser-déposer, le retrait du fichier et l'état du bouton ; il n'effectue aucune prédiction.
 
 Si `models/best_model.keras` est absent, l'application démarre quand même et affiche un
 message clair au lieu de planter.
