@@ -122,7 +122,7 @@ section 8, calcule les prédictions par lots, puis dérive l'ensemble des métri
 scikit-learn. Les figures et les fichiers CSV sont générés automatiquement.
 
 Rappel du protocole : 38 classes, 45 époques (30 + 15), meilleure accuracy de validation
-**97,01 %** à l'époque 45. Le jeu de test n'a été ouvert qu'à la fin, une seule fois.
+**97,02 %** à l'époque 39. Le jeu de test n'a été ouvert qu'à la fin, une seule fois.
 
 #### 6.1.2. Courbes d'apprentissage
 
@@ -131,9 +131,9 @@ Rappel du protocole : 38 classes, 45 époques (30 + 15), meilleure accuracy de v
 *Figure 5 — Courbes d'apprentissage : accuracy et perte, entraînement et validation,
 avec la séparation entre phase 1 et fine-tuning (ligne pointillée).*
 
-L'accuracy d'entraînement progresse de 72,4 % à 97,0 %, et celle de validation de 86,6 %
-à 97,0 %. La perte de validation descend de 0,426 à 0,090. Sur les dernières époques,
-l'écart entre entraînement (96,98 %) et validation (97,01 %) est **quasiment nul** : le
+L'accuracy d'entraînement progresse de 73,35 % à 97,02 %, et celle de validation de 88,94 %
+à 96,82 %. La perte de validation passe de 0,361 à 0,095. À la dernière époque,
+l'écart entre entraînement et validation reste faible (environ 0,19 point) : le
 modèle n'est pas en situation de sur-apprentissage, malgré 2,4 millions de paramètres.
 La Data Augmentation, les deux couches de Dropout et les poids de classes expliquent
 cette absence de mémorisation.
@@ -150,11 +150,11 @@ cette absence de mémorisation.
 | Recall (pondéré) | 97,31 % |
 | F1-score (pondéré) | 97,30 % |
 | Images de test | 8 153 |
-| Images mal classées | 240 (2,69 %) |
+| Images mal classées | 219 (2,69 %) |
 
 *Tableau 13 — Métriques globales du modèle sur l'ensemble de test (38 classes).*
 
-L'accuracy de 97,31 % signifie que 7 916 images sur 8 153 ont été correctement classées.
+L'accuracy de 97,31 % signifie que 7 934 images sur 8 153 ont été correctement classées.
 Sur un problème à **38 classes**, ce résultat est nettement plus difficile à obtenir qu'un
 problème à 4 classes : un classifieur aléatoire obtiendrait 2,6 %, et un modèle prédisant
 toujours la classe majoritaire (orange, 826 images de test) obtiendrait 10,1 %.
@@ -214,11 +214,11 @@ bien traitées, ce que confirme l'analyse par classe.
 
 Trois observations se dégagent :
 
-1. **Quatorze classes atteignent un F1-score supérieur à 99 %**, dont six à 100 %
+1. **Quinze classes atteignent un F1-score supérieur à 99 %**, dont huit à 100 %
    (orange, courge, framboise, fraise saine, cerise oïdium, pommier rouille). Les
    signatures visuelles de ces maladies sont très marquées.
-2. **L'alternariose précoce est la classe la plus difficile** (F1 = 80,61 %, rappel de
-   70,67 %) : 44 feuilles sur 150 lui échappent, principalement vers la tache cible
+2. **L'alternariose précoce est la classe la plus difficile** (F1 = 83,21 %, rappel de
+   76,00 %) : 36 feuilles sur 150 lui échappent, principalement vers la tache cible
    (Target Spot, 14 cas). Ces deux maladies de la tomate produisent des taches brunes
    concentriques et leur ressemblance visuelle est bien connue en agronomie.
 3. **Les confusions du maïs sont structurelles** : la tache grise (Cercospora) a une
@@ -257,7 +257,7 @@ Les cinq premières paires représentent **22 % des erreurs**. Autrement dit, 70
 
 | Indicateur | Valeur |
 | --- | --- |
-| Erreurs totales | 240 / 8 153 (2,69 %) |
+| Erreurs totales | 219 / 8 153 (2,69 %) |
 | Confiance moyenne sur les prédictions correctes | 98,14 % |
 | Confiance moyenne sur les erreurs | 72,34 % |
 | Confiance médiane globale | 99,99 % |
@@ -265,7 +265,7 @@ Les cinq premières paires représentent **22 % des erreurs**. Autrement dit, 70
 
 *Tableau 16 — Statistiques de confiance et principales confusions.*
 
-La confiance moyenne des erreurs (74,4 %) est très inférieure à celle des prédictions
+La confiance moyenne des erreurs (72,34 %) est très inférieure à celle des prédictions
 correctes (98,5 %) : le modèle « sait » en partie qu'il hésite. C'est un signal utile pour
 l'utilisateur et un argument en faveur de l'affichage des probabilités plutôt que d'une
 classe unique.
@@ -327,8 +327,8 @@ le prix payé par les classes rares. C'est un écart modéré, très inférieur 
 observe habituellement sur un dataset aussi déséquilibré, ce qui suggère que les poids de
 classes ont rempli leur rôle.
 
-Le recall macro (96,68 %) est supérieur à la precision macro (96,72 %) : le modèle
-commet un peu plus de faux positifs que de faux négatifs. Dans un contexte de détection
+La precision macro (96,72 %) est légèrement supérieure au recall macro (96,68 %) ;
+ces valeurs proches montrent un compromis global équilibré entre faux positifs et faux négatifs. Dans un contexte de détection
 de maladie, ce compromis est plutôt **favorable** : il vaut mieux signaler à tort une
 feuille saine que manquer une maladie.
 
@@ -336,16 +336,10 @@ feuille saine que manquer une maladie.
 
 Les confusions observées sont **biologiquement cohérentes** :
 
-- **brûlure nordique du maïs → tache grise (30 cas)** : les deux maladies forment des
-  lésions allongées qui se chevauchent sur les feuilles âgées ; c'est la confusion la
-  plus fréquente du modèle et elle est documentée dans la littérature agronomique ;
-- **alternariose → tache cible (14 cas)** : les deux produisent des taches brunes
-  concentriques ; la tache cible est d'ailleurs une maladie proche, du même genre
-  *Alternaria* pour l'une de ses formes ;
-- **virus YLCV → brûlure bactérienne (11 cas)** : les deux provoquent des jaunissements
-  et des dessèchements de bord de feuille ;
-- **tache cible → acariens (9 cas)** et **tache cible → feuille saine (8 cas)** : images
-  à symptômes discrets, où quelques taches isolées ne suffisent pas au modèle.
+- **tache cible → acariens à deux points (14 cas)** et **tache cible → feuille saine (11 cas)** : certaines images présentent des symptômes peu marqués ;
+- **alternariose précoce → mildiou (9 cas)** et **alternariose précoce → septoriose (8 cas)** : ces maladies peuvent présenter des motifs foliaires proches ;
+- **tache grise du maïs → brûlure nordique (7 cas)** : la confusion est observée dans les deux sens, avec 7 cas dans chaque direction ;
+- **virus YLCV → tache bactérienne (7 cas)**.
 
 Aucune confusion majeure n'implique une classe saine en entrée : les feuilles saines sont
 reconnues avec un rappel de 100,00 % (239/239). C'est un point rassurant pour un usage
@@ -359,7 +353,7 @@ sont annoncées à plus de 99,9 %. Les réseaux de neurones modernes sont connus
 que la couche de sortie compte ici 38 neurones. Un score de 100 % ne signifie donc pas
 une certitude absolue, mais une forte activation du modèle.
 
-L'écart de confiance entre prédictions correctes (98,5 %) et erreurs (74,4 %) montre que
+L'écart de confiance entre prédictions correctes (98,14 %) et erreurs (72,34 %) montre que
 la confiance reste informative. Une perspective d'amélioration serait d'appliquer une
 **température scaling** ou une calibration de Platt sur l'ensemble de validation, afin de
 produire des probabilités plus réalistes.
@@ -387,16 +381,16 @@ La progression observée valide l'intérêt du Transfer Learning :
 
 | Étape | Accuracy de validation |
 | --- | --- |
-| Époque 1 (base gelée) | 86,59 % |
-| Meilleure phase 1 (époque 27) | 94,75 % |
-| Meilleure phase 2 (époque 45) | **97,01 %** |
+| Époque 1 (base gelée) | 88,94 % |
+| Meilleure phase 1 (époque 28) | 95,31 % |
+| Meilleure phase 2 (époque 39) | **97,02 %** |
 
 *Tableau 18 — Progression de la validation au fil de l'expérience.*
 
-Atteindre 86,6 % dès la première époque, avec seulement 168 870 paramètres entraînables,
+Atteindre 88,9 % dès la première époque, avec seulement 168 870 paramètres entraînables,
 aurait été impossible avec un réseau initialisé aléatoirement : c'est la qualité des
 caractéristiques ImageNet qui rend ce démarrage possible. Le gain du fine-tuning
-(+2,26 points) est plus marqué qu'avec le prototype à 4 classes (+1,46 point), ce qui
+(+1,71 point par rapport au meilleur score de phase 1) est marqué qu'avec le prototype à 4 classes (+1,46 point), ce qui
 s'explique par la finesse des frontières à établir entre 38 classes.
 
 #### 6.3.2. Variabilité et sensibilité aux hyperparamètres
@@ -613,7 +607,7 @@ Deux risques symétriques doivent être nommés :
 
 - **faux négatif** (maladie prédite saine) : risque de propagation silencieuse, le plus
   grave agronomiquement ; la classe saine est toutefois celle qui obtient un très bon
-  rappel (99,58 %), ce qui limite ce risque dans le domaine étudié ;
+  rappel (100 % sur ce jeu de test), ce qui limite ce risque dans le domaine étudié ;
 - **faux positif** (sain prédit malade) : traitement inutile, coût économique et intrants
   supplémentaires.
 
@@ -698,8 +692,8 @@ Les résultats expérimentaux sont les suivants :
 - **accuracy de 97,31 %** sur l'ensemble de test à 38 classes ;
 - **F1-score macro de 96,65 %**, avec 15 classes au-dessus de 99 % de F1 et un point
   faible identifié (alternariose précoce, 80,61 %) ;
-- **219 erreurs sur 8 153 images** (2,69 %), dont 30 % concentrées sur cinq paires de
-  classes visuellement proches ;
+- **219 erreurs sur 8 153 images** (2,69 %), dont environ 22 % appartiennent aux cinq paires de
+  confusions les plus fréquentes ;
 - **temps d'inférence d'environ 110 ms** par image, compatible avec une utilisation
   interactive ;
 - un modèle compact de **2,43 millions de paramètres**, entraînable et exécutable sans GPU.
