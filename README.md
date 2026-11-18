@@ -239,7 +239,7 @@ Paramètres (valeurs réellement utilisées, centralisées dans `config.py`) :
 Déroulement :
 
 - **phase 1** : base gelée, Adam 1e-3, Early Stopping + Checkpoint sur la meilleure
-  validation ; meilleure accuracy de validation **95,31 %** (époque 30) ;
+  validation ; meilleure accuracy de validation **95,31 %** (époque 28) ;
 - **phase 2** : on recharge ce meilleur modèle, on examine les 30 dernières couches de
   MobileNetV2 et on dégèle toutes celles qui ne sont pas des BatchNormalization (elles
   restent gelées, ce qui stabilise l'apprentissage avec de petits lots) ; on recompile à
