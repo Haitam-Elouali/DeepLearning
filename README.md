@@ -24,9 +24,7 @@ Interface entièrement en français.
 **Classes reconnues** : les **38 classes** du dataset PlantVillage (couleur), soit
 14 cultures (tomate, pomme de terre, maïs, pommier, vigne, pêcher, poivron, fraise,
 cerise, agrume, framboise, soja, courge, myrtille) et leurs maladies foliaires.
-Les quatre classes de tomate ont un libellé français (Alternariose précoce, Mildiou,
-Moisissure des feuilles, Feuille saine) ; les autres sont affichées sous la forme
-« Culture — Maladie ».
+Les **38 classes** disposent d'un libellé français dans `config.CLASSES_FR` (culture et maladie ou état sain).
 
 ---
 
